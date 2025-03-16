@@ -1,9 +1,12 @@
-import { Hono } from "hono";
+import { app } from "@getcronit/pylon";
 
-const app = new Hono();
-
-app.get("/", (c) => {
-  return c.text("Hello Hono!");
-});
+export const graphql = {
+  Query: {
+    hello: () => {
+      return "Hello, world!";
+    },
+  },
+  Mutation: {},
+};
 
 export default app;

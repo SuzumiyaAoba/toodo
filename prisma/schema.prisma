@@ -1,0 +1,62 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  email     String?  @unique
+  tasks     Task[]
+  tags      Tag[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Task {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  title     String
+  description String?
+  dueDate   DateTime?
+  status    Status   @default(open)
+  priority  Priority @default(medium)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tags      Tag[]
+
+  @@map("tasks") // テーブル名を明示的に指定 (optional)
+}
+
+model Tag {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  tasks     Task[]
+  createdAt DateTime @default(now())
+
+  @@map("tags") // テーブル名を明示的に指定 (optional)
+}
+
+
+enum Status {
+  open
+  completed
+}
+
+enum Priority {
+  low
+  medium
+  high
+}
