@@ -1,60 +1,58 @@
-# TODO 管理ソフト 要件定義と仕様
+# TODO Management System - Requirements and Specifications
 
-## 要件定義
+## 1. Introduction
 
-### 1. 基本要件
-- ユーザーが TODO を作成、編集、削除、一覧表示できること。
-- TODO の状態（例: 未完了、完了）を管理できること。
-- 各 TODO にタイトルと詳細説明を付与できること。
+### 1.1 Purpose
+This document defines the requirements and specifications for a TODO management system using the Hono framework as a REST API.
 
-### 2. 機能要件
-- **TODO 作成機能**: ユーザーが新しい TODO を作成できる。
-- **TODO 編集機能**: 既存の TODO のタイトル、詳細、状態を編集できる。
-- **TODO 削除機能**: 不要な TODO を削除できる。
-- **TODO 一覧表示機能**: 登録された TODO を一覧で確認できる。
-- **TODO 詳細表示機能**: 個別の TODO の詳細を確認できる。
+## 2. Functional Requirements
 
-### 3. 非機能要件
-- **パフォーマンス**: 高速なレスポンスを提供する。
-- **スケーラビリティ**: 将来的な機能拡張に対応可能であること。
-- **セキュリティ**: 不正アクセスを防止する仕組みを持つ。
+### 2.1 Core Features
+- Create new TODOs
+- View a list of TODOs
+- View details of individual TODOs
+- Edit existing TODOs
+- Delete unwanted TODOs
+- Change the status of TODOs (pending/completed)
 
-## 仕様
+### 2.2 Constraints
+- TODO titles are required, with a maximum of 100 characters
+- Description fields are optional, with a maximum of 1000 characters
+- TODO status must be either "pending" or "completed"
 
-### 1. データモデル
-- **TODO**
-  - `id`: 一意の識別子 (UUID)
-  - `title`: タイトル (文字列, 必須)
-  - `description`: 詳細説明 (文字列, 任意)
-  - `status`: 状態 (列挙型: `pending`, `completed`)
-  - `createdAt`: 作成日時 (タイムスタンプ)
-  - `updatedAt`: 更新日時 (タイムスタンプ)
+## 3. System Specifications
 
-### 2. ユーザーインターフェース
-- **Web UI**: ユーザーがブラウザを通じて操作可能。
-  - TODO の作成、編集、削除、一覧表示、詳細表示を行うための画面を提供。
+### 3.1 Data Model
 
-### 3. REST API
-- **エンドポイント**: `/todos`
-  - POST: TODO の作成
-  - GET: TODO の一覧取得
-  - GET `/todos/{id}`: TODO の詳細取得
-  - PUT `/todos/{id}`: TODO の更新
-  - DELETE `/todos/{id}`: TODO の削除
+#### 3.1.1 Todo Entity
+| Field       | Type        | Description                      | Constraints                   |
+|-------------|-------------|----------------------------------|-------------------------------|
+| id          | UUID        | Unique identifier for the TODO   | Auto-generated, unique        |
+| title       | String      | Title of the TODO                | Required, max 100 characters  |
+| description | String      | Detailed description of the TODO | Optional, max 1000 characters |
+| status      | Enum        | Status of the TODO               | Default: "pending"            |
+| createdAt   | Timestamp   | Creation time of the TODO        | Auto-generated                |
+| updatedAt   | Timestamp   | Last update time of the TODO     | Auto-updated on changes       |
 
-### 4. 技術スタック
-- **バックエンド**: Hono フレームワークを使用。
-- **データベース**: SQLite を使用。
-- **フロントエンド**: 必要に応じて React や Vue.js を採用可能。
-- **認証**: 必要に応じて JWT を使用。
+### 3.2 API Endpoints
+| Method  | Path        | Description                  | Response Codes                    |
+|---------|-------------|------------------------------|-----------------------------------|
+| POST    | /todos      | Create a new TODO            | 201: Created                      |
+| GET     | /todos      | Get a list of TODOs          | 200: OK                           |
+| GET     | /todos/{id} | Get details of a specific TODO | 200: OK, 404: Not Found         |
+| PUT     | /todos/{id} | Update a specific TODO       | 200: OK, 404: Not Found           |
+| DELETE  | /todos/{id} | Delete a specific TODO       | 204: No Content, 404: Not Found   |
 
-### 5. 開発環境
-- **言語**: TypeScript
-- **パッケージマネージャ**: Bun
-- **バージョン管理**: Git
+## 4. Technical Stack
+- **Backend**: TypeScript with Hono framework
+- **ORM**: Prisma
+- **Database**: SQLite
+- **Runtime**: Bun
+- **Testing**: Bun Test
 
-## 今後の拡張
-- ユーザー認証機能の追加。
-- TODO の優先度設定機能。
-- TODO の期限設定機能。
-- 通知機能の実装。
+## 5. Future Enhancement Ideas
+- User authentication
+- Priority setting for TODOs
+- Due date functionality
+- Tagging system
+- Mobile app integration
