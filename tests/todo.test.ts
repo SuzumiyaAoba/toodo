@@ -1,5 +1,86 @@
-import { describe, expect, it } from "bun:test";
-import app from "../src/index";
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "bun:test";
+import { Hono } from "hono";
+import { PrismaClient } from "../src/generated/prisma";
+
+// テスト用の Prisma Client を作成
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: "file:./test.db",
+    },
+  },
+});
+
+// テスト用の Hono アプリを作成
+const app = new Hono();
+
+// TODO 作成
+app.post("/todos", async (c) => {
+  const { title, description, status } = await c.req.json();
+  const todo = await prisma.todo.create({
+    data: { title, description, status },
+  });
+  return c.json(todo, 201);
+});
+
+// TODO 一覧取得
+app.get("/todos", async (c) => {
+  const todos = await prisma.todo.findMany();
+  return c.json(todos);
+});
+
+// TODO 詳細取得
+app.get("/todos/:id", async (c) => {
+  const id = c.req.param("id");
+  const todo = await prisma.todo.findUnique({ where: { id } });
+  if (!todo) return c.json({ error: "Todo not found" }, 404);
+  return c.json(todo);
+});
+
+// TODO 更新
+app.put("/todos/:id", async (c) => {
+  const id = c.req.param("id");
+  const { title, description, status } = await c.req.json();
+  try {
+    const todo = await prisma.todo.update({
+      where: { id },
+      data: { title, description, status },
+    });
+    return c.json(todo);
+  } catch (error) {
+    return c.json({ error: "Todo not found" }, 404);
+  }
+});
+
+// TODO 削除
+app.delete("/todos/:id", async (c) => {
+  const id = c.req.param("id");
+  try {
+    await prisma.todo.delete({ where: { id } });
+    c.status(204);
+    return c.body(null);
+  } catch (error) {
+    return c.json({ error: "Todo not found" }, 404);
+  }
+});
+
+beforeAll(async () => {
+  // テスト用データベースを設定
+  const { execSync } = await import("node:child_process");
+  execSync('DATABASE_URL="file:./test.db" npx prisma migrate dev --name test-setup --skip-generate', {
+    stdio: "inherit",
+    env: { ...process.env, DATABASE_URL: "file:./test.db" },
+  });
+});
+
+beforeEach(async () => {
+  // 各テスト前にデータをクリア
+  await prisma.todo.deleteMany({});
+});
+
+afterAll(async () => {
+  await prisma.$disconnect();
+});
 
 describe("TODO API", () => {
   it("TODO を作成できる", async () => {
