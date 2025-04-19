@@ -1,9 +1,2 @@
 # deps
 node_modules/
-
-# prisma
-dev.db
-dev.db-journal
-
-# pylon
-.pylon
