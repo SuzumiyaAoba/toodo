@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "bun:test";
 import { Hono } from "hono";
-import { PrismaClient } from "../src/generated/prisma";
+import { PrismaClient } from "./generated/prisma";
 
-// テスト用の Prisma Client を作成
+// Create a Prisma Client for testing
 const prisma = new PrismaClient({
   datasources: {
     db: {
@@ -11,10 +11,10 @@ const prisma = new PrismaClient({
   },
 });
 
-// テスト用の Hono アプリを作成
+// Create a Hono app for testing
 const app = new Hono();
 
-// TODO 作成
+// Create a TODO
 app.post("/todos", async (c) => {
   const { title, description, status } = await c.req.json();
   const todo = await prisma.todo.create({
@@ -23,13 +23,13 @@ app.post("/todos", async (c) => {
   return c.json(todo, 201);
 });
 
-// TODO 一覧取得
+// Get TODO list
 app.get("/todos", async (c) => {
   const todos = await prisma.todo.findMany();
   return c.json(todos);
 });
 
-// TODO 詳細取得
+// Get TODO details
 app.get("/todos/:id", async (c) => {
   const id = c.req.param("id");
   const todo = await prisma.todo.findUnique({ where: { id } });
@@ -37,7 +37,7 @@ app.get("/todos/:id", async (c) => {
   return c.json(todo);
 });
 
-// TODO 更新
+// Update a TODO
 app.put("/todos/:id", async (c) => {
   const id = c.req.param("id");
   const { title, description, status } = await c.req.json();
@@ -52,7 +52,7 @@ app.put("/todos/:id", async (c) => {
   }
 });
 
-// TODO 削除
+// Delete a TODO
 app.delete("/todos/:id", async (c) => {
   const id = c.req.param("id");
   try {
@@ -65,7 +65,7 @@ app.delete("/todos/:id", async (c) => {
 });
 
 beforeAll(async () => {
-  // テスト用データベースを設定
+  // Set up the test database
   const { execSync } = await import("node:child_process");
   execSync('DATABASE_URL="file:./test.db" npx prisma migrate dev --name test-setup --skip-generate', {
     stdio: "inherit",
@@ -74,7 +74,7 @@ beforeAll(async () => {
 });
 
 beforeEach(async () => {
-  // 各テスト前にデータをクリア
+  // Clear data before each test
   await prisma.todo.deleteMany({});
 });
 
@@ -83,7 +83,7 @@ afterAll(async () => {
 });
 
 describe("TODO API", () => {
-  it("TODO を作成できる", async () => {
+  it("can create a TODO", async () => {
     const response = await app.request("/todos", {
       method: "POST",
       body: JSON.stringify({
@@ -100,7 +100,7 @@ describe("TODO API", () => {
     expect(data.status).toBe("pending");
   });
 
-  it("TODO の一覧を取得できる", async () => {
+  it("can get the TODO list", async () => {
     const response = await app.request("/todos", {
       method: "GET",
     });
@@ -110,7 +110,7 @@ describe("TODO API", () => {
     expect(Array.isArray(data)).toBe(true);
   });
 
-  it("TODO の詳細を取得できる", async () => {
+  it("can get TODO details", async () => {
     const createResponse = await app.request("/todos", {
       method: "POST",
       body: JSON.stringify({
@@ -131,7 +131,7 @@ describe("TODO API", () => {
     expect(data.description).toBe("Detail Test Description");
   });
 
-  it("TODO を更新できる", async () => {
+  it("can update a TODO", async () => {
     const createResponse = await app.request("/todos", {
       method: "POST",
       body: JSON.stringify({
@@ -158,7 +158,7 @@ describe("TODO API", () => {
     expect(data.status).toBe("completed");
   });
 
-  it("TODO を削除できる", async () => {
+  it("can delete a TODO", async () => {
     const createResponse = await app.request("/todos", {
       method: "POST",
       body: JSON.stringify({
