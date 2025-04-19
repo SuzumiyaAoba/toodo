@@ -1,8 +1,33 @@
 import { Hono } from "hono";
 import { PrismaClient } from "./generated/prisma";
 
+import { Scalar } from "@scalar/hono-api-reference";
+import { openAPISpecs } from "hono-openapi";
+
 const app = new Hono();
 const prisma = new PrismaClient();
+
+app.get(
+  "/openapi",
+  openAPISpecs(app, {
+    documentation: {
+      info: {
+        title: "Toodo API",
+        version: "1.0.0",
+        description: "Toodo API",
+      },
+      servers: [{ url: "http://localhost:3000", description: "Local Server" }],
+    },
+  }),
+);
+
+app.get(
+  "/scalar",
+  Scalar({
+    theme: "saturn",
+    spec: { url: "/openapi" },
+  }),
+);
 
 // TODO 作成
 app.post("/todos", async (c) => {
