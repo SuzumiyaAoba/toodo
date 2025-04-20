@@ -208,6 +208,23 @@ This document outlines the API endpoints for the TODO management system built wi
   }
   ```
 
+### 2.9 Delete a TODO Activity
+- **URL**: `/todos/{id}/activities/{activityId}`
+- **Method**: `DELETE`
+- **Response** (204 No Content)
+- **Error** (404 Not Found):
+  ```json
+  {
+    "error": "Activity not found"
+  }
+  ```
+- **Error** (403 Forbidden):
+  ```json
+  {
+    "error": "Cannot delete this activity as it would affect the work time calculations"
+  }
+  ```
+
 ## 3. Error Handling
 Error responses have the following format:
 ```json

@@ -10,6 +10,7 @@ import {
   CreateTodoSchema,
   ErrorResponseSchema,
   IdParamSchema,
+  TodoActivityIdParamSchema,
   TodoActivityListSchema,
   TodoActivitySchema,
   TodoListSchema,
@@ -447,6 +448,98 @@ app.get(
       workState: todo.workState,
       formattedTime,
     });
+  },
+);
+
+// Delete a TODO activity
+app.delete(
+  "/todos/:id/activities/:activityId",
+  describeRoute({
+    description: "Delete a TODO activity",
+    responses: {
+      204: {
+        description: "Activity deleted successfully",
+      },
+      403: {
+        description: "Cannot delete this activity",
+        content: {
+          "application/json": {
+            schema: resolver(ErrorResponseSchema, valibotConfig),
+          },
+        },
+      },
+      404: {
+        description: "Activity not found",
+        content: {
+          "application/json": {
+            schema: resolver(ErrorResponseSchema, valibotConfig),
+          },
+        },
+      },
+    },
+    validateResponse: true,
+  }),
+  vValidator("param", TodoActivityIdParamSchema),
+  async (c) => {
+    const { id, activityId } = c.req.valid("param");
+
+    // 1. Check if the TODO exists
+    const todo = await prisma.todo.findUnique({ where: { id } });
+    if (!todo) {
+      return c.json({ error: "Todo not found" }, 404);
+    }
+
+    // 2. Check if the activity exists and belongs to the TODO
+    const activity = await prisma.todoActivity.findUnique({
+      where: { id: activityId },
+    });
+
+    if (!activity) {
+      return c.json({ error: "Activity not found" }, 404);
+    }
+
+    if (activity.todoId !== id) {
+      return c.json({ error: "Activity does not belong to this TODO" }, 403);
+    }
+
+    // 3. Check if deleting this activity would affect work time calculations
+    // Cannot delete activities that have work time recorded or affect state transitions
+    if (activity.workTime && activity.workTime > 0) {
+      return c.json(
+        {
+          error: "Cannot delete this activity as it would affect the work time calculations",
+        },
+        403,
+      );
+    }
+
+    // 4. If it's a state-changing activity (started, paused, completed),
+    // check if it's the most recent activity of its type
+    if (["started", "paused", "completed"].includes(activity.type)) {
+      const latestStateActivity = await prisma.todoActivity.findFirst({
+        where: {
+          todoId: id,
+          type: activity.type,
+        },
+        orderBy: { createdAt: "desc" },
+      });
+
+      // If it's the most recent activity of its type, don't allow deletion
+      if (latestStateActivity && latestStateActivity.id === activityId) {
+        return c.json(
+          {
+            error: "Cannot delete the most recent state-changing activity",
+          },
+          403,
+        );
+      }
+    }
+
+    // 5. If all validations pass, delete the activity
+    await prisma.todoActivity.delete({ where: { id: activityId } });
+
+    c.status(204);
+    return c.body(null);
   },
 );
 

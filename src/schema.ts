@@ -147,3 +147,16 @@ export const IdParamSchema = v.object({
  * Type for params with ID
  */
 export type IdParam = v.InferOutput<typeof IdParamSchema>;
+
+/**
+ * Schema for TODO and Activity ID params
+ */
+export const TodoActivityIdParamSchema = v.object({
+  id: v.pipe(v.string(), v.uuid()),
+  activityId: v.pipe(v.string(), v.uuid()),
+});
+
+/**
+ * Type for TODO and Activity ID params
+ */
+export type TodoActivityIdParam = v.InferOutput<typeof TodoActivityIdParamSchema>;
