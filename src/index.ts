@@ -29,7 +29,7 @@ app.get(
   }),
 );
 
-// TODO 作成
+// Create a TODO
 app.post("/todos", async (c) => {
   const { title, description, status } = await c.req.json();
   const todo = await prisma.todo.create({
@@ -37,14 +37,13 @@ app.post("/todos", async (c) => {
   });
   return c.json(todo, 201);
 });
-
-// TODO 一覧取得
+// Get TODO list
 app.get("/todos", async (c) => {
   const todos = await prisma.todo.findMany();
   return c.json(todos);
 });
 
-// TODO 詳細取得
+// Get TODO details
 app.get("/todos/:id", async (c) => {
   const id = c.req.param("id");
   const todo = await prisma.todo.findUnique({ where: { id } });
@@ -52,7 +51,7 @@ app.get("/todos/:id", async (c) => {
   return c.json(todo);
 });
 
-// TODO 更新
+// Update a TODO
 app.put("/todos/:id", async (c) => {
   const id = c.req.param("id");
   const { title, description, status } = await c.req.json();
@@ -63,7 +62,7 @@ app.put("/todos/:id", async (c) => {
   return c.json(todo);
 });
 
-// TODO 削除
+// Delete a TODO
 app.delete("/todos/:id", async (c) => {
   const id = c.req.param("id");
   await prisma.todo.delete({ where: { id } });
