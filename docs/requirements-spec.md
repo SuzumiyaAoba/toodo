@@ -14,11 +14,14 @@ This document defines the requirements and specifications for a TODO management 
 - Edit existing TODOs
 - Delete unwanted TODOs
 - Change the status of TODOs (pending/completed)
+- Track TODO activity history (started, paused, completed)
+- View activity history of TODOs
 
 ### 2.2 Constraints
 - TODO titles are required, with a maximum of 100 characters
 - Description fields are optional, with a maximum of 1000 characters
 - TODO status must be either "pending" or "completed"
+- Activity type must be one of: "started", "paused", "completed", "discarded"
 
 ## 3. System Specifications
 
@@ -34,14 +37,25 @@ This document defines the requirements and specifications for a TODO management 
 | createdAt   | Timestamp   | Creation time of the TODO        | Auto-generated                |
 | updatedAt   | Timestamp   | Last update time of the TODO     | Auto-updated on changes       |
 
+#### 3.1.2 TodoActivity Entity
+| Field       | Type        | Description                      | Constraints                   |
+|-------------|-------------|----------------------------------|-------------------------------|
+| id          | UUID        | Unique identifier for the activity | Auto-generated, unique      |
+| todoId      | UUID        | Reference to the TODO            | Foreign key to Todo.id        |
+| type        | Enum        | Type of activity                 | One of: "started", "paused", "completed", "discarded" |
+| createdAt   | Timestamp   | When the activity occurred       | Auto-generated                |
+| note        | String      | Optional note about the activity | Optional, max 500 characters  |
+
 ### 3.2 API Endpoints
-| Method  | Path        | Description                  | Response Codes                    |
-|---------|-------------|------------------------------|-----------------------------------|
-| POST    | /todos      | Create a new TODO            | 201: Created                      |
-| GET     | /todos      | Get a list of TODOs          | 200: OK                           |
-| GET     | /todos/{id} | Get details of a specific TODO | 200: OK, 404: Not Found         |
-| PUT     | /todos/{id} | Update a specific TODO       | 200: OK, 404: Not Found           |
-| DELETE  | /todos/{id} | Delete a specific TODO       | 204: No Content, 404: Not Found   |
+| Method  | Path                      | Description                           | Response Codes                    |
+|---------|---------------------------|---------------------------------------|-----------------------------------|
+| POST    | /todos                    | Create a new TODO                     | 201: Created                      |
+| GET     | /todos                    | Get a list of TODOs                   | 200: OK                           |
+| GET     | /todos/{id}               | Get details of a specific TODO        | 200: OK, 404: Not Found           |
+| PUT     | /todos/{id}               | Update a specific TODO                | 200: OK, 404: Not Found           |
+| DELETE  | /todos/{id}               | Delete a specific TODO                | 204: No Content, 404: Not Found   |
+| POST    | /todos/{id}/activities    | Record a new activity for a TODO      | 201: Created, 404: Not Found      |
+| GET     | /todos/{id}/activities    | Get activity history of a specific TODO | 200: OK, 404: Not Found         |
 
 ## 4. Technical Stack
 - **Backend**: TypeScript with Hono framework
@@ -56,3 +70,5 @@ This document defines the requirements and specifications for a TODO management 
 - Due date functionality
 - Tagging system
 - Mobile app integration
+- Activity statistics and reports
+- Time tracking for activities
