@@ -16,6 +16,9 @@ export const TodoSchema = v.object({
   title: v.pipe(v.string(), v.minLength(1), v.maxLength(100)),
   description: v.optional(v.pipe(v.string(), v.maxLength(1000))),
   status: v.picklist(["pending", "completed"]),
+  workState: v.picklist(["idle", "active", "paused", "completed"]),
+  totalWorkTime: v.number(),
+  lastStateChangeAt: DateSchema,
   createdAt: DateSchema,
   updatedAt: DateSchema,
 });
@@ -32,6 +35,7 @@ export const CreateTodoSchema = v.object({
   title: v.pipe(v.string(), v.minLength(1), v.maxLength(100)),
   description: v.optional(v.pipe(v.string(), v.maxLength(1000))),
   status: v.optional(v.picklist(["pending", "completed"])),
+  workState: v.optional(v.picklist(["idle", "active", "paused", "completed"])),
 });
 
 /**
@@ -46,6 +50,7 @@ export const UpdateTodoSchema = v.object({
   title: v.optional(v.pipe(v.string(), v.minLength(1), v.maxLength(100))),
   description: v.optional(v.pipe(v.string(), v.maxLength(1000))),
   status: v.optional(v.picklist(["pending", "completed"])),
+  workState: v.optional(v.picklist(["idle", "active", "paused", "completed"])),
 });
 
 /**
@@ -70,6 +75,8 @@ export const TodoActivitySchema = v.object({
   id: v.pipe(v.string(), v.uuid()),
   todoId: v.pipe(v.string(), v.uuid()),
   type: v.picklist(["started", "paused", "completed", "discarded"]),
+  workTime: v.optional(v.number()),
+  previousState: v.optional(v.picklist(["idle", "active", "paused", "completed"])),
   note: v.optional(v.pipe(v.string(), v.maxLength(500))),
   createdAt: DateSchema,
 });
@@ -101,6 +108,21 @@ export const TodoActivityListSchema = v.array(TodoActivitySchema);
  * Type for TODO activity response list
  */
 export type TodoActivityList = v.InferOutput<typeof TodoActivityListSchema>;
+
+/**
+ * Schema for work time response
+ */
+export const WorkTimeResponseSchema = v.object({
+  id: v.pipe(v.string(), v.uuid()),
+  totalWorkTime: v.number(),
+  workState: v.picklist(["idle", "active", "paused", "completed"]),
+  formattedTime: v.string(),
+});
+
+/**
+ * Type for work time response
+ */
+export type WorkTimeResponse = v.InferOutput<typeof WorkTimeResponseSchema>;
 
 /**
  * Schema for error responses

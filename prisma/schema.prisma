@@ -15,20 +15,25 @@ datasource db {
 }
 
 model Todo {
-  id          String         @id @default(uuid())
-  title       String
-  description String?
-  status      String         @default("pending")
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-  activities  TodoActivity[]
+  id               String         @id @default(uuid())
+  title            String
+  description      String?
+  status           String         @default("pending")
+  workState        String         @default("idle")
+  totalWorkTime    Int            @default(0)
+  lastStateChangeAt DateTime      @default(now())
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  activities       TodoActivity[]
 }
 
 model TodoActivity {
-  id        String   @id @default(uuid())
-  todoId    String
-  todo      Todo     @relation(fields: [todoId], references: [id], onDelete: Cascade)
-  type      String
-  note      String?
-  createdAt DateTime @default(now())
+  id            String   @id @default(uuid())
+  todoId        String
+  todo          Todo     @relation(fields: [todoId], references: [id], onDelete: Cascade)
+  type          String
+  workTime      Int?
+  previousState String?
+  note          String?
+  createdAt     DateTime @default(now())
 }

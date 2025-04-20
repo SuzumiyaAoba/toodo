@@ -16,12 +16,16 @@ This document defines the requirements and specifications for a TODO management 
 - Change the status of TODOs (pending/completed)
 - Track TODO activity history (started, paused, completed)
 - View activity history of TODOs
+- Track work state of TODOs (idle, active, paused, completed)
+- Calculate and track work time for TODOs
 
 ### 2.2 Constraints
 - TODO titles are required, with a maximum of 100 characters
 - Description fields are optional, with a maximum of 1000 characters
 - TODO status must be either "pending" or "completed"
 - Activity type must be one of: "started", "paused", "completed", "discarded"
+- TODO work state must be one of: "idle", "active", "paused", "completed"
+- Work time is measured in seconds
 
 ## 3. System Specifications
 
@@ -34,6 +38,9 @@ This document defines the requirements and specifications for a TODO management 
 | title       | String      | Title of the TODO                | Required, max 100 characters  |
 | description | String      | Detailed description of the TODO | Optional, max 1000 characters |
 | status      | Enum        | Status of the TODO               | Default: "pending"            |
+| workState   | Enum        | Current work state of the TODO   | One of: "idle", "active", "paused", "completed" |
+| totalWorkTime | Integer   | Total accumulated work time      | In seconds, default: 0        |
+| lastStateChangeAt | Timestamp | Last time work state changed | Auto-updated on state changes |
 | createdAt   | Timestamp   | Creation time of the TODO        | Auto-generated                |
 | updatedAt   | Timestamp   | Last update time of the TODO     | Auto-updated on changes       |
 
@@ -43,6 +50,8 @@ This document defines the requirements and specifications for a TODO management 
 | id          | UUID        | Unique identifier for the activity | Auto-generated, unique      |
 | todoId      | UUID        | Reference to the TODO            | Foreign key to Todo.id        |
 | type        | Enum        | Type of activity                 | One of: "started", "paused", "completed", "discarded" |
+| workTime    | Integer     | Time spent on this activity cycle | In seconds, optional         |
+| previousState | Enum      | Work state before this activity  | One of: "idle", "active", "paused", "completed" |
 | createdAt   | Timestamp   | When the activity occurred       | Auto-generated                |
 | note        | String      | Optional note about the activity | Optional, max 500 characters  |
 
@@ -56,6 +65,7 @@ This document defines the requirements and specifications for a TODO management 
 | DELETE  | /todos/{id}               | Delete a specific TODO                | 204: No Content, 404: Not Found   |
 | POST    | /todos/{id}/activities    | Record a new activity for a TODO      | 201: Created, 404: Not Found      |
 | GET     | /todos/{id}/activities    | Get activity history of a specific TODO | 200: OK, 404: Not Found         |
+| GET     | /todos/{id}/work-time     | Get the total work time of a TODO     | 200: OK, 404: Not Found           |
 
 ## 4. Technical Stack
 - **Backend**: TypeScript with Hono framework
@@ -71,4 +81,4 @@ This document defines the requirements and specifications for a TODO management 
 - Tagging system
 - Mobile app integration
 - Activity statistics and reports
-- Time tracking for activities
+- Work time visualization and reporting
