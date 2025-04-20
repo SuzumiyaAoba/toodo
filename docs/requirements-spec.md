@@ -65,6 +65,7 @@ This document defines the requirements and specifications for a TODO management 
 | DELETE  | /todos/{id}               | Delete a specific TODO                | 204: No Content, 404: Not Found   |
 | POST    | /todos/{id}/activities    | Record a new activity for a TODO      | 201: Created, 404: Not Found      |
 | GET     | /todos/{id}/activities    | Get activity history of a specific TODO | 200: OK, 404: Not Found         |
+| DELETE  | /todos/{id}/activities/{activityId} | Delete a specific activity for a TODO | 204: No Content, 403: Forbidden, 404: Not Found |
 | GET     | /todos/{id}/work-time     | Get the total work time of a TODO     | 200: OK, 404: Not Found           |
 
 ## 4. Technical Stack
