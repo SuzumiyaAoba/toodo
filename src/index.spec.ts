@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "bun:test";
 import { Hono } from "hono";
-import { PrismaClient } from "./generated/prisma";
+import { PrismaClient, type TodoActivity } from "./generated/prisma";
 
 // Create a Prisma Client for testing
 const prisma = new PrismaClient({
@@ -235,6 +235,71 @@ app.get("/todos/:id/work-time", async (c) => {
     workState: todo.workState,
     formattedTime,
   });
+});
+
+// Delete a TODO activity
+app.delete("/todos/:id/activities/:activityId", async (c) => {
+  const id = c.req.param("id");
+  const activityId = c.req.param("activityId");
+
+  // 1. Check if the TODO exists
+  const todo = await prisma.todo.findUnique({ where: { id } });
+  if (!todo) {
+    return c.json({ error: "Todo not found" }, 404);
+  }
+
+  // 2. Check if the activity exists and belongs to the TODO
+  const activity: TodoActivity | null = await prisma.todoActivity.findUnique({
+    where: { id: activityId },
+  });
+
+  if (!activity) {
+    return c.json({ error: "Activity not found" }, 404);
+  }
+
+  // todoIdとidを比較する前に同じ型に変換
+  if (activity.todoId !== id) {
+    return c.json({ error: "Activity does not belong to this TODO" }, 403);
+  }
+
+  // 3. Check if deleting this activity would affect work time calculations
+  // Cannot delete activities that have work time recorded or affect state transitions
+  if (activity.workTime && activity.workTime > 0) {
+    return c.json(
+      {
+        error: "Cannot delete this activity as it would affect the work time calculations",
+      },
+      403,
+    );
+  }
+
+  // 4. If it's a state-changing activity (started, paused, completed),
+  // check if it's the most recent activity of its type
+  if (["started", "paused", "completed"].includes(activity.type)) {
+    const latestStateActivity = await prisma.todoActivity.findFirst({
+      where: {
+        todoId: id,
+        type: activity.type,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    // If it's the most recent activity of its type, don't allow deletion
+    if (latestStateActivity && latestStateActivity.id === activityId) {
+      return c.json(
+        {
+          error: "Cannot delete the most recent state-changing activity",
+        },
+        403,
+      );
+    }
+  }
+
+  // 5. If all validations pass, delete the activity
+  await prisma.todoActivity.delete({ where: { id: activityId } });
+
+  c.status(204);
+  return c.body(null);
 });
 
 beforeAll(async () => {
@@ -831,6 +896,179 @@ describe("TODO API", () => {
       expect(firstSessionTime).toBeGreaterThan(0);
       expect(finalTime).toBeGreaterThan(firstSessionTime);
       expect(finalTimeData.workState).toBe("completed");
+    });
+
+    // Activity Deletion Tests
+    describe("Activity Deletion", () => {
+      it("can delete a non-critical activity", async () => {
+        // 1. Create a TODO
+        const createResponse = await app.request("/todos", {
+          method: "POST",
+          body: JSON.stringify({
+            title: "Delete Activity Test",
+            description: "Testing activity deletion",
+            status: "pending",
+          }),
+        });
+        const todo = await createResponse.json();
+
+        // 2. Add a note activity (not affecting work state)
+        const noteActivityResponse = await app.request(`/todos/${todo.id}/activities`, {
+          method: "POST",
+          body: JSON.stringify({
+            type: "discarded", // Using discarded type for a note that doesn't affect state
+            note: "This is a note activity that can be deleted",
+          }),
+        });
+        const noteActivity = await noteActivityResponse.json();
+
+        // 3. Try to delete the note activity
+        const deleteResponse = await app.request(`/todos/${todo.id}/activities/${noteActivity.id}`, {
+          method: "DELETE",
+        });
+
+        // 4. Verify successful deletion
+        expect(deleteResponse.status).toBe(204);
+
+        // 5. Verify the activity is gone
+        const activitiesResponse = await app.request(`/todos/${todo.id}/activities`, {
+          method: "GET",
+        });
+        const activities = await activitiesResponse.json();
+
+        // Should not find the deleted activity ID in the list
+        const deletedActivityExists = activities.some((activity) => activity.id === noteActivity.id);
+        expect(deletedActivityExists).toBe(false);
+      });
+
+      it("cannot delete an activity with work time recorded", async () => {
+        // 1. Create a TODO
+        const createResponse = await app.request("/todos", {
+          method: "POST",
+          body: JSON.stringify({
+            title: "Work Time Activity Test",
+            description: "Testing work time activity deletion",
+            status: "pending",
+          }),
+        });
+        const todo = await createResponse.json();
+
+        // 2. Start the TODO
+        await app.request(`/todos/${todo.id}/activities`, {
+          method: "POST",
+          body: JSON.stringify({
+            type: "started",
+            note: "Starting work",
+          }),
+        });
+
+        // Wait a bit to accumulate work time
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        // 3. Pause the TODO, which will record work time
+        const pauseResponse = await app.request(`/todos/${todo.id}/activities`, {
+          method: "POST",
+          body: JSON.stringify({
+            type: "paused",
+            note: "Pausing work",
+          }),
+        });
+        const pauseActivity = await pauseResponse.json();
+
+        // 4. Try to delete the pause activity that has work time
+        const deleteResponse = await app.request(`/todos/${todo.id}/activities/${pauseActivity.id}`, {
+          method: "DELETE",
+        });
+
+        // 5. Verify deletion is forbidden
+        expect(deleteResponse.status).toBe(403);
+        const errorData = await deleteResponse.json();
+        expect(errorData.error).toContain("work time calculations");
+      });
+
+      it("cannot delete the most recent state-changing activity", async () => {
+        // 1. Create a TODO
+        const createResponse = await app.request("/todos", {
+          method: "POST",
+          body: JSON.stringify({
+            title: "State Change Activity Test",
+            description: "Testing state change activity deletion",
+            status: "pending",
+          }),
+        });
+        const todo = await createResponse.json();
+
+        // 2. Start the TODO (first 'started' activity)
+        const startResponse = await app.request(`/todos/${todo.id}/activities`, {
+          method: "POST",
+          body: JSON.stringify({
+            type: "started",
+            note: "Starting work first time",
+          }),
+        });
+        const startActivity = await startResponse.json();
+
+        // 3. Pause the TODO
+        await app.request(`/todos/${todo.id}/activities`, {
+          method: "POST",
+          body: JSON.stringify({
+            type: "paused",
+            note: "Pausing work",
+          }),
+        });
+
+        // 4. Start again (second 'started' activity)
+        const secondStartResponse = await app.request(`/todos/${todo.id}/activities`, {
+          method: "POST",
+          body: JSON.stringify({
+            type: "started",
+            note: "Starting work second time",
+          }),
+        });
+        const secondStartActivity = await secondStartResponse.json();
+
+        // 5. Try to delete the most recent 'started' activity
+        const deleteLatestResponse = await app.request(`/todos/${todo.id}/activities/${secondStartActivity.id}`, {
+          method: "DELETE",
+        });
+
+        // 6. Verify deletion is forbidden for the most recent state-changing activity
+        expect(deleteLatestResponse.status).toBe(403);
+        const latestErrorData = await deleteLatestResponse.json();
+        expect(latestErrorData.error).toContain("most recent state-changing activity");
+
+        // 7. But we can delete the first 'started' activity since it's not the most recent one
+        const deleteFirstResponse = await app.request(`/todos/${todo.id}/activities/${startActivity.id}`, {
+          method: "DELETE",
+        });
+
+        // 8. Verify first activity can be deleted
+        expect(deleteFirstResponse.status).toBe(204);
+      });
+
+      it("returns 404 when trying to delete non-existent activity", async () => {
+        // 1. Create a TODO
+        const createResponse = await app.request("/todos", {
+          method: "POST",
+          body: JSON.stringify({
+            title: "Non-existent Activity Test",
+            description: "Testing non-existent activity deletion",
+            status: "pending",
+          }),
+        });
+        const todo = await createResponse.json();
+
+        // 2. Try to delete an activity with a fake ID
+        const fakeActivityId = "00000000-0000-4000-a000-000000000000"; // A valid UUID format but doesn't exist
+        const deleteResponse = await app.request(`/todos/${todo.id}/activities/${fakeActivityId}`, {
+          method: "DELETE",
+        });
+
+        // 3. Verify 404 response
+        expect(deleteResponse.status).toBe(404);
+        const errorData = await deleteResponse.json();
+        expect(errorData.error).toBe("Activity not found");
+      });
     });
   });
 });
