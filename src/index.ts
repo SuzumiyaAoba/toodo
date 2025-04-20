@@ -157,10 +157,23 @@ app.put(
   vValidator("json", UpdateTodoSchema),
   async (c) => {
     const { id } = c.req.valid("param");
-    const { title, description, status } = c.req.valid("json");
+    const updateData = c.req.valid("json");
+
+    // Fetch the existing TODO
+    const existingTodo = await prisma.todo.findUnique({ where: { id } });
+    if (!existingTodo) {
+      return c.json({ error: "Todo not found" }, 404);
+    }
+
+    // Update only the fields specified in the request
     const todo = await prisma.todo.update({
       where: { id },
-      data: { title, description, status },
+      data: {
+        // Only update fields that are not undefined
+        ...(updateData.title !== undefined && { title: updateData.title }),
+        ...(updateData.description !== undefined && { description: updateData.description }),
+        ...(updateData.status !== undefined && { status: updateData.status }),
+      },
     });
 
     return c.json(todo);
