@@ -5,7 +5,14 @@ import { Scalar } from "@scalar/hono-api-reference";
 import type { ConversionConfig } from "@valibot/to-json-schema";
 import { describeRoute, openAPISpecs } from "hono-openapi";
 import { resolver, validator as vValidator } from "hono-openapi/valibot";
-import { CreateTodoSchema, IdParamSchema, TodoListSchema, TodoSchema } from "./schema";
+import {
+  CreateTodoSchema,
+  ErrorResponseSchema,
+  IdParamSchema,
+  TodoListSchema,
+  TodoSchema,
+  UpdateTodoSchema,
+} from "./schema";
 
 const app = new Hono();
 const prisma = new PrismaClient();
@@ -105,7 +112,7 @@ app.get(
         description: "TODO not found",
         content: {
           "application/json": {
-            schema: resolver(TodoSchema, valibotConfig),
+            schema: resolver(ErrorResponseSchema, valibotConfig),
           },
         },
       },
@@ -139,7 +146,7 @@ app.put(
         description: "TODO not found",
         content: {
           "application/json": {
-            schema: resolver(TodoSchema, valibotConfig),
+            schema: resolver(ErrorResponseSchema, valibotConfig),
           },
         },
       },
@@ -147,7 +154,7 @@ app.put(
     validateResponse: true,
   }),
   vValidator("param", IdParamSchema),
-  vValidator("json", CreateTodoSchema),
+  vValidator("json", UpdateTodoSchema),
   async (c) => {
     const { id } = c.req.valid("param");
     const { title, description, status } = c.req.valid("json");
@@ -173,7 +180,7 @@ app.delete(
         description: "TODO not found",
         content: {
           "application/json": {
-            schema: resolver(TodoSchema, valibotConfig),
+            schema: resolver(ErrorResponseSchema, valibotConfig),
           },
         },
       },
