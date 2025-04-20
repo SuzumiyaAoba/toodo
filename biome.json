@@ -9,6 +9,6 @@
     "enabled": true
   },
   "files": {
-    "ignore": ["docs/**"]
+    "ignore": ["docs/**", "prisma", "src/generated/**"]
   }
 }
