@@ -23,6 +23,6 @@
     "undici": "^7.8.0"
   },
   "lint-staged": {
-    "*": "bun run format"
+    "*.{ts,json}": "bun run format"
   }
 }
