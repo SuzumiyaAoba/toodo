@@ -69,8 +69,9 @@ const createTodoActivityUseCase = new CreateTodoActivityUseCase(todoRepository, 
 const getTodoActivityListUseCase = new GetTodoActivityListUseCase(todoRepository, todoActivityRepository);
 const deleteTodoActivityUseCase = new DeleteTodoActivityUseCase(todoRepository, todoActivityRepository);
 
-// Setup routes directly with use cases
-const routes = setupRoutes(
+// Setup routes directly with use cases - pass the app instance as the first parameter
+setupRoutes(
+  app,
   createTodoUseCase,
   getTodoListUseCase,
   getTodoUseCase,
@@ -81,7 +82,6 @@ const routes = setupRoutes(
   getTodoActivityListUseCase,
   deleteTodoActivityUseCase,
 );
-app.route("/", routes);
 
 // Export app
 export default app;
