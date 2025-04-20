@@ -1,5 +1,13 @@
 import * as v from "valibot";
 
+const ISO8601_DATE_REGEX = /^\d{4}-?\d\d-?\d\d(?:T\d\d(?::?\d\d(?::?\d\d(?:\.\d+)?)?)?(?:Z|[+-]\d\d:?\d\d)?)?$/;
+
+const DateSchema = v.pipe(
+  v.string(),
+  v.regex(ISO8601_DATE_REGEX),
+  v.transform((date) => new Date(date)),
+);
+
 /**
  * Schema for a TODO item
  */
@@ -8,14 +16,8 @@ export const TodoSchema = v.object({
   title: v.pipe(v.string(), v.minLength(1), v.maxLength(100)),
   description: v.optional(v.pipe(v.string(), v.maxLength(1000))),
   status: v.picklist(["pending", "completed"]),
-  createdAt: v.pipe(
-    v.string(),
-    v.regex(
-      /^(?:[1-9][0-9]{3}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-8])|(?:0[13-9]|1[0-2])-(?:29|30)|(?:0[13578]|1[02])-31)|(?:[1-9][0-9](?:0[48]|[2468][048]|[13579][26])|(?:[2468][048]|[13579][26])00)-02-29)T(?:[01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](?:Z|[+-][01][0-9]:[0-5][0-9])$/,
-    ),
-    v.transform((date) => new Date(date)),
-  ),
-  // updatedAt: v.date(),
+  createdAt: DateSchema,
+  updatedAt: DateSchema,
 });
 
 /**
