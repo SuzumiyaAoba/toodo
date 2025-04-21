@@ -55,6 +55,22 @@ This document defines the requirements and specifications for a TODO management 
 | createdAt   | Timestamp   | When the activity occurred       | Auto-generated                |
 | note        | String      | Optional note about the activity | Optional, max 500 characters  |
 
+#### 3.1.3 Tag Entity
+| Field       | Type        | Description                      | Constraints                   |
+|-------------|-------------|----------------------------------|-------------------------------|
+| id          | UUID        | Unique identifier for the tag    | Auto-generated, unique        |
+| name        | String      | Name of the tag                  | Required, max 50 characters   |
+| color       | String      | Color code for the tag           | Optional, hex color code      |
+| createdAt   | Timestamp   | Creation time of the tag         | Auto-generated                |
+| updatedAt   | Timestamp   | Last update time of the tag      | Auto-updated on changes       |
+
+#### 3.1.4 TodoTag Entity (Join Table)
+| Field       | Type        | Description                      | Constraints                   |
+|-------------|-------------|----------------------------------|-------------------------------|
+| todoId      | UUID        | Reference to the TODO            | Foreign key to Todo.id        |
+| tagId       | UUID        | Reference to the Tag             | Foreign key to Tag.id         |
+| assignedAt  | Timestamp   | When the tag was assigned        | Auto-generated                |
+
 ### 3.2 API Endpoints
 | Method  | Path                      | Description                           | Response Codes                    |
 |---------|---------------------------|---------------------------------------|-----------------------------------|
@@ -67,6 +83,15 @@ This document defines the requirements and specifications for a TODO management 
 | GET     | /todos/{id}/activities    | Get activity history of a specific TODO | 200: OK, 404: Not Found         |
 | DELETE  | /todos/{id}/activities/{activityId} | Delete a specific activity for a TODO | 204: No Content, 403: Forbidden, 404: Not Found |
 | GET     | /todos/{id}/work-time     | Get the total work time of a TODO     | 200: OK, 404: Not Found           |
+| POST    | /tags                     | Create a new tag                     | 201: Created                      |
+| GET     | /tags                     | Get a list of tags                   | 200: OK                           |
+| GET     | /tags/{id}                | Get details of a specific tag        | 200: OK, 404: Not Found           |
+| PUT     | /tags/{id}                | Update a specific tag                | 200: OK, 404: Not Found           |
+| DELETE  | /tags/{id}                | Delete a specific tag                | 204: No Content, 404: Not Found   |
+| POST    | /todos/{id}/tags          | Assign a tag to a TODO               | 201: Created, 404: Not Found      |
+| GET     | /todos/{id}/tags          | Get tags of a specific TODO          | 200: OK, 404: Not Found           |
+| DELETE  | /todos/{id}/tags/{tagId}  | Remove a tag from a TODO             | 204: No Content, 404: Not Found   |
+| GET     | /todos/by-tag/{tagId}     | Get TODOs by tag                     | 200: OK, 404: Not Found           |
 
 ## 4. Technical Stack
 - **Backend**: TypeScript with Hono framework
@@ -79,7 +104,8 @@ This document defines the requirements and specifications for a TODO management 
 - User authentication
 - Priority setting for TODOs
 - Due date functionality
-- Tagging system
+- ~~Tagging system~~ (Implemented)
 - Mobile app integration
 - Activity statistics and reports
 - Work time visualization and reporting
+- Tag-based filtering and reporting

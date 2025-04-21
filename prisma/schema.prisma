@@ -25,6 +25,7 @@ model Todo {
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
   activities       TodoActivity[]
+  tags             TodoTag[]
 }
 
 model TodoActivity {
@@ -36,4 +37,23 @@ model TodoActivity {
   previousState String?
   note          String?
   createdAt     DateTime @default(now())
+}
+
+model Tag {
+  id        String    @id @default(uuid())
+  name      String    @unique
+  color     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  todos     TodoTag[]
+}
+
+model TodoTag {
+  todoId     String
+  tagId      String
+  todo       Todo     @relation(fields: [todoId], references: [id], onDelete: Cascade)
+  tag        Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  assignedAt DateTime @default(now())
+
+  @@id([todoId, tagId])
 }
