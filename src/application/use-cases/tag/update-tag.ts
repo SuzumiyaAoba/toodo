@@ -1,5 +1,6 @@
 import * as v from "valibot";
 import type { Tag } from "../../../domain/entities/tag";
+import { TagNameExistsError, TagNotFoundError } from "../../../domain/errors/tag-errors";
 import type { TagRepository } from "../../../domain/repositories/tag-repository";
 
 /**
@@ -40,6 +41,8 @@ export class UpdateTagUseCase {
    * Execute the use case
    * @param input Input for updating a tag
    * @returns The updated tag
+   * @throws {TagNotFoundError} When tag with given ID is not found
+   * @throws {TagNameExistsError} When tag with the same name already exists
    */
   async execute(input: UpdateTagInput): Promise<Tag> {
     // Validate input
@@ -48,18 +51,22 @@ export class UpdateTagUseCase {
     // Check if tag exists
     const existingTag = await this.tagRepository.getTagById(validated.id);
     if (!existingTag) {
-      throw new Error(`Tag with ID '${validated.id}' not found`);
+      throw new TagNotFoundError(validated.id);
     }
 
-    // Check if name is changed and if a tag with the new name already exists
-    if (validated.name && validated.name !== existingTag.name) {
+    // 名前が変更されていて、かつ既存のタグと同じ名前でない場合のみ重複チェックを行う
+    if (validated.name !== undefined && validated.name !== existingTag.name) {
       const tagWithSameName = await this.tagRepository.getTagByName(validated.name);
       if (tagWithSameName && tagWithSameName.id !== validated.id) {
-        throw new Error(`Tag with name '${validated.name}' already exists`);
+        throw new TagNameExistsError(validated.name);
       }
     }
 
-    // Update tag
-    return this.tagRepository.updateTag(validated.id, validated.name ?? undefined, validated.color ?? undefined);
+    // Update tag - nullの場合はundefinedに変換しない
+    return this.tagRepository.updateTag(
+      validated.id,
+      validated.name ?? undefined,
+      "color" in input ? validated.color : undefined, // nullの場合はnullのまま
+    );
   }
 }

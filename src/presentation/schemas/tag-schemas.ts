@@ -6,7 +6,7 @@ import * as v from "valibot";
 export const TagSchema = v.object({
   id: v.pipe(v.string(), v.uuid()),
   name: v.pipe(v.string(), v.minLength(1), v.maxLength(50)),
-  color: v.optional(v.pipe(v.string(), v.regex(/^#[0-9A-Fa-f]{6}$/))),
+  color: v.optional(v.nullable(v.pipe(v.string(), v.regex(/^#[0-9A-Fa-f]{6}$/)))),
   createdAt: v.string(),
   updatedAt: v.string(),
 });
@@ -21,7 +21,7 @@ export type TagResponse = v.InferOutput<typeof TagSchema>;
  */
 export const CreateTagSchema = v.object({
   name: v.pipe(v.string(), v.minLength(1), v.maxLength(50)),
-  color: v.optional(v.pipe(v.string(), v.regex(/^#[0-9A-Fa-f]{6}$/))),
+  color: v.optional(v.nullable(v.pipe(v.string(), v.regex(/^#[0-9A-Fa-f]{6}$/)))),
 });
 
 /**

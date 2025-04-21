@@ -1,5 +1,6 @@
 import * as v from "valibot";
 import type { Tag } from "../../../domain/entities/tag";
+import { TagNameExistsError } from "../../../domain/errors/tag-errors";
 import type { TagRepository } from "../../../domain/repositories/tag-repository";
 
 /**
@@ -7,7 +8,7 @@ import type { TagRepository } from "../../../domain/repositories/tag-repository"
  */
 export type CreateTagInput = {
   name: string;
-  color?: string;
+  color?: string | null;
 };
 
 /**
@@ -20,7 +21,9 @@ export const CreateTagInputSchema = v.object({
     v.maxLength(50, "Name must be at most 50 characters long"),
   ),
   color: v.optional(
-    v.pipe(v.string(), v.regex(/^#[0-9A-Fa-f]{6}$/, "Color must be a valid hex color code (e.g., #FF5733)")),
+    v.nullable(
+      v.pipe(v.string(), v.regex(/^#[0-9A-Fa-f]{6}$/, "Color must be a valid hex color code (e.g., #FF5733)")),
+    ),
   ),
 });
 
@@ -34,6 +37,7 @@ export class CreateTagUseCase {
    * Execute the use case
    * @param input Input for creating a tag
    * @returns The created tag
+   * @throws {TagNameExistsError} When tag with the same name already exists
    */
   async execute(input: CreateTagInput): Promise<Tag> {
     // Validate input
@@ -42,7 +46,7 @@ export class CreateTagUseCase {
     // Check if tag with same name already exists
     const existingTag = await this.tagRepository.getTagByName(validated.name);
     if (existingTag) {
-      throw new Error(`Tag with name '${validated.name}' already exists`);
+      throw new TagNameExistsError(validated.name);
     }
 
     // Create tag

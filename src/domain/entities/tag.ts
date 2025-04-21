@@ -6,7 +6,7 @@ import type { Tag as PrismaTag } from "../../generated/prisma";
 export interface Tag {
   id: string;
   name: string;
-  color?: string;
+  color?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -18,7 +18,7 @@ export function mapToDomainTag(prismaTag: PrismaTag): Tag {
   return {
     id: prismaTag.id,
     name: prismaTag.name,
-    color: prismaTag.color || undefined,
+    color: prismaTag.color || undefined, // nullの場合はundefinedに変換
     createdAt: prismaTag.createdAt,
     updatedAt: prismaTag.updatedAt,
   };
