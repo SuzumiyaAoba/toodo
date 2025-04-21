@@ -165,3 +165,16 @@ export const TodoActivityIdParamSchema = v.object({
  * Type for Todo and Activity ID path parameters
  */
 export type TodoActivityIdParam = v.InferOutput<typeof TodoActivityIdParamSchema>;
+
+/**
+ * Schema for Todo and Tag ID path parameters
+ */
+export const TodoTagParamSchema = v.object({
+  id: v.pipe(v.string(), v.uuid()),
+  tagId: v.pipe(v.string(), v.uuid()),
+});
+
+/**
+ * Type for Todo and Tag ID path parameters
+ */
+export type TodoTagParam = v.InferOutput<typeof TodoTagParamSchema>;
