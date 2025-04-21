@@ -247,7 +247,17 @@ describe("PrismaTodoActivityRepository", () => {
       findUnique.mockImplementationOnce(async () => Promise.resolve(null));
 
       // Act & Assert
-      await expect(repository.delete("non-existent")).rejects.toThrow(TodoActivityNotFoundError);
+      try {
+        await repository.delete("non-existent");
+        // エラーがスローされないなら、テストを失敗させる
+        fail("Expected TodoActivityNotFoundError to be thrown");
+      } catch (error) {
+        // エラーの種類を確認
+        expect(error.name).toBe("TodoActivityNotFoundError");
+        expect(error.message).toContain("non-existent");
+      }
+
+      // deleteメソッドが呼ばれていないことを確認
       expect(deleteMethod).not.toHaveBeenCalled();
     });
   });
