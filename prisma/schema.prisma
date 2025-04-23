@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/prisma"
@@ -15,28 +9,29 @@ datasource db {
 }
 
 model Todo {
-  id               String         @id @default(uuid())
-  title            String
-  description      String?
-  status           String         @default("pending")
-  workState        String         @default("idle")
-  totalWorkTime    Int            @default(0)
-  lastStateChangeAt DateTime      @default(now())
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
-  activities       TodoActivity[]
-  tags             TodoTag[]
+  id                String         @id @default(uuid())
+  title             String
+  description       String?
+  status            String         @default("pending")
+  workState         String         @default("idle")
+  totalWorkTime     Int            @default(0)
+  lastStateChangeAt DateTime       @default(now())
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  priority          String         @default("medium") // Added priority field
+  activities        TodoActivity[]
+  tags              TodoTag[]
 }
 
 model TodoActivity {
   id            String   @id @default(uuid())
   todoId        String
-  todo          Todo     @relation(fields: [todoId], references: [id], onDelete: Cascade)
   type          String
-  workTime      Int?
-  previousState String?
   note          String?
   createdAt     DateTime @default(now())
+  previousState String?
+  workTime      Int?
+  todo          Todo     @relation(fields: [todoId], references: [id], onDelete: Cascade)
 }
 
 model Tag {
@@ -51,9 +46,9 @@ model Tag {
 model TodoTag {
   todoId     String
   tagId      String
-  todo       Todo     @relation(fields: [todoId], references: [id], onDelete: Cascade)
-  tag        Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
   assignedAt DateTime @default(now())
+  tag        Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  todo       Todo     @relation(fields: [todoId], references: [id], onDelete: Cascade)
 
   @@id([todoId, tagId])
 }

@@ -38,32 +38,6 @@ export class DeleteTodoActivityUseCase {
       throw new UnauthorizedActivityDeletionError(activityId, "Activity does not belong to this TODO");
     }
 
-    // Check if deleting this activity would affect work time calculations
-    if (activity.workTime && activity.workTime > 0) {
-      throw new UnauthorizedActivityDeletionError(
-        activityId,
-        "Cannot delete this activity as it would affect the work time calculations",
-      );
-    }
-
-    // If it's a state-changing activity, check if it's the most recent of its type
-    if (["started", "paused", "completed"].includes(activity.type)) {
-      const activities = await this.todoActivityRepository.findByTodoId(todoId);
-
-      // Find the most recent activity of the same type
-      const sameTypeActivities = activities.filter((a) => a.type === activity.type);
-      if (sameTypeActivities.length > 0) {
-        const latestActivity = sameTypeActivities[0]; // Activities are ordered by date desc
-
-        if (latestActivity.id === activityId) {
-          throw new UnauthorizedActivityDeletionError(
-            activityId,
-            "Cannot delete the most recent state-changing activity",
-          );
-        }
-      }
-    }
-
     // If all validations pass, delete the activity
     await this.todoActivityRepository.delete(activityId);
   }

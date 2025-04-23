@@ -1,5 +1,5 @@
 import { describe, expect, it, mock } from "bun:test";
-import { TodoStatus, WorkState } from "../../../domain/entities/todo";
+import { PriorityLevel, TodoStatus, WorkState } from "../../../domain/entities/todo";
 import { GetTodosByMultipleTagsUseCase } from "./get-todos-by-multiple-tags";
 
 describe("GetTodosByMultipleTagsUseCase", () => {
@@ -75,6 +75,7 @@ describe("GetTodosByMultipleTagsUseCase", () => {
         lastStateChangeAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
+        priority: PriorityLevel.MEDIUM,
       }),
     ),
     findById: mock((id: string) => {
@@ -89,6 +90,7 @@ describe("GetTodosByMultipleTagsUseCase", () => {
           lastStateChangeAt: new Date(),
           createdAt: new Date(),
           updatedAt: new Date(),
+          priority: PriorityLevel.MEDIUM,
         });
       }
       return Promise.resolve(null);
@@ -105,6 +107,7 @@ describe("GetTodosByMultipleTagsUseCase", () => {
         lastStateChangeAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
+        priority: PriorityLevel.MEDIUM,
       }),
     ),
     delete: mock(() => Promise.resolve()),
@@ -119,6 +122,7 @@ describe("GetTodosByMultipleTagsUseCase", () => {
         lastStateChangeAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
+        priority: PriorityLevel.MEDIUM,
       }),
     ),
     updateWorkTime: mock(() =>
@@ -132,6 +136,7 @@ describe("GetTodosByMultipleTagsUseCase", () => {
         lastStateChangeAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
+        priority: PriorityLevel.MEDIUM,
       }),
     ),
   };

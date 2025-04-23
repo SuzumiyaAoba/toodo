@@ -18,7 +18,7 @@ export function mapToDomainTag(prismaTag: PrismaTag): Tag {
   return {
     id: prismaTag.id,
     name: prismaTag.name,
-    color: prismaTag.color || undefined, // nullの場合はundefinedに変換
+    color: prismaTag.color === null ? undefined : prismaTag.color,
     createdAt: prismaTag.createdAt,
     updatedAt: prismaTag.updatedAt,
   };

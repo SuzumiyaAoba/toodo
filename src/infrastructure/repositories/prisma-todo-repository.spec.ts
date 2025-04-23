@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
-import { type Todo, TodoStatus, WorkState } from "../../domain/entities/todo";
+import { PriorityLevel, type Todo, TodoStatus, WorkState } from "../../domain/entities/todo";
 import { TodoNotFoundError } from "../../domain/errors/todo-errors";
 import type { Prisma, PrismaClient } from "../../generated/prisma";
 import type { DefaultArgs, PrismaClientOptions } from "../../generated/prisma/runtime/library";
@@ -101,6 +101,7 @@ describe("PrismaTodoRepository", () => {
           lastStateChangeAt: now,
           createdAt: now,
           updatedAt: now,
+          priority: "medium",
         },
         {
           id: "todo-2",
@@ -112,6 +113,7 @@ describe("PrismaTodoRepository", () => {
           lastStateChangeAt: now,
           createdAt: now,
           updatedAt: now,
+          priority: "high",
         },
       ];
       findMany.mockImplementationOnce(async () => Promise.resolve(mockTodos));
@@ -124,8 +126,10 @@ describe("PrismaTodoRepository", () => {
       expect(result).toHaveLength(2);
       expect(result[0].id).toBe("todo-1");
       expect(result[0].status).toBe(TodoStatus.PENDING);
+      expect(result[0].priority).toBe(PriorityLevel.MEDIUM);
       expect(result[1].id).toBe("todo-2");
       expect(result[1].status).toBe(TodoStatus.COMPLETED);
+      expect(result[1].priority).toBe(PriorityLevel.HIGH);
     });
   });
 
@@ -143,6 +147,7 @@ describe("PrismaTodoRepository", () => {
         lastStateChangeAt: now,
         createdAt: now,
         updatedAt: now,
+        priority: "low",
       };
       findUnique.mockImplementationOnce(async () => Promise.resolve(mockTodo));
 
@@ -154,6 +159,7 @@ describe("PrismaTodoRepository", () => {
       expect(findUnique).toHaveBeenCalledWith({ where: { id: "todo-1" } });
       expect(result?.id).toBe("todo-1");
       expect(result?.title).toBe("Todo 1");
+      expect(result?.priority).toBe(PriorityLevel.LOW);
     });
 
     test("should return null when todo not found", async () => {
@@ -180,6 +186,7 @@ describe("PrismaTodoRepository", () => {
         workState: WorkState.IDLE,
         totalWorkTime: 0,
         lastStateChangeAt: now,
+        priority: PriorityLevel.HIGH,
       };
 
       const createdTodo = {
@@ -192,6 +199,7 @@ describe("PrismaTodoRepository", () => {
         lastStateChangeAt: now,
         createdAt: now,
         updatedAt: now,
+        priority: "high",
       };
 
       create.mockImplementationOnce(async () => Promise.resolve(createdTodo));
@@ -209,9 +217,11 @@ describe("PrismaTodoRepository", () => {
           workState: "idle",
           totalWorkTime: 0,
           lastStateChangeAt: now,
+          priority: "high",
         },
       });
       expect(result.id).toBe("new-todo-id");
+      expect(result.priority).toBe(PriorityLevel.HIGH);
     });
   });
 
@@ -223,6 +233,7 @@ describe("PrismaTodoRepository", () => {
       const updateData = {
         title: "Updated Title",
         description: "Updated Description",
+        priority: PriorityLevel.MEDIUM,
       };
 
       const existingTodo = {
@@ -235,12 +246,14 @@ describe("PrismaTodoRepository", () => {
         lastStateChangeAt: now,
         createdAt: now,
         updatedAt: now,
+        priority: "low",
       };
 
       const updatedTodo = {
         ...existingTodo,
         title: "Updated Title",
         description: "Updated Description",
+        priority: "medium",
       };
 
       findUnique.mockImplementationOnce(async () => Promise.resolve(existingTodo));
@@ -254,6 +267,7 @@ describe("PrismaTodoRepository", () => {
       expect(update).toHaveBeenCalledTimes(1);
       expect(result?.title).toBe("Updated Title");
       expect(result?.description).toBe("Updated Description");
+      expect(result?.priority).toBe(PriorityLevel.MEDIUM);
     });
 
     test("should return null when todo not found", async () => {
@@ -261,7 +275,9 @@ describe("PrismaTodoRepository", () => {
       findUnique.mockImplementationOnce(async () => Promise.resolve(null));
 
       // Act
-      const result = await repository.update("non-existent", { title: "New Title" });
+      const result = await repository.update("non-existent", {
+        title: "New Title",
+      });
 
       // Assert
       expect(findUnique).toHaveBeenCalledTimes(1);

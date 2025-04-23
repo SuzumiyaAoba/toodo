@@ -16,7 +16,7 @@ export class GetTodoWorkTimeUseCase {
   async execute(id: string): Promise<{
     id: string;
     totalWorkTime: number;
-    workState: string;
+    workState: WorkState;
     formattedTime: string;
   }> {
     // Check if the todo exists

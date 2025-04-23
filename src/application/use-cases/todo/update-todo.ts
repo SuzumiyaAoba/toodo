@@ -1,4 +1,4 @@
-import type { Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
+import type { PriorityLevel, Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
 import { TodoNotFoundError } from "../../../domain/errors/todo-errors";
 import type { TodoRepository } from "../../../domain/repositories/todo-repository";
 
@@ -22,6 +22,7 @@ export class UpdateTodoUseCase {
       description?: string;
       status?: TodoStatus;
       workState?: WorkState;
+      priority?: PriorityLevel;
     },
   ): Promise<Todo> {
     const updatedTodo = await this.todoRepository.update(id, {
@@ -29,6 +30,7 @@ export class UpdateTodoUseCase {
       description: data.description,
       status: data.status,
       workState: data.workState,
+      priority: data.priority,
     });
 
     if (!updatedTodo) {

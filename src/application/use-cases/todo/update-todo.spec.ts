@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
-import { type Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
+import { PriorityLevel, type Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
 import { TodoNotFoundError } from "../../../domain/errors/todo-errors";
 import type { TodoRepository } from "../../../domain/repositories/todo-repository";
 import { UpdateTodoUseCase } from "./update-todo";
@@ -50,6 +50,7 @@ describe("UpdateTodoUseCase", () => {
       lastStateChangeAt: now,
       createdAt: now,
       updatedAt: now,
+      priority: PriorityLevel.MEDIUM,
     };
 
     mockTodoRepository.update.mockImplementationOnce(async () => Promise.resolve(updatedTodo));
@@ -82,6 +83,7 @@ describe("UpdateTodoUseCase", () => {
       lastStateChangeAt: now,
       createdAt: now,
       updatedAt: now,
+      priority: PriorityLevel.MEDIUM,
     };
 
     mockTodoRepository.update.mockImplementationOnce(async () => Promise.resolve(updatedTodo));
@@ -91,7 +93,9 @@ describe("UpdateTodoUseCase", () => {
 
     // Assert
     expect(mockTodoRepository.update).toHaveBeenCalledTimes(1);
-    expect(mockTodoRepository.update).toHaveBeenCalledWith(todoId, { title: "Updated Title" });
+    expect(mockTodoRepository.update).toHaveBeenCalledWith(todoId, {
+      title: "Updated Title",
+    });
     expect(result).toEqual(updatedTodo);
     expect(result.description).toBe("Original Description");
   });

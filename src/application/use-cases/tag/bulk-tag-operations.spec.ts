@@ -1,5 +1,5 @@
 import { describe, expect, it, mock } from "bun:test";
-import { TodoStatus, WorkState } from "../../../domain/entities/todo";
+import { PriorityLevel, TodoStatus, WorkState } from "../../../domain/entities/todo";
 import { BulkAssignTagUseCase, BulkRemoveTagUseCase } from "./bulk-tag-operations";
 
 describe("BulkTagOperations", () => {
@@ -53,6 +53,7 @@ describe("BulkTagOperations", () => {
         lastStateChangeAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
+        priority: PriorityLevel.MEDIUM,
       }),
     ),
     findById: mock((id: string) => {
@@ -67,6 +68,7 @@ describe("BulkTagOperations", () => {
           lastStateChangeAt: new Date(),
           createdAt: new Date(),
           updatedAt: new Date(),
+          priority: PriorityLevel.MEDIUM,
         });
       }
       return Promise.resolve(null);
@@ -83,6 +85,7 @@ describe("BulkTagOperations", () => {
         lastStateChangeAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
+        priority: PriorityLevel.MEDIUM,
       }),
     ),
     delete: mock(() => Promise.resolve()),
@@ -97,6 +100,7 @@ describe("BulkTagOperations", () => {
         lastStateChangeAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
+        priority: PriorityLevel.MEDIUM,
       }),
     ),
     updateWorkTime: mock(() =>
@@ -110,6 +114,7 @@ describe("BulkTagOperations", () => {
         lastStateChangeAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
+        priority: PriorityLevel.MEDIUM,
       }),
     ),
   });

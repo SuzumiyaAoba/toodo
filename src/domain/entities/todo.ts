@@ -19,6 +19,15 @@ export enum WorkState {
 }
 
 /**
+ * Todo priority level enum
+ */
+export enum PriorityLevel {
+  LOW = "low",
+  MEDIUM = "medium",
+  HIGH = "high",
+}
+
+/**
  * Todo entity
  */
 export interface Todo {
@@ -31,6 +40,7 @@ export interface Todo {
   lastStateChangeAt: Date;
   createdAt: Date;
   updatedAt: Date;
+  priority: PriorityLevel;
 }
 
 /**
@@ -47,5 +57,6 @@ export function mapToDomainTodo(prismaTodo: PrismaTodo): Todo {
     lastStateChangeAt: prismaTodo.lastStateChangeAt,
     createdAt: prismaTodo.createdAt,
     updatedAt: prismaTodo.updatedAt,
+    priority: prismaTodo.priority as PriorityLevel,
   };
 }
