@@ -225,6 +225,251 @@ This document outlines the API endpoints for the TODO management system built wi
   }
   ```
 
+### 2.10 Create a Tag
+- **URL**: `/tags`
+- **Method**: `POST`
+- **Request Body**:
+  ```json
+  {
+    "name": "Work",
+    "color": "#FF5733"
+  }
+  ```
+- **Response** (201 Created):
+  ```json
+  {
+    "id": "a0b1c2d3-e4f5-6789-abcd-ef0123456789",
+    "name": "Work",
+    "color": "#FF5733",
+    "createdAt": "2025-04-22T09:15:30.456Z",
+    "updatedAt": "2025-04-22T09:15:30.456Z"
+  }
+  ```
+
+### 2.11 Get Tag List
+- **URL**: `/tags`
+- **Method**: `GET`
+- **Response** (200 OK):
+  ```json
+  [
+    {
+      "id": "a0b1c2d3-e4f5-6789-abcd-ef0123456789",
+      "name": "Work",
+      "color": "#FF5733",
+      "createdAt": "2025-04-22T09:15:30.456Z",
+      "updatedAt": "2025-04-22T09:15:30.456Z"
+    },
+    {
+      "id": "b1c2d3e4-f5a6-7890-bcde-f01234567890",
+      "name": "Personal",
+      "color": "#33FF57",
+      "createdAt": "2025-04-22T09:16:45.789Z",
+      "updatedAt": "2025-04-22T09:16:45.789Z"
+    }
+  ]
+  ```
+
+### 2.12 Get Tag Details
+- **URL**: `/tags/{id}`
+- **Method**: `GET`
+- **Response** (200 OK):
+  ```json
+  {
+    "id": "a0b1c2d3-e4f5-6789-abcd-ef0123456789",
+    "name": "Work",
+    "color": "#FF5733",
+    "createdAt": "2025-04-22T09:15:30.456Z",
+    "updatedAt": "2025-04-22T09:15:30.456Z"
+  }
+  ```
+- **Error** (404 Not Found):
+  ```json
+  {
+    "error": "Tag not found"
+  }
+  ```
+
+### 2.13 Update a Tag
+- **URL**: `/tags/{id}`
+- **Method**: `PUT`
+- **Request Body**:
+  ```json
+  {
+    "name": "Work Project",
+    "color": "#FF8C00"
+  }
+  ```
+- **Response** (200 OK):
+  ```json
+  {
+    "id": "a0b1c2d3-e4f5-6789-abcd-ef0123456789",
+    "name": "Work Project",
+    "color": "#FF8C00",
+    "createdAt": "2025-04-22T09:15:30.456Z",
+    "updatedAt": "2025-04-22T10:25:15.123Z"
+  }
+  ```
+
+### 2.14 Delete a Tag
+- **URL**: `/tags/{id}`
+- **Method**: `DELETE`
+- **Response** (204 No Content)
+
+### 2.15 Assign a Tag to a TODO
+- **URL**: `/todos/{id}/tags`
+- **Method**: `POST`
+- **Request Body**:
+  ```json
+  {
+    "tagId": "a0b1c2d3-e4f5-6789-abcd-ef0123456789"
+  }
+  ```
+- **Response** (201 Created):
+  ```json
+  {
+    "id": "a0b1c2d3-e4f5-6789-abcd-ef0123456789",
+    "name": "Work",
+    "color": "#FF5733",
+    "createdAt": "2025-04-22T09:15:30.456Z",
+    "updatedAt": "2025-04-22T09:15:30.456Z"
+  }
+  ```
+
+### 2.16 Get Tags for a TODO
+- **URL**: `/todos/{id}/tags`
+- **Method**: `GET`
+- **Response** (200 OK):
+  ```json
+  [
+    {
+      "id": "a0b1c2d3-e4f5-6789-abcd-ef0123456789",
+      "name": "Work",
+      "color": "#FF5733",
+      "createdAt": "2025-04-22T09:15:30.456Z",
+      "updatedAt": "2025-04-22T09:15:30.456Z"
+    }
+  ]
+  ```
+
+### 2.17 Remove a Tag from a TODO
+- **URL**: `/todos/{id}/tags/{tagId}`
+- **Method**: `DELETE`
+- **Response** (204 No Content)
+
+### 2.18 Get TODOs by Tag
+- **URL**: `/todos/by-tag/{tagId}`
+- **Method**: `GET`
+- **Response** (200 OK):
+  ```json
+  [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "title": "Shopping list",
+      "description": "Buy milk, bread, and eggs",
+      "status": "pending",
+      "workState": "idle",
+      "totalWorkTime": 0,
+      "lastStateChangeAt": "2025-04-20T12:34:56.789Z",
+      "createdAt": "2025-04-20T12:34:56.789Z",
+      "updatedAt": "2025-04-20T12:34:56.789Z"
+    }
+  ]
+  ```
+
+### 2.19 Get TODOs by Multiple Tags
+- **URL**: `/todos/by-tags`
+- **Method**: `GET`
+- **Query Parameters**:
+  - `tagIds`: Comma-separated list of tag IDs (e.g., `tagIds=id1,id2,id3`)
+  - `mode`: Either `all` (default) to get TODOs with all specified tags or `any` to get TODOs with any of the specified tags
+- **Response** (200 OK):
+  ```json
+  [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "title": "Shopping list",
+      "description": "Buy milk, bread, and eggs",
+      "status": "pending",
+      "workState": "idle",
+      "totalWorkTime": 0,
+      "lastStateChangeAt": "2025-04-20T12:34:56.789Z",
+      "createdAt": "2025-04-20T12:34:56.789Z",
+      "updatedAt": "2025-04-20T12:34:56.789Z"
+    }
+  ]
+  ```
+
+### 2.20 Bulk Assign Tag to Multiple TODOs
+- **URL**: `/tags/{id}/bulk-assign`
+- **Method**: `POST`
+- **Request Body**:
+  ```json
+  {
+    "todoIds": ["550e8400-e29b-41d4-a716-446655440000", "661f9511-f3ac-52e5-b827-557766551111"]
+  }
+  ```
+- **Response** (200 OK):
+  ```json
+  {
+    "success": true,
+    "message": "Tag assigned to 2 TODOs",
+    "tag": {
+      "id": "a0b1c2d3-e4f5-6789-abcd-ef0123456789",
+      "name": "Work",
+      "color": "#FF5733"
+    },
+    "assignedCount": 2
+  }
+  ```
+
+### 2.21 Bulk Remove Tag from Multiple TODOs
+- **URL**: `/tags/{id}/bulk-remove`
+- **Method**: `DELETE`
+- **Request Body**:
+  ```json
+  {
+    "todoIds": ["550e8400-e29b-41d4-a716-446655440000", "661f9511-f3ac-52e5-b827-557766551111"]
+  }
+  ```
+- **Response** (200 OK):
+  ```json
+  {
+    "success": true,
+    "message": "Tag removed from 2 TODOs",
+    "tag": {
+      "id": "a0b1c2d3-e4f5-6789-abcd-ef0123456789",
+      "name": "Work",
+      "color": "#FF5733"
+    },
+    "removedCount": 2
+  }
+  ```
+
+### 2.22 Get Tag Usage Statistics
+- **URL**: `/tags/stats`
+- **Method**: `GET`
+- **Response** (200 OK):
+  ```json
+  [
+    {
+      "id": "a0b1c2d3-e4f5-6789-abcd-ef0123456789",
+      "name": "Work",
+      "color": "#FF5733",
+      "usageCount": 5,
+      "pendingTodoCount": 3,
+      "completedTodoCount": 2
+    },
+    {
+      "id": "b1c2d3e4-f5a6-7890-bcde-f01234567890",
+      "name": "Personal",
+      "color": "#33FF57",
+      "usageCount": 3,
+      "pendingTodoCount": 2,
+      "completedTodoCount": 1
+    }
+  ]
+  ```
+
 ## 3. Error Handling
 Error responses have the following format:
 ```json

@@ -9,4 +9,8 @@
 
 ## Unit tests
 
-Write unit tests for each source file in *.spec.ts.
+- Write unit tests for each source file in *.spec.ts.
+
+## Implementation
+
+- Check type error and unit tests after edit files.

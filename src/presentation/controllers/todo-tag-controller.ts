@@ -1,6 +1,9 @@
 import { vValidator } from "@hono/valibot-validator";
 import { Hono } from "hono";
+import type { Env, Schema as HonoSchema } from "hono";
 import { describeRoute } from "hono-openapi";
+import { parse } from "valibot";
+import { GetTodosByMultipleTagsUseCase } from "../../application/use-cases/tag/get-todos-by-multiple-tags";
 import { AssignTagToTodoUseCase, GetTagsForTodoUseCase } from "../../application/use-cases/tag/todo-tag";
 import { RemoveTagFromTodoUseCase } from "../../application/use-cases/tag/todo-tag-operations";
 import type { TagRepository } from "../../domain/repositories/tag-repository";
@@ -8,7 +11,7 @@ import type { TodoRepository } from "../../domain/repositories/todo-repository";
 import type { PrismaClient } from "../../generated/prisma";
 import { PrismaTagRepository } from "../../infrastructure/repositories/prisma-tag-repository";
 import { PrismaTodoRepository } from "../../infrastructure/repositories/prisma-todo-repository";
-import { TagIdParamSchema, TagListSchema } from "../schemas/tag-schemas";
+import { MultipleTagQuerySchema, TagIdParamSchema, TagListSchema } from "../schemas/tag-schemas";
 import { IdParamSchema, TodoTagParamSchema } from "../schemas/todo-schemas";
 
 /**
@@ -28,7 +31,7 @@ export class TodoTagController {
   /**
    * Get Hono instance with configured routes
    */
-  getApp(): Hono {
+  getApp(): Hono<Env, HonoSchema> {
     return this.app;
   }
 
@@ -36,6 +39,108 @@ export class TodoTagController {
    * Setup routes
    */
   private setupRoutes(): void {
+    // Get todos by multiple tags
+    this.app.get(
+      "/by-tags",
+      describeRoute({
+        tags: ["Todos", "Tags"],
+        summary: "Get todos by multiple tags",
+        description: "Retrieve todos that have all or any of the specified tags",
+        request: {
+          query: {
+            schema: {
+              type: "object",
+              properties: {
+                tagIds: { type: "string", description: "Comma-separated list of tag IDs" },
+                mode: {
+                  type: "string",
+                  enum: ["all", "any"],
+                  default: "all",
+                  description:
+                    "Filter mode: 'all' (todos with all specified tags) or 'any' (todos with any of the specified tags)",
+                },
+              },
+              required: ["tagIds"],
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "List of todos with the specified tags",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      id: { type: "string", format: "uuid" },
+                      title: { type: "string" },
+                      description: { type: "string", nullable: true },
+                      status: { type: "string", enum: ["pending", "completed"] },
+                      workState: { type: "string", enum: ["idle", "active", "paused", "completed"] },
+                      totalWorkTime: { type: "number" },
+                      lastStateChangeAt: { type: "string", format: "date-time" },
+                      createdAt: { type: "string", format: "date-time" },
+                      updatedAt: { type: "string", format: "date-time" },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          404: {
+            description: "Tag not found",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    message: { type: "string" },
+                  },
+                },
+              },
+            },
+          },
+        },
+      }),
+      async (c) => {
+        try {
+          const queryParams = {
+            tagIds: c.req.query("tagIds") || "",
+            mode: c.req.query("mode") || "all",
+          };
+
+          const parsedParams = parse(MultipleTagQuerySchema, queryParams);
+          const useCase = new GetTodosByMultipleTagsUseCase(this.tagRepository, this.todoRepository);
+
+          const todos = await useCase.execute({
+            tagIds: parsedParams.tagIds,
+            mode: parsedParams.mode,
+          });
+
+          return c.json(
+            todos.map((todo) => ({
+              id: todo.id,
+              title: todo.title,
+              description: todo.description,
+              status: todo.status,
+              workState: todo.workState,
+              totalWorkTime: todo.totalWorkTime,
+              lastStateChangeAt: todo.lastStateChangeAt.toISOString(),
+              createdAt: todo.createdAt.toISOString(),
+              updatedAt: todo.updatedAt.toISOString(),
+            })),
+          );
+        } catch (error) {
+          if (error instanceof Error && error.message.includes("not found")) {
+            return c.json({ message: error.message }, 404);
+          }
+          throw error;
+        }
+      },
+    );
+
     // Get tags for a todo
     this.app.get(
       "/:id/tags",

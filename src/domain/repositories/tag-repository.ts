@@ -1,4 +1,5 @@
 import type { Tag } from "../entities/tag";
+import type { Todo } from "../entities/todo";
 
 /**
  * Interface for tag repository
@@ -53,4 +54,38 @@ export interface TagRepository {
    * Get todos for a tag
    */
   getTodoIdsForTag(tagId: string): Promise<string[]>;
+
+  /**
+   * Get todos that have all the specified tags
+   */
+  getTodoIdsWithAllTags(tagIds: string[]): Promise<string[]>;
+
+  /**
+   * Get todos that have any of the specified tags
+   */
+  getTodoIdsWithAnyTag(tagIds: string[]): Promise<string[]>;
+
+  /**
+   * Bulk assign a tag to multiple todos
+   */
+  bulkAssignTagToTodos(tagId: string, todoIds: string[]): Promise<number>;
+
+  /**
+   * Bulk remove a tag from multiple todos
+   */
+  bulkRemoveTagFromTodos(tagId: string, todoIds: string[]): Promise<number>;
+
+  /**
+   * Get tag usage statistics
+   */
+  getTagStatistics(): Promise<
+    Array<{
+      id: string;
+      name: string;
+      color: string | null;
+      usageCount: number;
+      pendingTodoCount: number;
+      completedTodoCount: number;
+    }>
+  >;
 }
