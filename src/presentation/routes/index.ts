@@ -1,6 +1,6 @@
-import { vValidator } from "@hono/valibot-validator";
 import type { Hono } from "hono";
 import { describeRoute } from "hono-openapi";
+import { resolver, validator as vValidator } from "hono-openapi/valibot";
 import type { CreateTodoActivityUseCase } from "../../application/use-cases/todo-activity/create-todo-activity";
 import type { DeleteTodoActivityUseCase } from "../../application/use-cases/todo-activity/delete-todo-activity";
 import type { GetTodoActivityListUseCase } from "../../application/use-cases/todo-activity/get-todo-activity-list";
@@ -33,8 +33,13 @@ import {
   WorkTimeResponseSchema,
 } from "../schemas/todo-schemas";
 
+import type { ConversionConfig } from "@valibot/to-json-schema";
 // Honoのより具体的な型定義をインポート
-import type { Context, Env, Schema } from "hono";
+import type { Env, Schema } from "hono";
+
+const valibotConfig: ConversionConfig = {
+  errorMode: "warn",
+};
 
 /**
  * Setup API routes for the Todo application
@@ -69,7 +74,7 @@ export function setupRoutes<E extends Env = Env>(
           required: true,
           content: {
             "application/json": {
-              schema: CreateTodoSchema,
+              schema: resolver(CreateTodoSchema, valibotConfig),
             },
           },
         },
@@ -79,7 +84,7 @@ export function setupRoutes<E extends Env = Env>(
           description: "Todo created successfully",
           content: {
             "application/json": {
-              schema: TodoSchema,
+              schema: resolver(TodoSchema, valibotConfig),
             },
           },
         },
@@ -87,7 +92,7 @@ export function setupRoutes<E extends Env = Env>(
           description: "Invalid request data",
           content: {
             "application/json": {
-              schema: ErrorResponseSchema,
+              schema: resolver(ErrorResponseSchema, valibotConfig),
             },
           },
         },
@@ -112,7 +117,7 @@ export function setupRoutes<E extends Env = Env>(
           description: "List of todos",
           content: {
             "application/json": {
-              schema: TodoListSchema,
+              schema: resolver(TodoListSchema, valibotConfig),
             },
           },
         },
@@ -131,14 +136,14 @@ export function setupRoutes<E extends Env = Env>(
       summary: "Get a specific todo",
       description: "Retrieve a todo item by its ID",
       request: {
-        params: IdParamSchema,
+        params: resolver(IdParamSchema, valibotConfig),
       },
       responses: {
         200: {
           description: "Todo details",
           content: {
             "application/json": {
-              schema: TodoSchema,
+              schema: resolver(TodoSchema, valibotConfig),
             },
           },
         },
@@ -146,7 +151,7 @@ export function setupRoutes<E extends Env = Env>(
           description: "Todo not found",
           content: {
             "application/json": {
-              schema: ErrorResponseSchema,
+              schema: resolver(ErrorResponseSchema, valibotConfig),
             },
           },
         },
@@ -174,12 +179,12 @@ export function setupRoutes<E extends Env = Env>(
       summary: "Update a todo",
       description: "Update a todo item with the provided data",
       request: {
-        params: IdParamSchema,
+        params: resolver(IdParamSchema, valibotConfig),
         body: {
           required: true,
           content: {
             "application/json": {
-              schema: UpdateTodoSchema,
+              schema: resolver(UpdateTodoSchema, valibotConfig),
             },
           },
         },
@@ -189,7 +194,7 @@ export function setupRoutes<E extends Env = Env>(
           description: "Todo updated successfully",
           content: {
             "application/json": {
-              schema: TodoSchema,
+              schema: resolver(TodoSchema, valibotConfig),
             },
           },
         },
@@ -197,7 +202,7 @@ export function setupRoutes<E extends Env = Env>(
           description: "Invalid request data",
           content: {
             "application/json": {
-              schema: ErrorResponseSchema,
+              schema: resolver(ErrorResponseSchema, valibotConfig),
             },
           },
         },
@@ -205,7 +210,7 @@ export function setupRoutes<E extends Env = Env>(
           description: "Todo not found",
           content: {
             "application/json": {
-              schema: ErrorResponseSchema,
+              schema: resolver(ErrorResponseSchema, valibotConfig),
             },
           },
         },
@@ -236,7 +241,7 @@ export function setupRoutes<E extends Env = Env>(
       summary: "Delete a todo",
       description: "Delete a todo item by its ID",
       request: {
-        params: IdParamSchema,
+        params: resolver(IdParamSchema, valibotConfig),
       },
       responses: {
         204: {
@@ -246,7 +251,7 @@ export function setupRoutes<E extends Env = Env>(
           description: "Todo not found",
           content: {
             "application/json": {
-              schema: ErrorResponseSchema,
+              schema: resolver(ErrorResponseSchema, valibotConfig),
             },
           },
         },
@@ -276,14 +281,14 @@ export function setupRoutes<E extends Env = Env>(
       summary: "Get work time information",
       description: "Retrieve work time information for a todo item",
       request: {
-        params: IdParamSchema,
+        params: resolver(IdParamSchema, valibotConfig),
       },
       responses: {
         200: {
           description: "Work time information",
           content: {
             "application/json": {
-              schema: WorkTimeResponseSchema,
+              schema: resolver(WorkTimeResponseSchema, valibotConfig),
             },
           },
         },
@@ -291,7 +296,7 @@ export function setupRoutes<E extends Env = Env>(
           description: "Todo not found",
           content: {
             "application/json": {
-              schema: ErrorResponseSchema,
+              schema: resolver(ErrorResponseSchema, valibotConfig),
             },
           },
         },
@@ -321,12 +326,12 @@ export function setupRoutes<E extends Env = Env>(
       summary: "Create a new activity",
       description: "Create a new activity for a todo item",
       request: {
-        params: IdParamSchema,
+        params: resolver(IdParamSchema, valibotConfig),
         body: {
           required: true,
           content: {
             "application/json": {
-              schema: CreateTodoActivitySchema,
+              schema: resolver(CreateTodoActivitySchema, valibotConfig),
             },
           },
         },
@@ -336,7 +341,7 @@ export function setupRoutes<E extends Env = Env>(
           description: "Activity created successfully",
           content: {
             "application/json": {
-              schema: TodoActivitySchema,
+              schema: resolver(TodoActivitySchema, valibotConfig),
             },
           },
         },
@@ -344,7 +349,7 @@ export function setupRoutes<E extends Env = Env>(
           description: "Invalid state transition or request data",
           content: {
             "application/json": {
-              schema: ErrorResponseSchema,
+              schema: resolver(ErrorResponseSchema, valibotConfig),
             },
           },
         },
@@ -352,7 +357,7 @@ export function setupRoutes<E extends Env = Env>(
           description: "Todo not found",
           content: {
             "application/json": {
-              schema: ErrorResponseSchema,
+              schema: resolver(ErrorResponseSchema, valibotConfig),
             },
           },
         },
@@ -386,14 +391,14 @@ export function setupRoutes<E extends Env = Env>(
       summary: "Get activities for a todo",
       description: "Retrieve a list of activities for a todo item",
       request: {
-        params: IdParamSchema,
+        params: resolver(IdParamSchema, valibotConfig),
       },
       responses: {
         200: {
           description: "List of activities",
           content: {
             "application/json": {
-              schema: TodoActivityListSchema,
+              schema: resolver(TodoActivityListSchema, valibotConfig),
             },
           },
         },
@@ -401,7 +406,7 @@ export function setupRoutes<E extends Env = Env>(
           description: "Todo not found",
           content: {
             "application/json": {
-              schema: ErrorResponseSchema,
+              schema: resolver(ErrorResponseSchema, valibotConfig),
             },
           },
         },
@@ -430,7 +435,7 @@ export function setupRoutes<E extends Env = Env>(
       summary: "Delete an activity",
       description: "Delete an activity for a todo item",
       request: {
-        params: TodoActivityIdParamSchema,
+        params: resolver(TodoActivityIdParamSchema, valibotConfig),
       },
       responses: {
         204: {
@@ -440,7 +445,7 @@ export function setupRoutes<E extends Env = Env>(
           description: "Unauthorized deletion",
           content: {
             "application/json": {
-              schema: ErrorResponseSchema,
+              schema: resolver(ErrorResponseSchema, valibotConfig),
             },
           },
         },
@@ -448,7 +453,7 @@ export function setupRoutes<E extends Env = Env>(
           description: "Todo or activity not found",
           content: {
             "application/json": {
-              schema: ErrorResponseSchema,
+              schema: resolver(ErrorResponseSchema, valibotConfig),
             },
           },
         },
