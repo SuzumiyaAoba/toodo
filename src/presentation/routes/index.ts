@@ -8,7 +8,8 @@ import { DeleteTagUseCase } from "../../application/use-cases/tag/delete-tag";
 import { GetAllTagsUseCase, GetTagByIdUseCase } from "../../application/use-cases/tag/get-tag";
 import { GetTagStatisticsUseCase } from "../../application/use-cases/tag/get-tag-statistics";
 import { GetTodosByMultipleTagsUseCase } from "../../application/use-cases/tag/get-todos-by-multiple-tags";
-import { GetTodosByTagUseCase } from "../../application/use-cases/tag/todo-tag-operations";
+import { AssignTagToTodoUseCase, GetTagsForTodoUseCase } from "../../application/use-cases/tag/todo-tag";
+import { GetTodosByTagUseCase, RemoveTagFromTodoUseCase } from "../../application/use-cases/tag/todo-tag-operations";
 import { UpdateTagUseCase } from "../../application/use-cases/tag/update-tag";
 import type { CreateTodoActivityUseCase } from "../../application/use-cases/todo-activity/create-todo-activity";
 import type { DeleteTodoActivityUseCase } from "../../application/use-cases/todo-activity/delete-todo-activity";
@@ -31,7 +32,6 @@ import type { TodoRepository } from "../../domain/repositories/todo-repository";
 import type { PrismaClient } from "../../generated/prisma";
 import { PrismaTagRepository } from "../../infrastructure/repositories/prisma-tag-repository";
 import { PrismaTodoRepository } from "../../infrastructure/repositories/prisma-todo-repository";
-import { TodoTagController } from "../controllers/todo-tag-controller";
 import {
   BulkTagOperationSchema,
   CreateTagSchema,
@@ -51,6 +51,7 @@ import {
   TodoActivitySchema,
   TodoListSchema,
   TodoSchema,
+  TodoTagParamSchema,
   UpdateTodoSchema,
   WorkTimeResponseSchema,
 } from "../schemas/todo-schemas";
@@ -501,12 +502,7 @@ export function setupRoutes<E extends Env = Env>(
     },
   );
 
-  // Todo-Tag relationship routes
-  const todoTagController = new TodoTagController(prisma);
-  app.route("/todos", todoTagController.getApp());
-
-  // Tag routes - 直接index.tsに実装
-  // リポジトリの作成
+  // Todo-Tag relationship routes - 直接index.tsに実装
   const tagRepository = new PrismaTagRepository(prisma);
   const todoRepository = new PrismaTodoRepository(prisma);
 
@@ -523,14 +519,6 @@ export function setupRoutes<E extends Env = Env>(
     return parse(TagSchema, response);
   };
 
-  // Create a new tag
-  app.post("/tags", vValidator("json", CreateTagSchema), async (c) => {
-    const input = c.req.valid("json");
-    const useCase = new CreateTagUseCase(tagRepository);
-    const tag = await useCase.execute(input);
-    return c.json(mapTagToResponse(tag), 201);
-  });
-
   // Get all tags
   app.get("/tags", async (c) => {
     const useCase = new GetAllTagsUseCase(tagRepository);
@@ -546,19 +534,19 @@ export function setupRoutes<E extends Env = Env>(
   });
 
   // Get todos by multiple tags
-  app.get("/tags/by-tags", async (c) => {
+  app.get("/todos/by-tags", async (c) => {
     try {
       const queryParams = {
         tagIds: c.req.query("tagIds") || "",
         mode: c.req.query("mode") || "all",
       };
 
-      const validated = parse(MultipleTagQuerySchema, queryParams);
+      const parsedParams = parse(MultipleTagQuerySchema, queryParams);
       const useCase = new GetTodosByMultipleTagsUseCase(tagRepository, todoRepository);
 
       const todos = await useCase.execute({
-        tagIds: validated.tagIds,
-        mode: validated.mode,
+        tagIds: parsedParams.tagIds,
+        mode: parsedParams.mode,
       });
 
       return c.json(
@@ -577,6 +565,66 @@ export function setupRoutes<E extends Env = Env>(
     } catch (error) {
       if (error instanceof Error && error.message.includes("not found")) {
         return c.json({ message: error.message }, 404);
+      }
+      throw error;
+    }
+  });
+
+  // Get tags for a todo
+  app.get("/todos/:id/tags", vValidator("param", IdParamSchema), async (c) => {
+    const todoId = c.req.param("id");
+    const useCase = new GetTagsForTodoUseCase(tagRepository, todoRepository);
+
+    try {
+      const tags = await useCase.execute({ todoId });
+      return c.json(tags);
+    } catch (error) {
+      if (error instanceof Error && error.message.includes("not found")) {
+        return c.json({ message: error.message }, 404);
+      }
+      throw error;
+    }
+  });
+
+  // Assign a tag to a todo
+  app.post("/todos/:id/tags", vValidator("param", IdParamSchema), vValidator("json", TagIdParamSchema), async (c) => {
+    const todoId = c.req.param("id");
+    const { tagId } = c.req.valid("json");
+    const useCase = new AssignTagToTodoUseCase(tagRepository, todoRepository);
+
+    try {
+      await useCase.execute({ todoId, tagId });
+      return c.json({ message: "Tag assigned successfully" }, 201);
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message.includes("not found")) {
+          return c.json({ message: error.message }, 404);
+        }
+        if (error.message.includes("already assigned")) {
+          return c.json({ message: error.message }, 400);
+        }
+      }
+      throw error;
+    }
+  });
+
+  // Remove a tag from a todo
+  app.delete("/todos/:id/tags/:tagId", vValidator("param", TodoTagParamSchema), async (c) => {
+    const todoId = c.req.param("id");
+    const tagId = c.req.param("tagId");
+    const useCase = new RemoveTagFromTodoUseCase(tagRepository, todoRepository);
+
+    try {
+      await useCase.execute({ todoId, tagId });
+      return c.status(204);
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message.includes("not found")) {
+          return c.json({ message: error.message }, 404);
+        }
+        if (error.message.includes("not assigned")) {
+          return c.json({ message: error.message }, 400);
+        }
       }
       throw error;
     }
