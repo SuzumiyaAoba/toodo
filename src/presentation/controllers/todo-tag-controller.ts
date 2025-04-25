@@ -11,6 +11,7 @@ import type { TodoRepository } from "../../domain/repositories/todo-repository";
 import type { PrismaClient } from "../../generated/prisma";
 import { PrismaTagRepository } from "../../infrastructure/repositories/prisma-tag-repository";
 import { PrismaTodoRepository } from "../../infrastructure/repositories/prisma-todo-repository";
+import { ErrorCode, createApiError } from "../errors/api-errors";
 import { MultipleTagQuerySchema, TagIdParamSchema, TagListSchema } from "../schemas/tag-schemas";
 import { IdParamSchema, TodoTagParamSchema } from "../schemas/todo-schemas";
 
@@ -96,7 +97,13 @@ export class TodoTagController {
                 schema: {
                   type: "object",
                   properties: {
-                    message: { type: "string" },
+                    error: {
+                      type: "object",
+                      properties: {
+                        code: { type: "string" },
+                        message: { type: "string" },
+                      },
+                    },
                   },
                 },
               },
@@ -134,7 +141,7 @@ export class TodoTagController {
           );
         } catch (error) {
           if (error instanceof Error && error.message.includes("not found")) {
-            return c.json({ message: error.message }, 404);
+            return c.json({ error: createApiError(ErrorCode.NOT_FOUND, error.message) }, 404);
           }
           throw error;
         }
@@ -167,7 +174,13 @@ export class TodoTagController {
                 schema: {
                   type: "object",
                   properties: {
-                    message: { type: "string" },
+                    error: {
+                      type: "object",
+                      properties: {
+                        code: { type: "string" },
+                        message: { type: "string" },
+                      },
+                    },
                   },
                 },
               },
@@ -185,7 +198,7 @@ export class TodoTagController {
           return c.json(tags);
         } catch (error) {
           if (error instanceof Error && error.message.includes("not found")) {
-            return c.json({ message: error.message }, 404);
+            return c.json({ error: createApiError(ErrorCode.NOT_FOUND, error.message) }, 404);
           }
           throw error;
         }
@@ -231,7 +244,13 @@ export class TodoTagController {
                 schema: {
                   type: "object",
                   properties: {
-                    message: { type: "string" },
+                    error: {
+                      type: "object",
+                      properties: {
+                        code: { type: "string" },
+                        message: { type: "string" },
+                      },
+                    },
                   },
                 },
               },
@@ -244,7 +263,13 @@ export class TodoTagController {
                 schema: {
                   type: "object",
                   properties: {
-                    message: { type: "string" },
+                    error: {
+                      type: "object",
+                      properties: {
+                        code: { type: "string" },
+                        message: { type: "string" },
+                      },
+                    },
                   },
                 },
               },
@@ -265,10 +290,10 @@ export class TodoTagController {
         } catch (error) {
           if (error instanceof Error) {
             if (error.message.includes("not found")) {
-              return c.json({ message: error.message }, 404);
+              return c.json({ error: createApiError(ErrorCode.NOT_FOUND, error.message) }, 404);
             }
             if (error.message.includes("already assigned")) {
-              return c.json({ message: error.message }, 400);
+              return c.json({ error: createApiError(ErrorCode.CONFLICT, error.message) }, 400);
             }
           }
           throw error;
@@ -297,7 +322,13 @@ export class TodoTagController {
                 schema: {
                   type: "object",
                   properties: {
-                    message: { type: "string" },
+                    error: {
+                      type: "object",
+                      properties: {
+                        code: { type: "string" },
+                        message: { type: "string" },
+                      },
+                    },
                   },
                 },
               },
@@ -310,7 +341,13 @@ export class TodoTagController {
                 schema: {
                   type: "object",
                   properties: {
-                    message: { type: "string" },
+                    error: {
+                      type: "object",
+                      properties: {
+                        code: { type: "string" },
+                        message: { type: "string" },
+                      },
+                    },
                   },
                 },
               },
@@ -330,10 +367,10 @@ export class TodoTagController {
         } catch (error) {
           if (error instanceof Error) {
             if (error.message.includes("not found")) {
-              return c.json({ message: error.message }, 404);
+              return c.json({ error: createApiError(ErrorCode.NOT_FOUND, error.message) }, 404);
             }
             if (error.message.includes("not assigned")) {
-              return c.json({ message: error.message }, 400);
+              return c.json({ error: createApiError(ErrorCode.VALIDATION_ERROR, error.message) }, 400);
             }
           }
           throw error;

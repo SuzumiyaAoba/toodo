@@ -78,7 +78,10 @@ This document outlines the API endpoints for the TODO management system built wi
 - **Error** (404 Not Found):
   ```json
   {
-    "error": "Todo not found"
+    "error": {
+      "code": "NOT_FOUND",
+      "message": "Todo not found"
+    }
   }
   ```
 
@@ -113,7 +116,10 @@ This document outlines the API endpoints for the TODO management system built wi
 - **Error** (404 Not Found):
   ```json
   {
-    "error": "Todo not found"
+    "error": {
+      "code": "NOT_FOUND",
+      "message": "Todo not found"
+    }
   }
   ```
 
@@ -125,7 +131,10 @@ This document outlines the API endpoints for the TODO management system built wi
 - **Error** (404 Not Found):
   ```json
   {
-    "error": "Todo not found"
+    "error": {
+      "code": "NOT_FOUND",
+      "message": "Todo not found"
+    }
   }
   ```
 
@@ -155,19 +164,28 @@ This document outlines the API endpoints for the TODO management system built wi
 - **Error** (404 Not Found):
   ```json
   {
-    "error": "Todo not found"
+    "error": {
+      "code": "NOT_FOUND",
+      "message": "Todo not found"
+    }
   }
   ```
 - **Error** (400 Bad Request):
   ```json
   {
-    "error": "Invalid activity type. Must be one of: started, paused, completed, discarded"
+    "error": {
+      "code": "VALIDATION_ERROR", 
+      "message": "Invalid activity type. Must be one of: started, paused, completed, discarded"
+    }
   }
   ```
 - **Error** (400 Bad Request):
   ```json
   {
-    "error": "Invalid state transition. Cannot transition from 'completed' to 'active'"
+    "error": {
+      "code": "INVALID_STATE",
+      "message": "Invalid state transition. Cannot transition from 'completed' to 'active'"
+    }
   }
   ```
 
@@ -210,7 +228,10 @@ This document outlines the API endpoints for the TODO management system built wi
 - **Error** (404 Not Found):
   ```json
   {
-    "error": "Todo not found"
+    "error": {
+      "code": "NOT_FOUND",
+      "message": "Todo not found"
+    }
   }
   ```
 
@@ -230,7 +251,10 @@ This document outlines the API endpoints for the TODO management system built wi
 - **Error** (404 Not Found):
   ```json
   {
-    "error": "Todo not found"
+    "error": {
+      "code": "NOT_FOUND",
+      "message": "Todo not found"
+    }
   }
   ```
 
@@ -242,13 +266,19 @@ This document outlines the API endpoints for the TODO management system built wi
 - **Error** (404 Not Found):
   ```json
   {
-    "error": "Activity not found"
+    "error": {
+      "code": "NOT_FOUND",
+      "message": "Activity not found"
+    }
   }
   ```
 - **Error** (403 Forbidden):
   ```json
   {
-    "error": "Cannot delete this activity as it would affect the work time calculations"
+    "error": {
+      "code": "FORBIDDEN",
+      "message": "Cannot delete this activity as it would affect the work time calculations"
+    }
   }
   ```
 
@@ -315,7 +345,10 @@ This document outlines the API endpoints for the TODO management system built wi
 - **Error** (404 Not Found):
   ```json
   {
-    "message": "Tag with ID 'a0b1c2d3-e4f5-6789-abcd-ef0123456789' not found"
+    "error": {
+      "code": "NOT_FOUND",
+      "message": "Tag with ID 'a0b1c2d3-e4f5-6789-abcd-ef0123456789' not found"
+    }
   }
   ```
 
@@ -343,7 +376,10 @@ This document outlines the API endpoints for the TODO management system built wi
 - **Error** (404 Not Found):
   ```json
   {
-    "message": "Tag with ID 'a0b1c2d3-e4f5-6789-abcd-ef0123456789' not found"
+    "error": {
+      "code": "NOT_FOUND",
+      "message": "Tag with ID 'a0b1c2d3-e4f5-6789-abcd-ef0123456789' not found"
+    }
   }
   ```
 
@@ -355,7 +391,10 @@ This document outlines the API endpoints for the TODO management system built wi
 - **Error** (404 Not Found):
   ```json
   {
-    "message": "Tag with ID 'a0b1c2d3-e4f5-6789-abcd-ef0123456789' not found"
+    "error": {
+      "code": "NOT_FOUND",
+      "message": "Tag with ID 'a0b1c2d3-e4f5-6789-abcd-ef0123456789' not found"
+    }
   }
   ```
 
@@ -378,13 +417,19 @@ This document outlines the API endpoints for the TODO management system built wi
 - **Error** (404 Not Found):
   ```json
   {
-    "message": "Todo with ID '550e8400-e29b-41d4-a716-446655440000' not found"
+    "error": {
+      "code": "NOT_FOUND",
+      "message": "Todo with ID '550e8400-e29b-41d4-a716-446655440000' not found"
+    }
   }
   ```
 - **Error** (400 Bad Request):
   ```json
   {
-    "message": "Tag is already assigned to todo"
+    "error": {
+      "code": "CONFLICT",
+      "message": "Tag is already assigned to todo"
+    }
   }
   ```
 
@@ -407,7 +452,10 @@ This document outlines the API endpoints for the TODO management system built wi
 - **Error** (404 Not Found):
   ```json
   {
-    "message": "Todo with ID '550e8400-e29b-41d4-a716-446655440000' not found"
+    "error": {
+      "code": "NOT_FOUND",
+      "message": "Todo with ID '550e8400-e29b-41d4-a716-446655440000' not found"
+    }
   }
   ```
 
@@ -419,13 +467,19 @@ This document outlines the API endpoints for the TODO management system built wi
 - **Error** (404 Not Found):
   ```json
   {
-    "message": "Todo with ID '550e8400-e29b-41d4-a716-446655440000' not found"
+    "error": {
+      "code": "NOT_FOUND",
+      "message": "Todo with ID '550e8400-e29b-41d4-a716-446655440000' not found"
+    }
   }
   ```
 - **Error** (400 Bad Request):
   ```json
   {
-    "message": "Tag is not assigned to todo"
+    "error": {
+      "code": "VALIDATION_ERROR",
+      "message": "Tag is not assigned to todo"
+    }
   }
   ```
 
@@ -453,7 +507,10 @@ This document outlines the API endpoints for the TODO management system built wi
 - **Error** (404 Not Found):
   ```json
   {
-    "message": "Tag with ID 'a0b1c2d3-e4f5-6789-abcd-ef0123456789' not found"
+    "error": {
+      "code": "NOT_FOUND",
+      "message": "Tag with ID 'a0b1c2d3-e4f5-6789-abcd-ef0123456789' not found"
+    }
   }
   ```
 
@@ -484,7 +541,10 @@ This document outlines the API endpoints for the TODO management system built wi
 - **Error** (404 Not Found):
   ```json
   {
-    "message": "Tag with ID 'a0b1c2d3-e4f5-6789-abcd-ef0123456789' not found"
+    "error": {
+      "code": "NOT_FOUND",
+      "message": "Tag with ID 'a0b1c2d3-e4f5-6789-abcd-ef0123456789' not found"
+    }
   }
   ```
 
@@ -511,7 +571,10 @@ This document outlines the API endpoints for the TODO management system built wi
 - **Error** (404 Not Found):
   ```json
   {
-    "message": "Tag with ID 'a0b1c2d3-e4f5-6789-abcd-ef0123456789' not found"
+    "error": {
+      "code": "NOT_FOUND",
+      "message": "Tag with ID 'a0b1c2d3-e4f5-6789-abcd-ef0123456789' not found"
+    }
   }
   ```
 
@@ -538,7 +601,10 @@ This document outlines the API endpoints for the TODO management system built wi
 - **Error** (404 Not Found):
   ```json
   {
-    "message": "Tag with ID 'a0b1c2d3-e4f5-6789-abcd-ef0123456789' not found"
+    "error": {
+      "code": "NOT_FOUND",
+      "message": "Tag with ID 'a0b1c2d3-e4f5-6789-abcd-ef0123456789' not found"
+    }
   }
   ```
 
@@ -574,20 +640,26 @@ Error responses have the following format:
 
 ```json
 {
-  "error": "Error message"
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Detailed error message"
+  }
 }
 ```
 
-または
+Common error codes:
 
-```json
-{
-  "message": "Error message"
-}
-```
+- `NOT_FOUND`: Resource not found
+- `VALIDATION_ERROR`: Invalid input data
+- `CONFLICT`: Resource conflict (e.g., duplicate entry)
+- `FORBIDDEN`: Permission denied
+- `INVALID_STATE`: Invalid state transition
+- `INTERNAL_ERROR`: Server-side error
 
 Common status codes:
 
-- 400 Bad Request: Invalid input
+- 400 Bad Request: Invalid input or request
+- 403 Forbidden: Permission denied
 - 404 Not Found: Resource not found
+- 409 Conflict: Resource conflict
 - 500 Internal Server Error: Server-side error

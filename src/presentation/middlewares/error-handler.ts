@@ -6,6 +6,7 @@ import {
   TodoNotFoundError,
   UnauthorizedActivityDeletionError,
 } from "../../domain/errors/todo-errors";
+import { ErrorCode, createApiError } from "../errors/api-errors";
 
 /**
  * Global error handling middleware
@@ -18,23 +19,29 @@ export const errorHandler: MiddlewareHandler = async (c: Context, next) => {
 
     // Handle domain-specific errors
     if (error instanceof TodoNotFoundError || error instanceof TodoActivityNotFoundError) {
-      return c.json({ error: error.message }, 404);
+      return c.json({ error: createApiError(ErrorCode.NOT_FOUND, error.message) }, 404);
     }
 
     if (error instanceof InvalidStateTransitionError) {
-      return c.json({ error: error.message }, 400);
+      return c.json({ error: createApiError(ErrorCode.INVALID_STATE, error.message) }, 400);
     }
 
     if (error instanceof UnauthorizedActivityDeletionError) {
-      return c.json({ error: error.message }, 403);
+      return c.json({ error: createApiError(ErrorCode.FORBIDDEN, error.message) }, 403);
     }
 
     // Handle validation errors from valibot
     if (error instanceof ValiError) {
-      return c.json({ error: "Validation error", details: error.issues }, 400);
+      return c.json(
+        {
+          error: createApiError(ErrorCode.VALIDATION_ERROR, "Validation error"),
+          details: error.issues,
+        },
+        400,
+      );
     }
 
     // Generic error handling
-    return c.json({ error: "Internal Server Error" }, 500);
+    return c.json({ error: createApiError(ErrorCode.INTERNAL_ERROR, "Internal Server Error") }, 500);
   }
 };
