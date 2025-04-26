@@ -6,6 +6,7 @@ import type { ProjectId } from "./project";
  */
 export enum TodoStatus {
   PENDING = "pending",
+  IN_PROGRESS = "in_progress",
   COMPLETED = "completed",
 }
 
@@ -170,20 +171,41 @@ export class Todo {
   /**
    * Mark the todo as completed
    */
-  complete(): Todo {
+  complete(currentTime: Date = new Date()): Todo {
+    if (this.status === TodoStatus.COMPLETED) {
+      throw new Error("Todo is already completed");
+    }
+
+    let totalWorkTime = this.totalWorkTime;
+
+    // If the todo is in the ACTIVE state, calculate the time spent working
+    if (this.workState === WorkState.ACTIVE) {
+      const timeSpent = Math.floor((currentTime.getTime() - this.lastStateChangeAt.getTime()) / 1000);
+      totalWorkTime += timeSpent;
+    }
+
     return this.copyWith({
       status: TodoStatus.COMPLETED,
       workState: WorkState.COMPLETED,
+      totalWorkTime: totalWorkTime,
+      lastStateChangeAt: currentTime,
+      updatedAt: currentTime,
     });
   }
 
   /**
    * Mark the todo as pending
    */
-  reopen(): Todo {
+  reopen(currentTime: Date = new Date()): Todo {
+    if (this.status !== TodoStatus.COMPLETED) {
+      throw new Error("Todo is not completed");
+    }
+
     return this.copyWith({
       status: TodoStatus.PENDING,
-      workState: this.workState === WorkState.COMPLETED ? WorkState.IDLE : this.workState,
+      workState: WorkState.IDLE,
+      lastStateChangeAt: currentTime,
+      updatedAt: currentTime,
     });
   }
 
@@ -206,17 +228,35 @@ export class Todo {
   }
 
   /**
-   * Start working on the todo
+   * Start working on a todo
    */
   start(currentTime: Date = new Date()): Todo {
-    return this.updateWorkState(WorkState.ACTIVE, currentTime);
+    if (this.status === TodoStatus.COMPLETED) {
+      throw new Error("Cannot start a completed todo");
+    }
+    if (this.workState === WorkState.ACTIVE) {
+      throw new Error("Todo is already in WORKING state");
+    }
+    return this.updateWorkState(WorkState.ACTIVE, currentTime).updateStatus(TodoStatus.IN_PROGRESS);
   }
 
   /**
-   * Pause working on the todo
+   * Pause working on a todo
    */
   pause(currentTime: Date = new Date()): Todo {
-    return this.updateWorkState(WorkState.PAUSED, currentTime);
+    if (this.workState !== WorkState.ACTIVE) {
+      throw new Error("Todo is not in WORKING state");
+    }
+
+    // Calculate time spent working
+    const timeSpent = Math.floor((currentTime.getTime() - this.lastStateChangeAt.getTime()) / 1000);
+
+    return this.copyWith({
+      workState: WorkState.PAUSED,
+      totalWorkTime: this.totalWorkTime + timeSpent,
+      lastStateChangeAt: currentTime,
+      updatedAt: currentTime,
+    });
   }
 
   /**
@@ -251,6 +291,71 @@ export class Todo {
       undefined, // explicitly set projectId to undefined
       this.description,
     );
+  }
+
+  /**
+   * Update multiple properties of the todo at once
+   */
+  update(data: Partial<Omit<Todo, "id" | "createdAt" | "updatedAt">>): Todo {
+    return this.copyWith(data);
+  }
+
+  /**
+   * Resume working on a paused todo
+   */
+  resume(currentTime: Date = new Date()): Todo {
+    if (this.workState !== WorkState.PAUSED) {
+      throw new Error("Todo is not in PAUSED state");
+    }
+    return this.updateWorkState(WorkState.ACTIVE, currentTime);
+  }
+}
+
+/**
+ * Convert WorkState enum to a string representation
+ */
+export function workStateToString(workState: WorkState): string {
+  switch (workState) {
+    case WorkState.IDLE:
+      return "待機中";
+    case WorkState.ACTIVE:
+      return "作業中";
+    case WorkState.PAUSED:
+      return "一時停止";
+    default:
+      return "不明";
+  }
+}
+
+/**
+ * Convert TodoStatus enum to a string representation
+ */
+export function todoStatusToString(status: TodoStatus): string {
+  switch (status) {
+    case TodoStatus.PENDING:
+      return "未着手";
+    case TodoStatus.IN_PROGRESS:
+      return "進行中";
+    case TodoStatus.COMPLETED:
+      return "完了";
+    default:
+      return "不明";
+  }
+}
+
+/**
+ * Convert PriorityLevel enum to a string representation
+ */
+export function priorityLevelToString(priorityLevel: PriorityLevel): string {
+  switch (priorityLevel) {
+    case PriorityLevel.LOW:
+      return "low";
+    case PriorityLevel.MEDIUM:
+      return "medium";
+    case PriorityLevel.HIGH:
+      return "high";
+    default:
+      return "unknown";
   }
 }
 
