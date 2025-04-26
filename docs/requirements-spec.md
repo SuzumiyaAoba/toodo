@@ -21,6 +21,8 @@ This document defines the requirements and specifications for a TODO management 
 - Track work state of TODOs (idle, active, paused, completed)
 - Calculate and track work time for TODOs
 - **Set and update priority levels for TODOs**
+- **Organize TODOs with Projects**
+- **View and manage TODOs by Project**
 
 ### 2.2 Constraints
 
@@ -50,6 +52,7 @@ This document defines the requirements and specifications for a TODO management 
 | createdAt         | Timestamp | Creation time of the TODO        | Auto-generated                                     |
 | updatedAt         | Timestamp | Last update time of the TODO     | Auto-updated on changes                            |
 | **priority**      | Enum      | Priority level of the TODO       | One of: "low", "medium", "high", default: "medium" |
+| **projectId**     | UUID      | Reference to the Project         | Foreign key to Project.id, Optional                |
 
 #### 3.1.2 TodoActivity Entity
 
@@ -81,6 +84,18 @@ This document defines the requirements and specifications for a TODO management 
 | tagId      | UUID      | Reference to the Tag      | Foreign key to Tag.id  |
 | assignedAt | Timestamp | When the tag was assigned | Auto-generated         |
 
+#### 3.1.5 Project Entity
+
+| Field       | Type      | Description                       | Constraints                          |
+| ----------- | --------- | --------------------------------- | ------------------------------------ |
+| id          | UUID      | Unique identifier for the project | Auto-generated, unique               |
+| name        | String    | Name of the project               | Required, max 100 characters         |
+| description | String    | Description of the project        | Optional, max 1000 characters        |
+| color       | String    | Color code for the project        | Optional, hex color code             |
+| status      | Enum      | Status of the project             | One of: "active", "archived"         |
+| createdAt   | Timestamp | Creation time of the project      | Auto-generated                       |
+| updatedAt   | Timestamp | Last update time of the project   | Auto-updated on changes              |
+
 ### 3.2 API Endpoints
 
 | Method | Path                                | Description                             | Response Codes                                  |
@@ -107,22 +122,11 @@ This document defines the requirements and specifications for a TODO management 
 | POST   | /tags/{id}/bulk-assign              | Assign a tag to multiple TODOs          | 200: OK, 404: Not Found                         |
 | DELETE | /tags/{id}/bulk-remove              | Remove a tag from multiple TODOs        | 200: OK, 404: Not Found                         |
 | GET    | /tags/stats                         | Get tag usage statistics                | 200: OK                                         |
-
-## 4. Technical Stack
-
-- **Backend**: TypeScript with Hono framework
-- **ORM**: Prisma
-- **Database**: SQLite
-- **Runtime**: Bun
-- **Testing**: Bun Test
-
-## 5. Future Enhancement Ideas
-
-- User authentication
-- Priority setting for TODOs
-- Due date functionality
-- ~~Tagging system~~ (Implemented)
-- ~~Tag-based filtering and reporting~~ (Implemented)
-- Mobile app integration
-- Activity statistics and reports
-- Work time visualization and reporting
+| POST   | /projects                           | Create a new project                    | 201: Created                                    |
+| GET    | /projects                           | Get a list of projects                  | 200: OK                                         |
+| GET    | /projects/{id}                      | Get details of a specific project       | 200: OK, 404: Not Found                         |
+| PUT    | /projects/{id}                      | Update a specific project               | 200: OK, 404: Not Found                         |
+| DELETE | /projects/{id}                      | Delete a specific project               | 204: No Content, 404: Not Found                 |
+| GET    | /projects/{id}/todos                | Get TODOs in a specific project         | 200: OK, 404: Not Found                         |
+| POST   | /projects/{id}/todos                | Add a TODO to a project                 | 201: Created, 404: Not Found                    |
+| DELETE | /projects/{id}/todos/{todoId}       | Remove a TODO from a project            | 204: No Content, 404: Not Found                 |

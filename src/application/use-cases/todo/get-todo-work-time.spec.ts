@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
-import { PriorityLevel, type Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
+import { createTestTodo } from "../../../domain/entities/test-helpers";
+import { PriorityLevel, Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
 import { TodoNotFoundError } from "../../../domain/errors/todo-errors";
 import type { TodoRepository } from "../../../domain/repositories/todo-repository";
 import { GetTodoWorkTimeUseCase } from "./get-todo-work-time";
@@ -43,7 +44,7 @@ describe("GetTodoWorkTimeUseCase", () => {
     const now = new Date();
     const startedAt = new Date(now.getTime() - 3600000); // 1時間前
 
-    const mockTodo: Todo = {
+    const mockTodo = createTestTodo({
       id: todoId,
       title: "Test Todo",
       description: "Description",
@@ -54,7 +55,7 @@ describe("GetTodoWorkTimeUseCase", () => {
       createdAt: new Date(now.getTime() - 86400000), // 1日前に作成
       updatedAt: startedAt,
       priority: PriorityLevel.MEDIUM,
-    };
+    });
 
     mockTodoRepository.findById.mockImplementationOnce(async () => Promise.resolve(mockTodo));
 
@@ -75,10 +76,9 @@ describe("GetTodoWorkTimeUseCase", () => {
     const now = new Date();
 
     // 異なる作業時間のmockTodoを作成
-    const mockTodo1: Todo = {
+    const mockTodo1 = createTestTodo({
       id: todoId,
       title: "Test Todo 1",
-      description: undefined,
       status: TodoStatus.PENDING,
       workState: WorkState.PAUSED,
       totalWorkTime: 30, // 30秒
@@ -86,12 +86,11 @@ describe("GetTodoWorkTimeUseCase", () => {
       createdAt: now,
       updatedAt: now,
       priority: PriorityLevel.MEDIUM,
-    };
+    });
 
-    const mockTodo2: Todo = {
+    const mockTodo2 = createTestTodo({
       id: todoId,
       title: "Test Todo 2",
-      description: undefined,
       status: TodoStatus.PENDING,
       workState: WorkState.PAUSED,
       totalWorkTime: 90, // 1分30秒
@@ -99,12 +98,11 @@ describe("GetTodoWorkTimeUseCase", () => {
       createdAt: now,
       updatedAt: now,
       priority: PriorityLevel.LOW,
-    };
+    });
 
-    const mockTodo3: Todo = {
+    const mockTodo3 = createTestTodo({
       id: todoId,
       title: "Test Todo 3",
-      description: undefined,
       status: TodoStatus.PENDING,
       workState: WorkState.PAUSED,
       totalWorkTime: 3660, // 1時間1分
@@ -112,7 +110,7 @@ describe("GetTodoWorkTimeUseCase", () => {
       createdAt: now,
       updatedAt: now,
       priority: PriorityLevel.HIGH,
-    };
+    });
 
     mockTodoRepository.findById.mockImplementationOnce(async () => Promise.resolve(mockTodo1));
 

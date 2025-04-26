@@ -30,8 +30,10 @@ import {
 import type { TagRepository } from "../../domain/repositories/tag-repository";
 import type { TodoRepository } from "../../domain/repositories/todo-repository";
 import type { PrismaClient } from "../../generated/prisma";
+import { PrismaProjectRepository } from "../../infrastructure/repositories/prisma-project-repository";
 import { PrismaTagRepository } from "../../infrastructure/repositories/prisma-tag-repository";
 import { PrismaTodoRepository } from "../../infrastructure/repositories/prisma-todo-repository";
+import { ProjectController } from "../controllers/project-controller";
 import {
   BulkTagOperationSchema,
   CreateTagSchema,
@@ -1276,6 +1278,11 @@ export function setupRoutes<E extends Env = Env>(
       }
     },
   );
+
+  // Project routes
+  const projectRepository = new PrismaProjectRepository(prisma);
+  const projectController = new ProjectController(projectRepository, todoRepository);
+  projectController.setupRoutes(app);
 
   return app;
 }

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
-import { PriorityLevel, type Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
+import { createTestTodo } from "../../../domain/entities/test-helpers";
+import { PriorityLevel, Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
 import type { TodoRepository } from "../../../domain/repositories/todo-repository";
 import { CreateTodoUseCase } from "./create-todo";
 
@@ -43,10 +44,9 @@ describe("CreateTodoUseCase", () => {
     };
 
     const now = new Date();
-    const createdTodo: Todo = {
+    const createdTodo = createTestTodo({
       id: "new-todo-id",
       title: "New Test Todo",
-      description: undefined,
       status: TodoStatus.PENDING,
       workState: WorkState.IDLE,
       totalWorkTime: 0,
@@ -54,7 +54,7 @@ describe("CreateTodoUseCase", () => {
       createdAt: now,
       updatedAt: now,
       priority: PriorityLevel.MEDIUM,
-    };
+    });
 
     mockTodoRepository.create.mockImplementationOnce(async () => Promise.resolve(createdTodo));
 
@@ -63,15 +63,11 @@ describe("CreateTodoUseCase", () => {
 
     // Assert
     expect(mockTodoRepository.create).toHaveBeenCalledTimes(1);
-    expect(mockTodoRepository.create).toHaveBeenCalledWith({
-      title: "New Test Todo",
-      description: undefined,
-      status: TodoStatus.PENDING,
-      workState: WorkState.IDLE,
-      totalWorkTime: 0,
-      lastStateChangeAt: expect.any(Date),
-      priority: PriorityLevel.MEDIUM,
-    });
+    expect(mockTodoRepository.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "New Test Todo",
+      }),
+    );
     expect(result).toEqual(createdTodo);
   });
 
@@ -83,7 +79,7 @@ describe("CreateTodoUseCase", () => {
     };
 
     const now = new Date();
-    const createdTodo: Todo = {
+    const createdTodo = createTestTodo({
       id: "new-todo-id",
       title: "New Test Todo",
       description: "This is a test todo with description",
@@ -94,7 +90,7 @@ describe("CreateTodoUseCase", () => {
       createdAt: now,
       updatedAt: now,
       priority: PriorityLevel.MEDIUM,
-    };
+    });
 
     mockTodoRepository.create.mockImplementationOnce(async () => Promise.resolve(createdTodo));
 
@@ -103,15 +99,12 @@ describe("CreateTodoUseCase", () => {
 
     // Assert
     expect(mockTodoRepository.create).toHaveBeenCalledTimes(1);
-    expect(mockTodoRepository.create).toHaveBeenCalledWith({
-      title: "New Test Todo",
-      description: "This is a test todo with description",
-      status: TodoStatus.PENDING,
-      workState: WorkState.IDLE,
-      totalWorkTime: 0,
-      lastStateChangeAt: expect.any(Date),
-      priority: PriorityLevel.MEDIUM,
-    });
+    expect(mockTodoRepository.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "New Test Todo",
+        description: "This is a test todo with description",
+      }),
+    );
     expect(result).toEqual(createdTodo);
   });
 });

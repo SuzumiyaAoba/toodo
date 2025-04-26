@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
-import { PriorityLevel, type Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
+import { createTestTodo } from "../../../domain/entities/test-helpers";
+import { PriorityLevel, Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
 import type { TodoRepository } from "../../../domain/repositories/todo-repository";
 import { GetTodoListUseCase } from "./get-todo-list";
 
@@ -40,7 +41,7 @@ describe("GetTodoListUseCase", () => {
     // Arrange
     const now = new Date();
     const mockTodos: Todo[] = [
-      {
+      createTestTodo({
         id: "todo-1",
         title: "Todo 1",
         description: "Description 1",
@@ -51,11 +52,10 @@ describe("GetTodoListUseCase", () => {
         createdAt: now,
         updatedAt: now,
         priority: PriorityLevel.MEDIUM,
-      },
-      {
+      }),
+      createTestTodo({
         id: "todo-2",
         title: "Todo 2",
-        description: undefined,
         status: TodoStatus.COMPLETED,
         workState: WorkState.COMPLETED,
         totalWorkTime: 120,
@@ -63,7 +63,7 @@ describe("GetTodoListUseCase", () => {
         createdAt: now,
         updatedAt: now,
         priority: PriorityLevel.LOW,
-      },
+      }),
     ];
 
     mockTodoRepository.findAll.mockImplementationOnce(async () => Promise.resolve(mockTodos));

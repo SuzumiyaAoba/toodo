@@ -1,5 +1,6 @@
 import type { Context, MiddlewareHandler } from "hono";
 import { ValiError } from "valibot";
+import { ProjectNameExistsError, ProjectNotFoundError } from "../../domain/errors/project-errors";
 import { TagNameExistsError, TagNotFoundError } from "../../domain/errors/tag-errors";
 import {
   InvalidStateTransitionError,
@@ -22,7 +23,8 @@ export const errorHandler: MiddlewareHandler = async (c: Context, next) => {
     if (
       error instanceof TodoNotFoundError ||
       error instanceof TodoActivityNotFoundError ||
-      error instanceof TagNotFoundError
+      error instanceof TagNotFoundError ||
+      error instanceof ProjectNotFoundError
     ) {
       return c.json({ error: createApiError(ErrorCode.NOT_FOUND, error.message) }, 404);
     }
@@ -35,7 +37,7 @@ export const errorHandler: MiddlewareHandler = async (c: Context, next) => {
       return c.json({ error: createApiError(ErrorCode.FORBIDDEN, error.message) }, 403);
     }
 
-    if (error instanceof TagNameExistsError) {
+    if (error instanceof TagNameExistsError || error instanceof ProjectNameExistsError) {
       return c.json({ error: createApiError(ErrorCode.CONFLICT, error.message) }, 409);
     }
 

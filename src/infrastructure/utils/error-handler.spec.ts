@@ -1,6 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
-import { TagNotFoundError } from "../../domain/errors/tag-errors";
+import { ProjectNameExistsError, ProjectNotFoundError } from "../../domain/errors/project-errors";
+import { TagNameExistsError, TagNotFoundError } from "../../domain/errors/tag-errors";
 import { TodoActivityNotFoundError, TodoNotFoundError } from "../../domain/errors/todo-errors";
 import { handlePrismaError } from "./error-handler";
 
@@ -38,6 +39,17 @@ describe("handlePrismaError", () => {
     }).toThrow(TagNotFoundError);
   });
 
+  it("should convert P2025 error to ProjectNotFoundError for Project entity", () => {
+    // Arrange
+    const error = new PrismaClientKnownRequestError("Record not found", { code: "P2025", clientVersion: "4.0.0" });
+    const entityId = "test-project-id";
+
+    // Act & Assert
+    expect(() => {
+      handlePrismaError(error, "Project", entityId);
+    }).toThrow(ProjectNotFoundError);
+  });
+
   it("should convert P2002 error to TagNameExistsError for Tag entity with name constraint", () => {
     // Arrange
     const error = new PrismaClientKnownRequestError("Unique constraint violation", {
@@ -49,7 +61,21 @@ describe("handlePrismaError", () => {
     // Act & Assert
     expect(() => {
       handlePrismaError(error, "Tag");
-    }).toThrow();
+    }).toThrow(TagNameExistsError);
+  });
+
+  it("should convert P2002 error to ProjectNameExistsError for Project entity with name constraint", () => {
+    // Arrange
+    const error = new PrismaClientKnownRequestError("Unique constraint violation", {
+      code: "P2002",
+      clientVersion: "4.0.0",
+      meta: { target: ["name"] },
+    });
+
+    // Act & Assert
+    expect(() => {
+      handlePrismaError(error, "Project");
+    }).toThrow(ProjectNameExistsError);
   });
 
   it("should rethrow unknown errors", () => {

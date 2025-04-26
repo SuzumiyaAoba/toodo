@@ -1,15 +1,12 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
-import { PriorityLevel, type Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
+import { createTestTodo } from "../../../domain/entities/test-helpers";
+import { PriorityLevel, Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
 import { ActivityType, type TodoActivity } from "../../../domain/entities/todo-activity";
 import { InvalidStateTransitionError, TodoNotFoundError } from "../../../domain/errors/todo-errors";
 import type { TodoActivityRepository } from "../../../domain/repositories/todo-activity-repository";
 import type { TodoRepository } from "../../../domain/repositories/todo-repository";
+import { MockedFunction } from "../../../test/types";
 import { CreateTodoActivityUseCase } from "./create-todo-activity";
-
-// モック関数の型を拡張
-type MockedFunction<T extends (...args: any) => any> = {
-  [K in keyof ReturnType<typeof mock<T>>]: ReturnType<typeof mock<T>>[K];
-} & T;
 
 // モック化されたリポジトリの型
 interface MockedTodoRepository extends TodoRepository {
@@ -85,7 +82,7 @@ describe("CreateTodoActivityUseCase", () => {
       note: "Starting work",
     };
 
-    const mockTodo = {
+    const mockTodo = createTestTodo({
       id: todoId,
       title: "Test Todo",
       status: TodoStatus.PENDING,
@@ -95,7 +92,7 @@ describe("CreateTodoActivityUseCase", () => {
       createdAt: now,
       updatedAt: now,
       priority: PriorityLevel.MEDIUM,
-    };
+    });
 
     const createdActivity = {
       id: "activity-id",
@@ -107,10 +104,17 @@ describe("CreateTodoActivityUseCase", () => {
       createdAt: now,
     };
 
-    const updatedTodo = {
-      ...mockTodo,
+    const updatedTodo = createTestTodo({
+      id: todoId,
+      title: "Test Todo",
+      status: TodoStatus.PENDING,
       workState: WorkState.ACTIVE,
-    };
+      totalWorkTime: 0,
+      lastStateChangeAt: now,
+      createdAt: now,
+      updatedAt: now,
+      priority: PriorityLevel.MEDIUM,
+    });
 
     mockTodoRepository.findById.mockImplementationOnce(() => Promise.resolve(mockTodo));
     mockTodoActivityRepository.create.mockImplementationOnce(() => Promise.resolve(createdActivity));
@@ -139,7 +143,6 @@ describe("CreateTodoActivityUseCase", () => {
     expect(result).toEqual(createdActivity);
   });
 
-  // 残りのテストケースはそのまま
   test("should create a 'paused' activity with work time and update todo state from ACTIVE to PAUSED", async () => {
     // Arrange
     const todoId = "todo-id";
@@ -150,7 +153,7 @@ describe("CreateTodoActivityUseCase", () => {
       note: "Taking a break",
     };
 
-    const mockTodo = {
+    const mockTodo = createTestTodo({
       id: todoId,
       title: "Test Todo",
       status: TodoStatus.PENDING,
@@ -160,7 +163,7 @@ describe("CreateTodoActivityUseCase", () => {
       createdAt: pastTime,
       updatedAt: pastTime,
       priority: PriorityLevel.MEDIUM,
-    };
+    });
 
     // Calculate expected work time (around 3600 seconds, but might vary slightly during test execution)
     const expectedMinWorkTime = 3500; // Just a bit less than an hour to handle execution time variations
@@ -174,11 +177,13 @@ describe("CreateTodoActivityUseCase", () => {
       }),
     );
     mockTodoRepository.update.mockImplementation((id, data) =>
-      Promise.resolve({
-        ...mockTodo,
-        ...data,
-        updatedAt: now,
-      }),
+      Promise.resolve(
+        createTestTodo({
+          ...mockTodo,
+          ...data,
+          updatedAt: now,
+        }),
+      ),
     );
 
     // Act
@@ -210,7 +215,7 @@ describe("CreateTodoActivityUseCase", () => {
       note: "Trying to start again",
     };
 
-    const mockTodo = {
+    const mockTodo = createTestTodo({
       id: todoId,
       title: "Test Todo",
       status: TodoStatus.PENDING,
@@ -220,7 +225,7 @@ describe("CreateTodoActivityUseCase", () => {
       createdAt: now,
       updatedAt: now,
       priority: PriorityLevel.MEDIUM,
-    };
+    });
 
     mockTodoRepository.findById.mockImplementationOnce(() => Promise.resolve(mockTodo));
 
@@ -241,7 +246,7 @@ describe("CreateTodoActivityUseCase", () => {
       note: "Finished the task",
     };
 
-    const mockTodo = {
+    const mockTodo = createTestTodo({
       id: todoId,
       title: "Test Todo",
       status: TodoStatus.PENDING,
@@ -251,7 +256,7 @@ describe("CreateTodoActivityUseCase", () => {
       createdAt: pastTime,
       updatedAt: pastTime,
       priority: PriorityLevel.MEDIUM,
-    };
+    });
 
     // Calculate expected work time (around 1800 seconds + 600 existing seconds)
     const expectedMinTotalWorkTime = 2300; // A bit less than 30 min + 10 min to handle variations
@@ -265,11 +270,13 @@ describe("CreateTodoActivityUseCase", () => {
       }),
     );
     mockTodoRepository.update.mockImplementation((id, data) =>
-      Promise.resolve({
-        ...mockTodo,
-        ...data,
-        updatedAt: now,
-      }),
+      Promise.resolve(
+        createTestTodo({
+          ...mockTodo,
+          ...data,
+          updatedAt: now,
+        }),
+      ),
     );
 
     // Act
