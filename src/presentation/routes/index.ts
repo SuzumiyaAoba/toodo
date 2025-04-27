@@ -81,6 +81,7 @@ import {
   UpdateTodoSchema,
   WorkTimeResponseSchema,
 } from "../schemas/todo-schemas";
+import { setupTodoDependencyRoutes } from "./todo-dependency-routes";
 
 import type { ConversionConfig } from "@valibot/to-json-schema";
 // Honoのより具体的な型定義をインポート
@@ -760,60 +761,6 @@ export function setupRoutes<E extends Env = Env>(
   );
 
   // Assign a tag to a todo
-  app.get(
-    "/todos/:id/tags",
-    describeRoute({
-      tags: ["Todos", "Tags"],
-      summary: "Get tags for a todo",
-      description: "Retrieve all tags associated with a specific todo",
-      request: {
-        params: resolver(IdParamSchema, valibotConfig),
-      },
-      responses: {
-        200: {
-          description: "List of tags",
-          content: {
-            "application/json": {
-              schema: {
-                type: "array",
-                items: resolver(TagSchema, valibotConfig),
-              },
-            },
-          },
-        },
-        404: {
-          description: "Todo not found",
-          content: {
-            "application/json": {
-              schema: {
-                type: "object",
-                properties: {
-                  message: { type: "string" },
-                },
-              },
-            },
-          },
-        },
-      },
-    }),
-    vValidator("param", IdParamSchema),
-    async (c) => {
-      const todoId = c.req.param("id");
-      const useCase = new GetTagsForTodoUseCase(tagRepository, todoRepository);
-
-      try {
-        const tags = await useCase.execute({ todoId });
-        return c.json(tags);
-      } catch (error) {
-        if (error instanceof Error && error.message.includes("not found")) {
-          return c.json({ message: error.message }, 404);
-        }
-        throw error;
-      }
-    },
-  );
-
-  // Assign a tag to a todo
   app.post(
     "/todos/:id/tags",
     describeRoute({
@@ -1307,6 +1254,9 @@ export function setupRoutes<E extends Env = Env>(
 
   // Project routes
   const projectRepository = new PrismaProjectRepository(prisma);
+
+  // Todo dependency routes
+  setupTodoDependencyRoutes(app, todoRepository);
 
   // Projects API endpoints
   app.post(
