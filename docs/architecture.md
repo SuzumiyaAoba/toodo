@@ -140,7 +140,8 @@ export class Todo {
     public readonly priority: PriorityLevel = PriorityLevel.MEDIUM,
     public readonly projectId?: ProjectId,
     public readonly dependencies: TodoId[] = [],
-    public readonly dependents: TodoId[] = []
+    public readonly dependents: TodoId[] = [],
+    public readonly dueDate?: Date
   ) {}
 
   // Domain methods - all return new Todo instances
@@ -148,6 +149,7 @@ export class Todo {
   updateDescription(description?: string): Todo { /* implementation */ }
   updateStatus(status: TodoStatus): Todo { /* implementation */ }
   updatePriority(priority: PriorityLevel): Todo { /* implementation */ }
+  updateDueDate(dueDate?: Date): Todo { /* implementation */ }
   
   // State management methods
   complete(currentTime?: Date): Todo { /* implementation */ }
@@ -164,6 +166,10 @@ export class Todo {
   hasDependencyOn(dependencyId: TodoId): boolean { /* implementation */ }
   hasDependent(dependentId: TodoId): boolean { /* implementation */ }
   canBeCompleted(completedTodoIds: TodoId[]): boolean { /* implementation */ }
+  
+  // Due date methods
+  isOverdue(currentDate: Date = new Date()): boolean { /* implementation */ }
+  daysUntilDue(currentDate: Date = new Date()): number | null { /* implementation */ }
 }
 ```
 

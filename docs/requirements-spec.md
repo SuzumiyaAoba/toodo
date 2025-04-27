@@ -1,112 +1,122 @@
-# Toodo - タスク管理アプリケーション要件仕様書
+# Toodo - Task Management Application Requirements Specification
 
-## 1. 概要
+## 1. Overview
 
-Toodo は個人やチームが Todo アイテムを効率的に管理するための REST API アプリケーションです。
+Toodo is a REST API application designed for efficient task management for individuals and teams.
 
-## 2. 機能要件
+## 2. Functional Requirements
 
-### 2.1 Todo 管理
+### 2.1 Todo Management
 
-#### 2.1.1 基本機能
+#### 2.1.1 Basic Functions
 
-- Todo アイテムの作成、読み取り、更新、削除（CRUD）
-- Todo の状態管理（Pending、In Progress、Completed、Cancelled）
-- Todo への説明文の追加
-- Todo の優先度設定（Low、Medium、High、Critical）
+- Create, read, update, and delete (CRUD) Todo items
+- Todo status management (Pending, In Progress, Completed, Cancelled)
+- Adding descriptions to Todos
+- Todo priority setting (Low, Medium, High)
 
-#### 2.1.2 作業状態追跡
+#### 2.1.2 Work State Tracking
 
-- Todo の作業状態管理（Idle、Active、Paused、Completed）
-- 作業時間の記録と集計
-- 状態変更履歴の保存
+- Todo work state management (Idle, Active, Paused, Completed)
+- Recording and aggregating work time
+- Saving state change history
 
-#### 2.1.3 依存関係管理
+#### 2.1.3 Dependency Management
 
-- Todo アイテム間の依存関係の設定
-- 依存関係がある Todo の表示
-- 依存する Todo の表示
-- 循環依存関係の検出と防止
-- 依存関係に基づいたステータス制限（例：依存するTodoが完了するまで完了にできない）
+- Setting dependencies between Todo items
+- Displaying Todos with dependencies
+- Displaying dependent Todos
+- Detecting and preventing circular dependencies
+- Status restrictions based on dependencies (e.g., cannot be completed until dependent Todos are completed)
 
-### 2.2 タグ管理
+#### 2.1.4 Due Date Management
 
-- タグの作成、読み取り、更新、削除
-- タグの名前とカラー設定
-- Todo へのタグ付け
-- タグによる Todo のフィルタリング
+- Setting due dates for Todo items
+- Tracking overdue Todos
+- Displaying Todos due soon
+- Filtering Todos by due date range
 
-### 2.3 プロジェクト管理
+### 2.2 Tag Management
 
-- プロジェクトの作成、読み取り、更新、削除
-- プロジェクトの名前、説明、カラー設定
-- プロジェクトの状態管理（Active、Inactive）
-- Todo のプロジェクトへの割り当て
-- プロジェクトによる Todo のフィルタリング
+- Create, read, update, and delete tags
+- Setting tag names and colors
+- Tagging Todos
+- Filtering Todos by tags
 
-## 3. 非機能要件
+### 2.3 Project Management
 
-### 3.1 パフォーマンス
+- Create, read, update, and delete projects
+- Setting project names, descriptions, and colors
+- Project status management (Active, Archived)
+- Assigning Todos to projects
+- Filtering Todos by projects
 
-- API レスポンスタイムは平均 200ms 以下を目標とする
-- 同時に 50 リクエストを処理できるようにする
+## 3. Non-Functional Requirements
 
-### 3.2 セキュリティ
+### 3.1 Performance
 
-- 入力値のバリデーション
-- SQLインジェクション対策
-- XSS対策
+- Target average API response time under 200ms
+- Ability to handle 50 simultaneous requests
 
-### 3.3 拡張性
+### 3.2 Security
 
-- コードベースは新機能の追加が容易な構造とする
-- クリーンアーキテクチャの原則に従う
+- Input validation
+- SQL injection prevention
+- XSS prevention
 
-### 3.4 信頼性
+### 3.3 Extensibility
 
-- エラー処理の一貫性
-- 適切なロギング
-- ユニットテスト、統合テストのカバレッジ 80% 以上
+- Code structure that facilitates easy addition of new features
+- Adherence to clean architecture principles
 
-## 4. ユーザーストーリー
+### 3.4 Reliability
 
-### 4.1 Todo 管理
+- Consistent error handling
+- Appropriate logging
+- Unit and integration test coverage of at least 80%
 
-1. ユーザーは新しい Todo を作成できる
-2. ユーザーは Todo のリストを表示できる
-3. ユーザーは Todo の詳細を表示できる
-4. ユーザーは Todo を編集できる
-5. ユーザーは Todo を削除できる
-6. ユーザーは Todo を完了としてマークできる
-7. ユーザーは Todo にステータスを設定できる
-8. ユーザーは Todo の作業を開始/一時停止/再開できる
-9. ユーザーは Todo 間の依存関係を設定できる
-10. ユーザーは Todo の依存関係を表示できる
+## 4. User Stories
 
-### 4.2 タグ管理
+### 4.1 Todo Management
 
-1. ユーザーは新しいタグを作成できる
-2. ユーザーはタグのリストを表示できる
-3. ユーザーはタグを編集できる
-4. ユーザーはタグを削除できる
-5. ユーザーは Todo にタグを付けられる
-6. ユーザーはタグで Todo をフィルタリングできる
+1. Users can create new Todos
+2. Users can view a list of Todos
+3. Users can view Todo details
+4. Users can edit Todos
+5. Users can delete Todos
+6. Users can mark Todos as completed
+7. Users can set Todo status
+8. Users can start/pause/resume work on Todos
+9. Users can set dependencies between Todos
+10. Users can view Todo dependencies
+11. Users can set due dates for Todos
+12. Users can view overdue Todos
+13. Users can view Todos due soon
 
-### 4.3 プロジェクト管理
+### 4.2 Tag Management
 
-1. ユーザーは新しいプロジェクトを作成できる
-2. ユーザーはプロジェクトのリストを表示できる
-3. ユーザーはプロジェクトの詳細を表示できる
-4. ユーザーはプロジェクトを編集できる
-5. ユーザーはプロジェクトを削除できる
-6. ユーザーはプロジェクトに Todo を追加できる
-7. ユーザーはプロジェクトで Todo をフィルタリングできる
+1. Users can create new tags
+2. Users can view a list of tags
+3. Users can edit tags
+4. Users can delete tags
+5. Users can tag Todos
+6. Users can filter Todos by tags
 
-## 5. 技術スタック
+### 4.3 Project Management
+
+1. Users can create new projects
+2. Users can view a list of projects
+3. Users can view project details
+4. Users can edit projects
+5. Users can delete projects
+6. Users can add Todos to projects
+7. Users can filter Todos by projects
+
+## 5. Technology Stack
 
 - TypeScript
-- Hono (Web フレームワーク)
-- Valibot (バリデーション)
+- Hono (Web framework)
+- Valibot (Validation)
 - Prisma (ORM)
-- SQLite (データベース)
-- Bun (ランタイム)
+- SQLite (Database)
+- Bun (Runtime)
