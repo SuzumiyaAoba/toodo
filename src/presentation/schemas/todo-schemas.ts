@@ -26,6 +26,8 @@ export const TodoSchema = v.object({
   lastStateChangeAt: DateSchema,
   createdAt: DateSchema,
   updatedAt: DateSchema,
+  dependencies: v.optional(v.array(v.pipe(v.string(), v.uuid()))), // 依存するTodoのIDリスト
+  dependents: v.optional(v.array(v.pipe(v.string(), v.uuid()))), // このTodoに依存するTodoのIDリスト
 });
 
 /**
@@ -178,3 +180,54 @@ export const TodoTagParamSchema = v.object({
  * Type for Todo and Tag ID path parameters
  */
 export type TodoTagParam = v.InferOutput<typeof TodoTagParamSchema>;
+
+/**
+ * Schema for Todo dependency path parameters
+ */
+export const TodoDependencyParamSchema = v.object({
+  id: v.pipe(v.string(), v.uuid()),
+  dependencyId: v.pipe(v.string(), v.uuid()),
+});
+
+/**
+ * Type for Todo dependency path parameters
+ */
+export type TodoDependencyParam = v.InferOutput<typeof TodoDependencyParamSchema>;
+
+/**
+ * Schema for Todo dependency list response
+ */
+export const TodoDependencyListSchema = v.object({
+  dependencies: v.array(
+    v.object({
+      id: v.pipe(v.string(), v.uuid()),
+      title: v.string(),
+      status: v.picklist([TodoStatus.PENDING, TodoStatus.IN_PROGRESS, TodoStatus.COMPLETED]),
+      priority: v.string(),
+    }),
+  ),
+});
+
+/**
+ * Type for Todo dependency list response
+ */
+export type TodoDependencyListResponse = v.InferOutput<typeof TodoDependencyListSchema>;
+
+/**
+ * Schema for Todo dependents list response
+ */
+export const TodoDependentListSchema = v.object({
+  dependents: v.array(
+    v.object({
+      id: v.pipe(v.string(), v.uuid()),
+      title: v.string(),
+      status: v.picklist([TodoStatus.PENDING, TodoStatus.IN_PROGRESS, TodoStatus.COMPLETED]),
+      priority: v.string(),
+    }),
+  ),
+});
+
+/**
+ * Type for Todo dependents list response
+ */
+export type TodoDependentListResponse = v.InferOutput<typeof TodoDependentListSchema>;

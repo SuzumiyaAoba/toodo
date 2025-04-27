@@ -153,7 +153,13 @@ describe("PrismaTodoRepository", () => {
 
       // Assert
       expect(findUnique).toHaveBeenCalledTimes(1);
-      expect(findUnique).toHaveBeenCalledWith({ where: { id: "todo-1" } });
+      expect(findUnique).toHaveBeenCalledWith({
+        where: { id: "todo-1" },
+        include: {
+          dependsOn: true,
+          dependents: true,
+        },
+      });
       expect(result?.id).toBe("todo-1");
       expect(result?.title).toBe("Todo 1");
       expect(result?.priority).toBe(PriorityLevel.LOW);
@@ -216,6 +222,10 @@ describe("PrismaTodoRepository", () => {
           totalWorkTime: 0,
           lastStateChangeAt: now,
           priority: "high",
+        },
+        include: {
+          dependsOn: true,
+          dependents: true,
         },
       });
       expect(result.id).toBe("new-todo-id");

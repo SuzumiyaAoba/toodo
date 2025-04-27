@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, mock } from "bun:test";
 import { Project } from "../../../domain/entities/project";
-import { PriorityLevel, Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
+import { Todo } from "../../../domain/entities/todo";
 import { ProjectNotFoundError } from "../../../domain/errors/project-errors";
 import { TodoNotFoundError } from "../../../domain/errors/todo-errors";
-import { ProjectRepository } from "../../../domain/repositories/project-repository";
-import { TodoRepository } from "../../../domain/repositories/todo-repository";
-import { MockedFunction } from "../../../test/types";
+import type { ProjectRepository } from "../../../domain/repositories/project-repository";
+import type { TodoRepository } from "../../../domain/repositories/todo-repository";
+import type { MockedFunction } from "../../../test/types";
 import { AddTodoToProject, AddTodoToProjectInput } from "./add-todo-to-project";
 
 // モック化されたリポジトリの型
@@ -15,6 +15,12 @@ interface MockedTodoRepository extends TodoRepository {
   findById: MockedFunction<(id: string) => Promise<Todo | null>>;
   findAll: MockedFunction<() => Promise<Todo[]>>;
   delete: MockedFunction<(id: string) => Promise<void>>;
+  addDependency: MockedFunction<(todoId: string, dependencyId: string) => Promise<void>>;
+  removeDependency: MockedFunction<(todoId: string, dependencyId: string) => Promise<void>>;
+  findDependents: MockedFunction<(todoId: string) => Promise<Todo[]>>;
+  findDependencies: MockedFunction<(todoId: string) => Promise<Todo[]>>;
+  wouldCreateDependencyCycle: MockedFunction<(todoId: string, dependencyId: string) => Promise<boolean>>;
+  findAllCompleted: MockedFunction<() => Promise<Todo[]>>;
 }
 
 interface MockedProjectRepository extends ProjectRepository {
@@ -48,6 +54,12 @@ describe("AddTodoToProject", () => {
       findById: mock(() => Promise.resolve(null)),
       findAll: mock(() => Promise.resolve([])),
       delete: mock(() => Promise.resolve()),
+      addDependency: mock(() => Promise.resolve()),
+      removeDependency: mock(() => Promise.resolve()),
+      findDependents: mock(() => Promise.resolve([])),
+      findDependencies: mock(() => Promise.resolve([])),
+      wouldCreateDependencyCycle: mock(() => Promise.resolve(false)),
+      findAllCompleted: mock(() => Promise.resolve([])),
     } as MockedTodoRepository;
   });
 

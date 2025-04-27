@@ -41,3 +41,58 @@ export class UnauthorizedActivityDeletionError extends Error {
     this.name = "UnauthorizedActivityDeletionError";
   }
 }
+
+/**
+ * DependencyCycleError
+ * Thrown when trying to create a dependency relationship that would create a cycle
+ */
+export class DependencyCycleError extends Error {
+  constructor(todoId: string, dependencyId: string) {
+    super(`Adding dependency from todo ${todoId} to ${dependencyId} would create a cycle`);
+    this.name = "DependencyCycleError";
+  }
+}
+
+/**
+ * SelfDependencyError
+ * Thrown when trying to create a dependency relationship where a todo depends on itself
+ */
+export class SelfDependencyError extends Error {
+  constructor(todoId: string) {
+    super(`Todo ${todoId} cannot depend on itself`);
+    this.name = "SelfDependencyError";
+  }
+}
+
+/**
+ * DependencyExistsError
+ * Thrown when trying to create a dependency relationship that already exists
+ */
+export class DependencyExistsError extends Error {
+  constructor(todoId: string, dependencyId: string) {
+    super(`Todo ${todoId} already depends on ${dependencyId}`);
+    this.name = "DependencyExistsError";
+  }
+}
+
+/**
+ * DependencyNotFoundError
+ * Thrown when a dependency relationship is not found
+ */
+export class DependencyNotFoundError extends Error {
+  constructor(todoId: string, dependencyId: string) {
+    super(`Dependency relationship from todo ${todoId} to ${dependencyId} not found`);
+    this.name = "DependencyNotFoundError";
+  }
+}
+
+/**
+ * IncompleteDependenciesError
+ * Thrown when trying to complete a todo that has incomplete dependencies
+ */
+export class IncompleteDependenciesError extends Error {
+  constructor(todoId: string) {
+    super(`Cannot complete todo ${todoId} because it has incomplete dependencies`);
+    this.name = "IncompleteDependenciesError";
+  }
+}

@@ -123,6 +123,13 @@ describe("BulkTagOperations", () => {
         }),
       ),
     ),
+    // 依存関係関連のメソッドを追加
+    addDependency: mock(() => Promise.resolve()),
+    removeDependency: mock(() => Promise.resolve()),
+    findDependents: mock(() => Promise.resolve([])),
+    findDependencies: mock(() => Promise.resolve([])),
+    wouldCreateDependencyCycle: mock(() => Promise.resolve(false)),
+    findAllCompleted: mock(() => Promise.resolve([])),
   });
 
   describe("BulkAssignTagUseCase", () => {

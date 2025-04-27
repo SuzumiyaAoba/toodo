@@ -1,4 +1,4 @@
-import type { Todo } from "../entities/todo";
+import type { Todo, TodoId } from "../entities/todo";
 
 /**
  * TodoRepository interface
@@ -33,4 +33,43 @@ export interface TodoRepository {
    * @param id Todo id
    */
   delete(id: string): Promise<void>;
+
+  /**
+   * Add dependency relationship between todos
+   * @param todoId ID of the todo that depends on another todo
+   * @param dependencyId ID of the todo that is depended on
+   */
+  addDependency(todoId: TodoId, dependencyId: TodoId): Promise<void>;
+
+  /**
+   * Remove dependency relationship between todos
+   * @param todoId ID of the todo that depends on another todo
+   * @param dependencyId ID of the todo that is depended on
+   */
+  removeDependency(todoId: TodoId, dependencyId: TodoId): Promise<void>;
+
+  /**
+   * Find todos that depend on the specified todo
+   * @param todoId ID of the todo to find dependents for
+   */
+  findDependents(todoId: TodoId): Promise<Todo[]>;
+
+  /**
+   * Find todos that the specified todo depends on
+   * @param todoId ID of the todo to find dependencies for
+   */
+  findDependencies(todoId: TodoId): Promise<Todo[]>;
+
+  /**
+   * Check if adding a dependency would create a cycle
+   * @param todoId ID of the todo that would depend on another
+   * @param dependencyId ID of the todo that would be depended on
+   * @returns true if adding the dependency would create a cycle
+   */
+  wouldCreateDependencyCycle(todoId: TodoId, dependencyId: TodoId): Promise<boolean>;
+
+  /**
+   * Get all completed todos
+   */
+  findAllCompleted(): Promise<Todo[]>;
 }

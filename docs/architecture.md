@@ -118,7 +118,9 @@ export class Todo {
     public readonly createdAt: Date,
     public readonly updatedAt: Date,
     public priority: PriorityLevel,
-    public projectId: string | null
+    public projectId: string | null,
+    public dependencies: string[] = [], // IDs of todos this todo depends on
+    public dependents: string[] = []    // IDs of todos that depend on this todo
   ) {}
 
   // Domain methods
@@ -126,6 +128,14 @@ export class Todo {
   updateDescription(description: string | null): void { /* implementation */ }
   updateStatus(status: TodoStatus): void { /* implementation */ }
   updatePriority(priority: PriorityLevel): void { /* implementation */ }
+  
+  // Dependency management methods
+  addDependency(todoId: string): void { /* implementation */ }
+  removeDependency(todoId: string): void { /* implementation */ }
+  addDependent(todoId: string): void { /* implementation */ }
+  removeDependent(todoId: string): void { /* implementation */ }
+  hasDependencyOn(todoId: string): boolean { /* implementation */ }
+  hasDependentOn(todoId: string): boolean { /* implementation */ }
   
   // State management methods
   startWork(): void { /* implementation */ }
@@ -258,7 +268,9 @@ export class PrismaTodoRepository implements TodoRepository {
       todo.createdAt,
       todo.updatedAt,
       todo.priority as PriorityLevel,
-      todo.projectId
+      todo.projectId,
+      todo.dependencies,
+      todo.dependents
     );
   }
 }
