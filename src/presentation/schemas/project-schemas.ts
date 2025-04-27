@@ -1,24 +1,36 @@
-import * as v from "valibot";
-import { projectStatusSchema } from "../../domain/entities/project";
+import { type InferOutput, maxLength, minLength, object, optional, pipe, string, trim } from "valibot";
 
-export const createProjectRequestSchema = v.object({
-  name: v.pipe(v.string(), v.minLength(1), v.maxLength(100)),
-  description: v.optional(v.pipe(v.string(), v.maxLength(1000))),
-  color: v.optional(v.string()),
-  status: v.optional(projectStatusSchema),
+export const ProjectSchema = object({
+  id: string(),
+  name: pipe(string(), minLength(1, "Name is required"), maxLength(100, "Name is too long")),
+  description: optional(pipe(string(), maxLength(500, "Description is too long"))),
+  createdAt: string(),
+  updatedAt: string(),
 });
 
-export const updateProjectRequestSchema = v.object({
-  name: v.optional(v.pipe(v.string(), v.minLength(1), v.maxLength(100))),
-  description: v.optional(v.pipe(v.string(), v.maxLength(1000))),
-  color: v.optional(v.string()),
-  status: v.optional(projectStatusSchema),
+export type ProjectResponse = InferOutput<typeof ProjectSchema>;
+
+export const UpdateProjectSchema = object({
+  name: optional(pipe(string(), minLength(1, "Name is required"), maxLength(100, "Name is too long"))),
+  description: optional(pipe(string(), maxLength(500, "Description is too long"))),
 });
 
-export const addTodoToProjectRequestSchema = v.object({
-  todoId: v.pipe(v.string(), v.uuid()),
+export type UpdateProjectRequest = InferOutput<typeof UpdateProjectSchema>;
+
+export const createProjectRequestSchema = object({
+  name: pipe(string(), minLength(1, "Name is required"), maxLength(100, "Name is too long"), trim()),
+  description: optional(pipe(string(), maxLength(500, "Description is too long"), trim())),
 });
 
-export type CreateProjectRequest = v.InferOutput<typeof createProjectRequestSchema>;
-export type UpdateProjectRequest = v.InferOutput<typeof updateProjectRequestSchema>;
-export type AddTodoToProjectRequest = v.InferOutput<typeof addTodoToProjectRequestSchema>;
+export type CreateProjectRequest = InferOutput<typeof createProjectRequestSchema>;
+
+export const updateProjectRequestSchema = object({
+  name: optional(pipe(string(), minLength(1, "Name is required"), maxLength(100, "Name is too long"), trim())),
+  description: optional(pipe(string(), maxLength(500, "Description is too long"), trim())),
+});
+
+export const addTodoToProjectRequestSchema = object({
+  todoId: pipe(string(), minLength(1, "Todo ID is required")),
+});
+
+export type AddTodoToProjectRequest = InferOutput<typeof addTodoToProjectRequestSchema>;
