@@ -634,6 +634,231 @@ This document outlines the API endpoints for the TODO management system built wi
   ]
   ```
 
+### 2.23 Create a Project
+
+- **URL**: `/projects`
+- **Method**: `POST`
+- **Request Body**:
+  ```json
+  {
+    "name": "Work Tasks",
+    "description": "Tasks related to work projects"
+  }
+  ```
+- **Response** (201 Created):
+  ```json
+  {
+    "project": {
+      "id": "c1d2e3f4-g5h6-7890-ijkl-mnopqrstuvwx",
+      "name": "Work Tasks",
+      "description": "Tasks related to work projects",
+      "color": null,
+      "status": "active",
+      "createdAt": "2025-04-25T10:20:30.456Z",
+      "updatedAt": "2025-04-25T10:20:30.456Z"
+    }
+  }
+  ```
+- **Error** (409 Conflict):
+  ```json
+  {
+    "error": "Project name already exists"
+  }
+  ```
+
+### 2.24 Get Project List
+
+- **URL**: `/projects`
+- **Method**: `GET`
+- **Response** (200 OK):
+  ```json
+  {
+    "projects": [
+      {
+        "id": "c1d2e3f4-g5h6-7890-ijkl-mnopqrstuvwx",
+        "name": "Work Tasks",
+        "description": "Tasks related to work projects",
+        "color": null,
+        "status": "active",
+        "createdAt": "2025-04-25T10:20:30.456Z",
+        "updatedAt": "2025-04-25T10:20:30.456Z"
+      },
+      {
+        "id": "d2e3f4g5-h6i7-8901-jklm-nopqrstuvwxy",
+        "name": "Personal Tasks",
+        "description": "Personal to-do items",
+        "color": "#3498db",
+        "status": "active",
+        "createdAt": "2025-04-25T11:22:33.789Z",
+        "updatedAt": "2025-04-25T11:22:33.789Z"
+      }
+    ]
+  }
+  ```
+
+### 2.25 Get Project Details
+
+- **URL**: `/projects/{id}`
+- **Method**: `GET`
+- **Response** (200 OK):
+  ```json
+  {
+    "project": {
+      "id": "c1d2e3f4-g5h6-7890-ijkl-mnopqrstuvwx",
+      "name": "Work Tasks",
+      "description": "Tasks related to work projects",
+      "color": null,
+      "status": "active",
+      "createdAt": "2025-04-25T10:20:30.456Z",
+      "updatedAt": "2025-04-25T10:20:30.456Z"
+    }
+  }
+  ```
+- **Error** (404 Not Found):
+  ```json
+  {
+    "error": "Project with id c1d2e3f4-g5h6-7890-ijkl-mnopqrstuvwx not found"
+  }
+  ```
+
+### 2.26 Update a Project
+
+- **URL**: `/projects/{id}`
+- **Method**: `PUT`
+- **Request Body**:
+  ```json
+  {
+    "name": "Updated Work Tasks",
+    "description": "Updated tasks related to work projects",
+    "color": "#2ecc71",
+    "status": "active"
+  }
+  ```
+- **Response** (200 OK):
+  ```json
+  {
+    "project": {
+      "id": "c1d2e3f4-g5h6-7890-ijkl-mnopqrstuvwx",
+      "name": "Updated Work Tasks",
+      "description": "Updated tasks related to work projects",
+      "color": "#2ecc71",
+      "status": "active",
+      "createdAt": "2025-04-25T10:20:30.456Z",
+      "updatedAt": "2025-04-25T12:34:56.789Z"
+    }
+  }
+  ```
+- **Error** (404 Not Found):
+  ```json
+  {
+    "error": "Project with id c1d2e3f4-g5h6-7890-ijkl-mnopqrstuvwx not found"
+  }
+  ```
+- **Error** (409 Conflict):
+  ```json
+  {
+    "error": "Project name already exists"
+  }
+  ```
+
+### 2.27 Delete a Project
+
+- **URL**: `/projects/{id}`
+- **Method**: `DELETE`
+- **Response** (204 No Content)
+- **Error** (404 Not Found):
+  ```json
+  {
+    "error": "Project with id c1d2e3f4-g5h6-7890-ijkl-mnopqrstuvwx not found"
+  }
+  ```
+
+### 2.28 Get TODOs in a Project
+
+- **URL**: `/projects/{id}/todos`
+- **Method**: `GET`
+- **Response** (200 OK):
+  ```json
+  {
+    "project": {
+      "id": "c1d2e3f4-g5h6-7890-ijkl-mnopqrstuvwx",
+      "name": "Work Tasks",
+      "description": "Tasks related to work projects",
+      "color": null,
+      "status": "active",
+      "createdAt": "2025-04-25T10:20:30.456Z",
+      "updatedAt": "2025-04-25T10:20:30.456Z"
+    },
+    "todos": [
+      {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "title": "Complete project proposal",
+        "description": "Write and submit the project proposal",
+        "status": "pending",
+        "workState": "idle",
+        "totalWorkTime": 0,
+        "lastStateChangeAt": "2025-04-25T12:34:56.789Z",
+        "createdAt": "2025-04-25T12:34:56.789Z",
+        "updatedAt": "2025-04-25T12:34:56.789Z",
+        "priority": "high"
+      }
+    ]
+  }
+  ```
+- **Error** (404 Not Found):
+  ```json
+  {
+    "error": "Project with id c1d2e3f4-g5h6-7890-ijkl-mnopqrstuvwx not found"
+  }
+  ```
+
+### 2.29 Add a TODO to a Project
+
+- **URL**: `/projects/{id}/todos`
+- **Method**: `POST`
+- **Request Body**:
+  ```json
+  {
+    "todoId": "550e8400-e29b-41d4-a716-446655440000"
+  }
+  ```
+- **Response** (201 Created):
+  ```json
+  {
+    "success": true
+  }
+  ```
+- **Error** (404 Not Found):
+  ```json
+  {
+    "error": "Project with id c1d2e3f4-g5h6-7890-ijkl-mnopqrstuvwx not found"
+  }
+  ```
+- **Error** (404 Not Found):
+  ```json
+  {
+    "error": "Todo with id 550e8400-e29b-41d4-a716-446655440000 not found"
+  }
+  ```
+
+### 2.30 Remove a TODO from a Project
+
+- **URL**: `/projects/{id}/todos/{todoId}`
+- **Method**: `DELETE`
+- **Response** (204 No Content)
+- **Error** (404 Not Found):
+  ```json
+  {
+    "error": "Project with id c1d2e3f4-g5h6-7890-ijkl-mnopqrstuvwx not found"
+  }
+  ```
+- **Error** (404 Not Found):
+  ```json
+  {
+    "error": "Todo with id 550e8400-e29b-41d4-a716-446655440000 not found"
+  }
+  ```
+
 ## 3. Error Handling
 
 Error responses have the following format:
