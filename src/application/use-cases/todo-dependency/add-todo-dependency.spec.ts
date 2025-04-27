@@ -17,13 +17,21 @@ describe("AddTodoDependencyUseCase", () => {
     update: mock(() => Promise.resolve(null)),
     wouldCreateDependencyCycle: mock(() => Promise.resolve(false)),
     addDependency: mock(() => Promise.resolve()),
-    removeDependency: mock(() => Promise.resolve()),
-    findDependents: mock(() => Promise.resolve([])),
-    findDependencies: mock(() => Promise.resolve([])),
     create: mock(() => Promise.resolve({} as Todo)),
-    findAll: mock(() => Promise.resolve([])),
     delete: mock(() => Promise.resolve()),
+    findAll: mock(() => Promise.resolve([])),
+    findByProjectId: mock(() => Promise.resolve([])),
+    findByTagId: mock(() => Promise.resolve([])),
+    findDependencies: mock(() => Promise.resolve([])),
+    findDependents: mock(() => Promise.resolve([])),
+    removeDependency: mock(() => Promise.resolve()),
+    updateWorkState: mock(() => Promise.resolve({} as Todo)),
+    updateWorkTime: mock(() => Promise.resolve({} as Todo)),
     findAllCompleted: mock(() => Promise.resolve([])),
+    // 期限日関連のメソッドを追加
+    findOverdue: mock(() => Promise.resolve([])),
+    findDueSoon: mock(() => Promise.resolve([])),
+    findByDueDateRange: mock(() => Promise.resolve([])),
   } as TodoRepository;
 
   // テスト対象のユースケース

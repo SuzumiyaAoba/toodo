@@ -11,14 +11,20 @@ describe("RemoveTodoDependencyUseCase", () => {
     findById: mock(() => Promise.resolve(null)),
     removeDependency: mock(() => Promise.resolve()),
     create: mock(() => Promise.resolve({} as Todo)),
-    update: mock(() => Promise.resolve(null)),
-    findAll: mock(() => Promise.resolve([])),
+    update: mock(() => Promise.resolve({} as Todo)),
     delete: mock(() => Promise.resolve()),
-    addDependency: mock(() => Promise.resolve()),
-    findDependents: mock(() => Promise.resolve([])),
+    findAll: mock(() => Promise.resolve([])),
+    findByProjectId: mock(() => Promise.resolve([])),
+    findByTagId: mock(() => Promise.resolve([])),
     findDependencies: mock(() => Promise.resolve([])),
+    findDependents: mock(() => Promise.resolve([])),
+    addDependency: mock(() => Promise.resolve()),
     wouldCreateDependencyCycle: mock(() => Promise.resolve(false)),
     findAllCompleted: mock(() => Promise.resolve([])),
+    // 期限日関連のメソッドを追加
+    findOverdue: mock(() => Promise.resolve([])),
+    findDueSoon: mock(() => Promise.resolve([])),
+    findByDueDateRange: mock(() => Promise.resolve([])),
   } as TodoRepository;
 
   // テスト対象のユースケース

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, mock } from "bun:test";
+import { type Mock, beforeEach, describe, expect, it, mock } from "bun:test";
 import { Project } from "../../../domain/entities/project";
 import { Todo } from "../../../domain/entities/todo";
 import { ProjectNotFoundError } from "../../../domain/errors/project-errors";
@@ -10,30 +10,47 @@ describe("GetTodosByProject", () => {
   let mockProjectRepository: ProjectRepository;
   let mockTodoRepository: TodoRepository;
 
-  beforeEach(() => {
-    mockProjectRepository = {
-      create: mock(async (project: Project) => project),
-      findById: mock(async () => null),
-      findByName: mock(async () => null),
-      findAll: mock(async () => []),
-      update: mock(async (project: Project) => project),
-      delete: mock(async () => {}),
-      findTodosByProjectId: mock(async () => []),
-    };
+  // インターフェース定義を追加
+  type MockedTodoRepository = {
+    [K in keyof TodoRepository]: Mock<any>;
+  };
 
+  type MockedProjectRepository = {
+    [K in keyof ProjectRepository]: Mock<any>;
+  };
+
+  beforeEach(() => {
+    // ProjectRepositoryのモック
+    mockProjectRepository = {
+      create: mock(() => Promise.resolve({ id: "project-1", name: "Test Project" } as Project)),
+      findById: mock(() => Promise.resolve({ id: "project-1", name: "Test Project" } as Project)),
+      findByName: mock(() => Promise.resolve(null)),
+      findAll: mock(() => Promise.resolve([])),
+      update: mock(() => Promise.resolve({ id: "project-1", name: "Updated Project" } as Project)),
+      delete: mock(() => Promise.resolve()),
+      findTodosByProjectId: mock(() => Promise.resolve([])),
+    } as MockedProjectRepository;
+
+    // TodoRepositoryのモック
     mockTodoRepository = {
-      create: mock(async () => ({ id: "todo-1" }) as Todo),
-      update: mock(async (id: string, todo: Partial<Todo>) => todo as Todo),
-      findById: mock(async () => null),
-      findAll: mock(async () => []),
-      delete: mock(async () => {}),
-      addDependency: mock(async () => {}),
-      removeDependency: mock(async () => {}),
-      findDependents: mock(async () => []),
-      findDependencies: mock(async () => []),
-      wouldCreateDependencyCycle: mock(async () => false),
-      findAllCompleted: mock(async () => []),
-    };
+      create: mock(() => Promise.resolve({ id: "todo-1" } as Todo)),
+      update: mock(() => Promise.resolve({ id: "todo-1" } as Todo)),
+      findById: mock(() => Promise.resolve(null)),
+      findAll: mock(() => Promise.resolve([])),
+      delete: mock(() => Promise.resolve()),
+      findByProjectId: mock(() => Promise.resolve([])),
+      findByTagId: mock(() => Promise.resolve([])),
+      findDependencies: mock(() => Promise.resolve([])),
+      findDependents: mock(() => Promise.resolve([])),
+      addDependency: mock(() => Promise.resolve()),
+      removeDependency: mock(() => Promise.resolve()),
+      wouldCreateDependencyCycle: mock(() => Promise.resolve(false)),
+      findAllCompleted: mock(() => Promise.resolve([])),
+      // 期限日関連のメソッドを追加
+      findOverdue: mock(() => Promise.resolve([])),
+      findDueSoon: mock(() => Promise.resolve([])),
+      findByDueDateRange: mock(() => Promise.resolve([])),
+    } as MockedTodoRepository;
   });
 
   it("should get all todos in a project", async () => {

@@ -1,157 +1,140 @@
-import { v4 as uuidv4 } from "uuid";
-import type { Todo as PrismaTodo } from "../../generated/prisma";
-import {
-  PriorityLevel,
-  Todo,
-  TodoStatus,
-  WorkState,
-  priorityLevelToString,
-  todoStatusToString,
-  workStateToString,
-} from "./todo";
+import { mock } from "bun:test";
+import type { ProjectRepository } from "../repositories/project-repository";
+import type { TodoRepository } from "../repositories/todo-repository";
+import type { Project } from "./project";
+import type { PriorityLevel, Todo, TodoStatus, WorkState } from "./todo";
 
 /**
- * Creates a Todo instance for testing
+ * テスト用のTodoオブジェクトを作成する
  */
-export function createTestTodo(props: Partial<Todo> = {}): Todo {
-  const id = props.id ?? uuidv4();
-  const title = props.title ?? "Test Todo";
-  const status = props.status ?? TodoStatus.PENDING;
-  const workState = props.workState ?? WorkState.IDLE;
-  const totalWorkTime = props.totalWorkTime ?? 0;
-  const lastStateChangeAt = props.lastStateChangeAt ?? new Date();
-  const createdAt = props.createdAt ?? new Date();
-  const updatedAt = props.updatedAt ?? new Date();
-  const priority = props.priority ?? PriorityLevel.MEDIUM;
-  const projectId = props.projectId;
-  const description = props.description;
-
-  return new Todo(
-    id,
-    title,
-    status,
-    workState,
-    totalWorkTime,
-    lastStateChangeAt,
-    createdAt,
-    updatedAt,
-    priority,
-    projectId,
-    description,
-  );
+export function createTestTodo(params: {
+  id: string;
+  title: string;
+  description?: string;
+  status?: TodoStatus;
+  workState?: WorkState;
+  totalWorkTime?: number;
+  lastStateChangeAt?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+  priority?: PriorityLevel;
+  projectId?: string;
+  dueDate?: Date;
+  dependencies?: string[];
+  dependents?: string[];
+}): Todo {
+  return {
+    id: params.id,
+    title: params.title,
+    description: params.description,
+    status: params.status ?? "pending",
+    workState: params.workState ?? "idle",
+    totalWorkTime: params.totalWorkTime ?? 0,
+    lastStateChangeAt: params.lastStateChangeAt ?? new Date(),
+    createdAt: params.createdAt ?? new Date(),
+    updatedAt: params.updatedAt ?? new Date(),
+    priority: params.priority ?? "medium",
+    projectId: params.projectId,
+    dueDate: params.dueDate,
+    dependencies: params.dependencies ?? [],
+    dependents: params.dependents ?? [],
+  } as Todo;
 }
 
 /**
- * Creates a mock Prisma Todo for testing
+ * Prisma用のモックTodoオブジェクトを作成
  */
-export function createMockPrismaTodo(overrides: Partial<PrismaTodo> = {}): PrismaTodo {
+export function createMockPrismaTodo(params: {
+  id: string;
+  title: string;
+  description?: string | null;
+  status?: string;
+  workState?: string;
+  totalWorkTime?: number;
+  lastStateChangeAt?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+  priority?: string;
+  projectId?: string | null;
+  dueDate?: Date | null;
+  dependsOn?: { dependencyId: string }[];
+  dependents?: { dependentId: string }[];
+}) {
   return {
-    id: overrides.id ?? uuidv4(),
-    title: overrides.title ?? "Test Todo",
-    status: overrides.status ?? "PENDING",
-    workState: overrides.workState ?? "IDLE",
-    totalWorkTime: overrides.totalWorkTime ?? 0,
-    lastStateChangeAt: overrides.lastStateChangeAt ?? new Date(),
-    createdAt: overrides.createdAt ?? new Date(),
-    updatedAt: overrides.updatedAt ?? new Date(),
-    priority: overrides.priority ?? "MEDIUM",
-    projectId: overrides.projectId ?? null,
-    description: overrides.description ?? null,
-    ...overrides,
+    id: params.id,
+    title: params.title,
+    description: params.description ?? null,
+    status: params.status ?? "pending",
+    workState: params.workState ?? "idle",
+    totalWorkTime: params.totalWorkTime ?? 0,
+    lastStateChangeAt: params.lastStateChangeAt ?? new Date(),
+    createdAt: params.createdAt ?? new Date(),
+    updatedAt: params.updatedAt ?? new Date(),
+    priority: params.priority ?? "medium",
+    projectId: params.projectId ?? null,
+    dueDate: params.dueDate ?? null,
+    dependsOn: params.dependsOn ?? [],
+    dependents: params.dependents ?? [],
   };
 }
 
-// Bunテスト環境でjestのタイマー関連関数をモックするためのヘルパー
-let originalDateNow: () => number;
-let mockedDate: Date | null = null;
+/**
+ * 優先度をPrisma用の文字列に変換
+ */
+export function priorityLevelToString(priority: PriorityLevel): string {
+  return priority.toString().toLowerCase();
+}
 
-// Dateコンストラクタの引数の型を正確に定義
-type DateArg = string | number | Date;
-type DateArgs = [DateArg] | [number, number, number?, number?, number?, number?, number?];
+/**
+ * Todoステータスをプリズマ用の文字列に変換
+ */
+export function todoStatusToString(status: TodoStatus): string {
+  return status.toString().toLowerCase();
+}
 
-export const jest = {
-  useFakeTimers: () => {
-    originalDateNow = Date.now;
-    // 現在の時刻を固定
-    mockedDate = new Date();
-    Date.now = () => (mockedDate ? mockedDate.getTime() : originalDateNow());
-    global.Date = class extends Date {
-      constructor(...args: unknown[]) {
-        if (args.length === 0) {
-          super(mockedDate ? mockedDate.getTime() : Date.now());
-        } else if (args.length === 1) {
-          super(args[0] as DateArg);
-        } else {
-          // 数値の場合は年、月、日などのパラメータとして扱う
-          const [year, month, ...rest] = args as [number, number, ...number[]];
-          super(year, month, ...rest);
-        }
-      }
-    } as DateConstructor;
-  },
+/**
+ * 作業状態をプリズマ用の文字列に変換
+ */
+export function workStateToString(state: WorkState): string {
+  return state.toString().toLowerCase();
+}
 
-  useRealTimers: () => {
-    if (originalDateNow) {
-      Date.now = originalDateNow;
-    }
-    mockedDate = null;
-    global.Date = Date;
-  },
+/**
+ * モック化したTodoRepositoryを作成する
+ */
+export function createMockedTodoRepository(): TodoRepository {
+  return {
+    create: mock(() => Promise.resolve({} as Todo)),
+    update: mock(() => Promise.resolve({} as Todo)),
+    findById: mock(() => Promise.resolve(null)),
+    findAll: mock(() => Promise.resolve([])),
+    delete: mock(() => Promise.resolve()),
+    findByProjectId: mock(() => Promise.resolve([])),
+    findByTagId: mock(() => Promise.resolve([])),
+    findDependencies: mock(() => Promise.resolve([])),
+    findDependents: mock(() => Promise.resolve([])),
+    addDependency: mock(() => Promise.resolve()),
+    removeDependency: mock(() => Promise.resolve()),
+    wouldCreateDependencyCycle: mock(() => Promise.resolve(false)),
+    findAllCompleted: mock(() => Promise.resolve([])),
+    // 新しいメソッドを追加
+    findOverdue: mock(() => Promise.resolve([])),
+    findDueSoon: mock(() => Promise.resolve([])),
+    findByDueDateRange: mock(() => Promise.resolve([])),
+  };
+}
 
-  advanceTimersByTime: (ms: number) => {
-    if (mockedDate) {
-      mockedDate = new Date(mockedDate.getTime() + ms);
-    }
-  },
-
-  setSystemTime: (date: Date) => {
-    mockedDate = date;
-  },
-
-  spyOn: <T extends Record<string, unknown>>(obj: T, method: string) => {
-    type FunctionType = (...args: unknown[]) => unknown;
-
-    if (typeof obj[method] !== "function") {
-      throw new Error(`Method ${method} is not a function`);
-    }
-
-    const original = obj[method] as FunctionType;
-    const calls: unknown[][] = [];
-
-    // @ts-expect-error - We're dynamically replacing a method
-    obj[method] = (...args: unknown[]) => {
-      calls.push(args);
-      return original.apply(obj, args);
-    };
-
-    return {
-      mockReturnValue: (value: unknown) => {
-        // @ts-expect-error - We're dynamically replacing a method
-        obj[method] = (...args: unknown[]) => {
-          calls.push(args);
-          return value;
-        };
-        return obj[method];
-      },
-      mockImplementation: (impl: FunctionType) => {
-        // @ts-expect-error - We're dynamically replacing a method
-        obj[method] = (...args: unknown[]) => {
-          calls.push(args);
-          return impl.apply(obj, args);
-        };
-        return obj[method];
-      },
-      mockRestore: () => {
-        // @ts-expect-error - We're dynamically replacing a method
-        obj[method] = original;
-      },
-      calls: {
-        length: () => calls.length,
-        all: () => calls,
-      },
-    };
-  },
-};
-
-// 必要な関数を再エクスポート
-export { priorityLevelToString, todoStatusToString, workStateToString };
+/**
+ * モック化したProjectRepositoryを作成する
+ */
+export function createMockedProjectRepository(): ProjectRepository {
+  return {
+    create: mock(() => Promise.resolve({} as Project)),
+    findById: mock(() => Promise.resolve(null)),
+    findByName: mock(() => Promise.resolve(null)),
+    findAll: mock(() => Promise.resolve([])),
+    update: mock(() => Promise.resolve({} as Project)),
+    delete: mock(() => Promise.resolve()),
+    findTodosByProjectId: mock(() => Promise.resolve([])),
+  };
+}

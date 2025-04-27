@@ -8,6 +8,7 @@ import { PrismaTodoRepository } from "../../infrastructure/repositories/prisma-t
 import { setupProjectRoutes } from "./project-routes";
 import { setupTagRoutes } from "./tag-routes";
 import { setupTodoDependencyRoutes } from "./todo-dependency-routes";
+import { setupTodoDueDateRoutes } from "./todo-due-date-routes";
 import { setupTodoRoutes } from "./todo-routes";
 
 // Todo, TodoActivity, TodoDependency の型インポート
@@ -20,6 +21,9 @@ import type { GetTodoDependentsUseCase } from "../../application/use-cases/todo-
 import type { RemoveTodoDependencyUseCase } from "../../application/use-cases/todo-dependency/remove-todo-dependency";
 import type { CreateTodoUseCase } from "../../application/use-cases/todo/create-todo";
 import type { DeleteTodoUseCase } from "../../application/use-cases/todo/delete-todo";
+import type { FindByDueDateRangeUseCase } from "../../application/use-cases/todo/due-date/find-by-due-date-range";
+import type { FindDueSoonTodosUseCase } from "../../application/use-cases/todo/due-date/find-due-soon-todos";
+import type { FindOverdueTodosUseCase } from "../../application/use-cases/todo/due-date/find-overdue-todos";
 import type { GetTodoUseCase } from "../../application/use-cases/todo/get-todo";
 import type { GetTodoListUseCase } from "../../application/use-cases/todo/get-todo-list";
 import type { GetTodoWorkTimeUseCase } from "../../application/use-cases/todo/get-todo-work-time";
@@ -55,6 +59,10 @@ export function setupRoutes<E extends Env = Env, S extends Schema = Schema>(
   removeTodoDependencyUseCase: RemoveTodoDependencyUseCase,
   getTodoDependenciesUseCase: GetTodoDependenciesUseCase,
   getTodoDependentsUseCase: GetTodoDependentsUseCase,
+  // TodoDueDate use cases
+  findOverdueTodosUseCase: FindOverdueTodosUseCase,
+  findDueSoonTodosUseCase: FindDueSoonTodosUseCase,
+  findByDueDateRangeUseCase: FindByDueDateRangeUseCase,
   // PrismaClient for repositories
   prisma: PrismaClient,
 ): Hono<E, S> {
@@ -86,6 +94,9 @@ export function setupRoutes<E extends Env = Env, S extends Schema = Schema>(
 
   // 4. プロジェクト関連ルート
   setupProjectRoutes<E, S>(app, projectRepository, todoRepository);
+
+  // 5. 期限日関連ルート
+  setupTodoDueDateRoutes<E, S>(app, findOverdueTodosUseCase, findDueSoonTodosUseCase, findByDueDateRangeUseCase);
 
   return app;
 }

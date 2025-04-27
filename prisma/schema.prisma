@@ -16,6 +16,7 @@ model Todo {
   workState         String            @default("idle")
   totalWorkTime     Int               @default(0)
   lastStateChangeAt DateTime          @default(now())
+  dueDate           DateTime?         // Added due date field
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
   priority          String            @default("medium") // Added priority field

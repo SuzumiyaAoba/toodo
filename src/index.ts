@@ -15,6 +15,9 @@ import { RemoveTodoDependencyUseCase } from "./application/use-cases/todo-depend
 // Use Cases
 import { CreateTodoUseCase } from "./application/use-cases/todo/create-todo";
 import { DeleteTodoUseCase } from "./application/use-cases/todo/delete-todo";
+import { FindByDueDateRangeUseCase } from "./application/use-cases/todo/due-date/find-by-due-date-range";
+import { FindDueSoonTodosUseCase } from "./application/use-cases/todo/due-date/find-due-soon-todos";
+import { FindOverdueTodosUseCase } from "./application/use-cases/todo/due-date/find-overdue-todos";
 import { GetTodoUseCase } from "./application/use-cases/todo/get-todo";
 import { GetTodoListUseCase } from "./application/use-cases/todo/get-todo-list";
 import { GetTodoWorkTimeUseCase } from "./application/use-cases/todo/get-todo-work-time";
@@ -79,6 +82,11 @@ const removeTodoDependencyUseCase = new RemoveTodoDependencyUseCase(todoReposito
 const getTodoDependenciesUseCase = new GetTodoDependenciesUseCase(todoRepository);
 const getTodoDependentsUseCase = new GetTodoDependentsUseCase(todoRepository);
 
+// Initialize Due Date use cases
+const findOverdueTodosUseCase = new FindOverdueTodosUseCase(todoRepository);
+const findDueSoonTodosUseCase = new FindDueSoonTodosUseCase(todoRepository);
+const findByDueDateRangeUseCase = new FindByDueDateRangeUseCase(todoRepository);
+
 // Setup routes directly with use cases - pass the app instance as the first parameter
 setupRoutes(
   app,
@@ -95,6 +103,9 @@ setupRoutes(
   removeTodoDependencyUseCase,
   getTodoDependenciesUseCase,
   getTodoDependentsUseCase,
+  findOverdueTodosUseCase,
+  findDueSoonTodosUseCase,
+  findByDueDateRangeUseCase,
   prisma, // Pass PrismaClient instance for TagController
 );
 

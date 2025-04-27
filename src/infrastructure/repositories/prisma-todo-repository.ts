@@ -66,6 +66,7 @@ export class PrismaTodoRepository extends PrismaBaseRepository<Todo, PrismaTodo>
           workState: todo.workState,
           totalWorkTime: todo.totalWorkTime,
           lastStateChangeAt: todo.lastStateChangeAt,
+          dueDate: todo.dueDate,
           priority: todo.priority,
           projectId: todo.projectId,
         },
@@ -103,6 +104,7 @@ export class PrismaTodoRepository extends PrismaBaseRepository<Todo, PrismaTodo>
           }),
           ...(todo.priority !== undefined && { priority: todo.priority }),
           ...(todo.projectId !== undefined && { projectId: todo.projectId }),
+          ...(todo.dueDate !== undefined && { dueDate: todo.dueDate }),
         },
         include: {
           dependsOn: true,
@@ -312,6 +314,101 @@ export class PrismaTodoRepository extends PrismaBaseRepository<Todo, PrismaTodo>
     return this.executePrismaOperation(async () => {
       const todos = await this.prisma.todo.findMany({
         where: { status: TodoStatus.COMPLETED },
+        include: {
+          dependsOn: true,
+          dependents: true,
+        },
+      });
+      return this.mapToDomainArray(todos);
+    });
+  }
+
+  async findOverdue(currentDate: Date = new Date()): Promise<Todo[]> {
+    return this.executePrismaOperation(async () => {
+      const todos = await this.prisma.todo.findMany({
+        where: {
+          dueDate: {
+            lt: currentDate,
+          },
+          status: {
+            not: TodoStatus.COMPLETED,
+          },
+        },
+        include: {
+          dependsOn: true,
+          dependents: true,
+        },
+      });
+      return this.mapToDomainArray(todos);
+    });
+  }
+
+  async findDueSoon(days = 2, currentDate: Date = new Date()): Promise<Todo[]> {
+    return this.executePrismaOperation(async () => {
+      // 現在から指定日数後までの日付を計算
+      const futureDate = new Date(currentDate);
+      futureDate.setDate(futureDate.getDate() + days);
+
+      const todos = await this.prisma.todo.findMany({
+        where: {
+          dueDate: {
+            gte: currentDate,
+            lte: futureDate,
+          },
+          status: {
+            not: TodoStatus.COMPLETED,
+          },
+        },
+        include: {
+          dependsOn: true,
+          dependents: true,
+        },
+      });
+      return this.mapToDomainArray(todos);
+    });
+  }
+
+  async findByDueDateRange(startDate: Date, endDate: Date): Promise<Todo[]> {
+    return this.executePrismaOperation(async () => {
+      const todos = await this.prisma.todo.findMany({
+        where: {
+          dueDate: {
+            gte: startDate,
+            lte: endDate,
+          },
+        },
+        include: {
+          dependsOn: true,
+          dependents: true,
+        },
+      });
+      return this.mapToDomainArray(todos);
+    });
+  }
+
+  async findByProjectId(projectId: string): Promise<Todo[]> {
+    return this.executePrismaOperation(async () => {
+      const todos = await this.prisma.todo.findMany({
+        where: { projectId },
+        include: {
+          dependsOn: true,
+          dependents: true,
+        },
+      });
+      return this.mapToDomainArray(todos);
+    });
+  }
+
+  async findByTagId(tagId: string): Promise<Todo[]> {
+    return this.executePrismaOperation(async () => {
+      const todos = await this.prisma.todo.findMany({
+        where: {
+          tags: {
+            some: {
+              tagId,
+            },
+          },
+        },
         include: {
           dependsOn: true,
           dependents: true,
