@@ -317,13 +317,15 @@ export class Todo {
 export function workStateToString(workState: WorkState): string {
   switch (workState) {
     case WorkState.IDLE:
-      return "待機中";
+      return "Idle";
     case WorkState.ACTIVE:
-      return "作業中";
+      return "Active";
     case WorkState.PAUSED:
-      return "一時停止";
+      return "Paused";
+    case WorkState.COMPLETED:
+      return "Completed";
     default:
-      return "不明";
+      return "Unknown";
   }
 }
 
@@ -333,13 +335,13 @@ export function workStateToString(workState: WorkState): string {
 export function todoStatusToString(status: TodoStatus): string {
   switch (status) {
     case TodoStatus.PENDING:
-      return "未着手";
+      return "Pending";
     case TodoStatus.IN_PROGRESS:
-      return "進行中";
+      return "In Progress";
     case TodoStatus.COMPLETED:
-      return "完了";
+      return "Completed";
     default:
-      return "不明";
+      return "Unknown";
   }
 }
 
@@ -349,13 +351,13 @@ export function todoStatusToString(status: TodoStatus): string {
 export function priorityLevelToString(priorityLevel: PriorityLevel): string {
   switch (priorityLevel) {
     case PriorityLevel.LOW:
-      return "low";
+      return "Low";
     case PriorityLevel.MEDIUM:
-      return "medium";
+      return "Medium";
     case PriorityLevel.HIGH:
-      return "high";
+      return "High";
     default:
-      return "unknown";
+      return "Unknown";
   }
 }
 
