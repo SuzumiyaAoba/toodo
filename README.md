@@ -10,6 +10,7 @@
   <img src="https://img.shields.io/badge/Bun-000000?style=for-the-badge&logo=bun&logoColor=white" alt="Bun">
   <img src="https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white" alt="SQLite">
   <img src="https://img.shields.io/badge/Clean%20Architecture-16a34a?style=for-the-badge" alt="Clean Architecture">
+  <img src="https://img.shields.io/badge/Vibe%20Coding-9C27B0?style=for-the-badge" alt="Vibe Coding">
 </p>
 
 </div>
@@ -22,6 +23,8 @@ Toodo is a **REST API** application for efficient task management. It provides p
 
 **🏠 Local-First & Personal**: Toodo is specifically designed to focus on personal task management in local environments. Using SQLite as the database, it allows you to manage your personal TODOs efficiently without requiring complex infrastructure or cloud dependencies.
 
+**🎵 Vibe Coding Implementation**: Almost all of the codebase has been implemented using **Vibe Coding** methodology, a flow-state programming approach that emphasizes harmony between code structure and functionality. This approach has enabled rapid development while maintaining high code quality and test coverage.
+
 <div align="center">
   <table>
     <tr>
@@ -30,6 +33,7 @@ Toodo is a **REST API** application for efficient task management. It provides p
       <td align="center">🔒 <b>Type-Safe</b></td>
       <td align="center">🧩 <b>Modular</b></td>
       <td align="center">💻 <b>Local-First</b></td>
+      <td align="center">🎵 <b>Vibe Coded</b></td>
     </tr>
   </table>
 </div>
