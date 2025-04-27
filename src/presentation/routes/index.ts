@@ -21,6 +21,7 @@ import type { GetTodoDependentsUseCase } from "../../application/use-cases/todo-
 import type { RemoveTodoDependencyUseCase } from "../../application/use-cases/todo-dependency/remove-todo-dependency";
 import type { CreateTodoUseCase } from "../../application/use-cases/todo/create-todo";
 import type { DeleteTodoUseCase } from "../../application/use-cases/todo/delete-todo";
+import type { BulkUpdateDueDateUseCase } from "../../application/use-cases/todo/due-date/bulk-update-due-date";
 import type { FindByDueDateRangeUseCase } from "../../application/use-cases/todo/due-date/find-by-due-date-range";
 import type { FindDueSoonTodosUseCase } from "../../application/use-cases/todo/due-date/find-due-soon-todos";
 import type { FindOverdueTodosUseCase } from "../../application/use-cases/todo/due-date/find-overdue-todos";
@@ -63,6 +64,7 @@ export function setupRoutes<E extends Env = Env, S extends Schema = Schema>(
   findOverdueTodosUseCase: FindOverdueTodosUseCase,
   findDueSoonTodosUseCase: FindDueSoonTodosUseCase,
   findByDueDateRangeUseCase: FindByDueDateRangeUseCase,
+  bulkUpdateDueDateUseCase: BulkUpdateDueDateUseCase,
   // PrismaClient for repositories
   prisma: PrismaClient,
 ): Hono<E, S> {
@@ -96,7 +98,13 @@ export function setupRoutes<E extends Env = Env, S extends Schema = Schema>(
   setupProjectRoutes<E, S>(app, projectRepository, todoRepository);
 
   // 5. 期限日関連ルート
-  setupTodoDueDateRoutes<E, S>(app, findOverdueTodosUseCase, findDueSoonTodosUseCase, findByDueDateRangeUseCase);
+  setupTodoDueDateRoutes<E, S>(
+    app,
+    findOverdueTodosUseCase,
+    findDueSoonTodosUseCase,
+    findByDueDateRangeUseCase,
+    bulkUpdateDueDateUseCase,
+  );
 
   return app;
 }

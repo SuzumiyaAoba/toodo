@@ -354,3 +354,16 @@ export const DueDateRangeQuerySchema = v.object({
  * Type for due date range query parameters
  */
 export type DueDateRangeQuery = v.InferOutput<typeof DueDateRangeQuerySchema>;
+
+/**
+ * Schema for bulk due date update request
+ */
+export const BulkDueDateUpdateSchema = v.object({
+  todoIds: v.array(CommonSchemas.uuid()),
+  dueDate: CommonSchemas.dueDate(),
+});
+
+/**
+ * Type for bulk due date update request
+ */
+export type BulkDueDateUpdate = v.InferOutput<typeof BulkDueDateUpdateSchema>;

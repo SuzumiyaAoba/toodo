@@ -1,11 +1,15 @@
 import { type PriorityLevel, Todo, type TodoStatus, type WorkState } from "../../../domain/entities/todo";
+import type { TodoActivityRepository } from "../../../domain/repositories/todo-activity-repository";
 import type { TodoRepository } from "../../../domain/repositories/todo-repository";
 
 /**
  * CreateTodoUseCase handles the creation of a new todo
  */
 export class CreateTodoUseCase {
-  constructor(private todoRepository: TodoRepository) {}
+  constructor(
+    private todoRepository: TodoRepository,
+    private todoActivityRepository?: TodoActivityRepository,
+  ) {}
 
   /**
    * Execute the use case
