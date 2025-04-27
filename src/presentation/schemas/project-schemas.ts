@@ -1,4 +1,4 @@
-import { type InferOutput, maxLength, minLength, object, optional, pipe, string, trim } from "valibot";
+import { type InferOutput, maxLength, minLength, object, optional, pipe, string } from "valibot";
 
 export const ProjectSchema = object({
   id: string(),
@@ -18,15 +18,15 @@ export const UpdateProjectSchema = object({
 export type UpdateProjectRequest = InferOutput<typeof UpdateProjectSchema>;
 
 export const createProjectRequestSchema = object({
-  name: pipe(string(), minLength(1, "Name is required"), maxLength(100, "Name is too long"), trim()),
-  description: optional(pipe(string(), maxLength(500, "Description is too long"), trim())),
+  name: pipe(string(), minLength(1, "Name is required"), maxLength(100, "Name is too long")),
+  description: optional(pipe(string(), maxLength(500, "Description is too long"))),
 });
 
 export type CreateProjectRequest = InferOutput<typeof createProjectRequestSchema>;
 
 export const updateProjectRequestSchema = object({
-  name: optional(pipe(string(), minLength(1, "Name is required"), maxLength(100, "Name is too long"), trim())),
-  description: optional(pipe(string(), maxLength(500, "Description is too long"), trim())),
+  name: optional(pipe(string(), minLength(1, "Name is required"), maxLength(100, "Name is too long"))),
+  description: optional(pipe(string(), maxLength(500, "Description is too long"))),
 });
 
 export const addTodoToProjectRequestSchema = object({
