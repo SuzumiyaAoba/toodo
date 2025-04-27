@@ -12,6 +12,7 @@ import type { GetTodoUseCase } from "../../application/use-cases/todo/get-todo";
 import type { GetTodoListUseCase } from "../../application/use-cases/todo/get-todo-list";
 import type { GetTodoWorkTimeUseCase } from "../../application/use-cases/todo/get-todo-work-time";
 import type { UpdateTodoUseCase } from "../../application/use-cases/todo/update-todo";
+import type { PriorityLevel } from "../../domain/entities/todo";
 import {
   InvalidStateTransitionError,
   TodoActivityNotFoundError,
@@ -95,7 +96,14 @@ export function setupTodoRoutes<E extends Env = Env, S extends Schema = Schema>(
     vValidator("json", CreateTodoSchema),
     async (c) => {
       const data = c.req.valid("json");
-      const todo = await createTodoUseCase.execute(data);
+
+      // 文字列のpriorityをPriorityLevel型に変換
+      const todoData = {
+        ...data,
+        priority: data.priority ? (data.priority as PriorityLevel) : undefined,
+      };
+
+      const todo = await createTodoUseCase.execute(todoData);
       return c.json(todo, 201);
     },
   );
@@ -216,8 +224,14 @@ export function setupTodoRoutes<E extends Env = Env, S extends Schema = Schema>(
       const { id } = c.req.valid("param");
       const data = c.req.valid("json");
 
+      // 文字列のpriorityをPriorityLevel型に変換
+      const todoData = {
+        ...data,
+        priority: data.priority ? (data.priority as PriorityLevel) : undefined,
+      };
+
       try {
-        const todo = await updateTodoUseCase.execute(id, data);
+        const todo = await updateTodoUseCase.execute(id, todoData);
         return c.json(todo);
       } catch (error) {
         if (error instanceof TodoNotFoundError) {
