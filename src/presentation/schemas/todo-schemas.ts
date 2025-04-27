@@ -231,3 +231,16 @@ export const TodoDependentListSchema = v.object({
  * Type for Todo dependents list response
  */
 export type TodoDependentListResponse = v.InferOutput<typeof TodoDependentListSchema>;
+
+/**
+ * Schema for Project and Todo ID path parameters
+ */
+export const ProjectTodoParamSchema = v.object({
+  id: v.pipe(v.string(), v.uuid()),
+  todoId: v.pipe(v.string(), v.uuid()),
+});
+
+/**
+ * Type for Project and Todo ID path parameters
+ */
+export type ProjectTodoParam = v.InferOutput<typeof ProjectTodoParamSchema>;
