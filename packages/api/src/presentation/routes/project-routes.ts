@@ -105,12 +105,12 @@ export function setupProjectRoutes<E extends Env = Env, S extends Schema = Schem
 
       try {
         const project = await createProject.execute(input);
-        return c.json({ project }, 201);
+        return c.json(project, 201);
       } catch (error) {
         if (error instanceof ProjectNameExistsError) {
           return c.json({ error: error.message }, 409);
         }
-        throw error;
+        return c.json({ error: "An unexpected error occurred" }, 500);
       }
     },
   );
@@ -153,7 +153,7 @@ export function setupProjectRoutes<E extends Env = Env, S extends Schema = Schem
     async (c) => {
       const getAllProjects = new GetAllProjects(projectRepository);
       const projects = await getAllProjects.execute();
-      return c.json({ projects });
+      return c.json(projects);
     },
   );
 
@@ -193,12 +193,12 @@ export function setupProjectRoutes<E extends Env = Env, S extends Schema = Schem
 
       try {
         const project = await useCase.execute(id);
-        return c.json({ project });
+        return c.json(project);
       } catch (error) {
         if (error instanceof ProjectNotFoundError) {
           return c.json({ error: error.message }, 404);
         }
-        throw error;
+        return c.json({ error: "An unexpected error occurred" }, 500);
       }
     },
   );
@@ -260,7 +260,7 @@ export function setupProjectRoutes<E extends Env = Env, S extends Schema = Schem
           id,
           ...input,
         });
-        return c.json({ project });
+        return c.json(project);
       } catch (error) {
         if (error instanceof ProjectNotFoundError) {
           return c.json({ error: error.message }, 404);
@@ -268,7 +268,7 @@ export function setupProjectRoutes<E extends Env = Env, S extends Schema = Schem
         if (error instanceof ProjectNameExistsError) {
           return c.json({ error: error.message }, 409);
         }
-        throw error;
+        return c.json({ error: "An unexpected error occurred" }, 500);
       }
     },
   );
@@ -310,7 +310,7 @@ export function setupProjectRoutes<E extends Env = Env, S extends Schema = Schem
         if (error instanceof ProjectNotFoundError) {
           return c.json({ error: error.message }, 404);
         }
-        throw error;
+        return c.json({ error: "An unexpected error occurred" }, 500);
       }
     },
   );
@@ -351,13 +351,25 @@ export function setupProjectRoutes<E extends Env = Env, S extends Schema = Schem
                         id: { type: "string", format: "uuid" },
                         title: { type: "string" },
                         description: { type: "string", nullable: true },
-                        status: { type: "string", enum: ["pending", "in_progress", "completed"] },
-                        workState: { type: "string", enum: ["idle", "active", "paused", "completed"] },
+                        status: {
+                          type: "string",
+                          enum: ["pending", "in_progress", "completed"],
+                        },
+                        workState: {
+                          type: "string",
+                          enum: ["idle", "active", "paused", "completed"],
+                        },
                         totalWorkTime: { type: "number" },
-                        lastStateChangeAt: { type: "string", format: "date-time" },
+                        lastStateChangeAt: {
+                          type: "string",
+                          format: "date-time",
+                        },
                         createdAt: { type: "string", format: "date-time" },
                         updatedAt: { type: "string", format: "date-time" },
-                        priority: { type: "string", enum: ["low", "medium", "high"] },
+                        priority: {
+                          type: "string",
+                          enum: ["low", "medium", "high"],
+                        },
                       },
                     },
                   },
@@ -387,16 +399,13 @@ export function setupProjectRoutes<E extends Env = Env, S extends Schema = Schem
       const useCase = new GetTodosByProject(projectRepository, todoRepository);
 
       try {
-        const result = await useCase.execute(id);
-        return c.json({
-          project: result.project,
-          todos: result.todos,
-        });
+        const { project, todos } = await useCase.execute(id);
+        return c.json(todos);
       } catch (error) {
         if (error instanceof ProjectNotFoundError) {
           return c.json({ error: error.message }, 404);
         }
-        throw error;
+        return c.json({ error: "An unexpected error occurred" }, 500);
       }
     },
   );
@@ -468,7 +477,7 @@ export function setupProjectRoutes<E extends Env = Env, S extends Schema = Schem
         if (error instanceof TodoNotFoundError) {
           return c.json({ error: error.message }, 404);
         }
-        throw error;
+        return c.json({ error: "An unexpected error occurred" }, 500);
       }
     },
   );
@@ -512,10 +521,13 @@ export function setupProjectRoutes<E extends Env = Env, S extends Schema = Schem
         c.status(204);
         return c.body(null);
       } catch (error) {
-        if (error instanceof ProjectNotFoundError || error instanceof TodoNotFoundError) {
+        if (error instanceof ProjectNotFoundError) {
           return c.json({ error: error.message }, 404);
         }
-        throw error;
+        if (error instanceof TodoNotFoundError) {
+          return c.json({ error: error.message }, 404);
+        }
+        return c.json({ error: "An unexpected error occurred" }, 500);
       }
     },
   );

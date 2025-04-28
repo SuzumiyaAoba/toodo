@@ -85,10 +85,19 @@ export class PrismaTagRepository extends PrismaBaseRepository<Tag, PrismaTag> im
         throw new TagNotFoundError(id);
       }
 
-      await this.prisma.tag.delete({
-        where: { id },
+      // トランザクションを使って、タグとそのタグに関連するTodoTagを削除
+      await this.prisma.$transaction(async (prisma) => {
+        // まず関連するTodoTagを削除
+        await prisma.todoTag.deleteMany({
+          where: { tagId: id },
+        });
+
+        // 次にタグ自体を削除
+        await prisma.tag.delete({
+          where: { id },
+        });
       });
-    }, id);
+    });
   }
 
   async assignTagToTodo(todoId: string, tagId: string): Promise<void> {
@@ -104,6 +113,21 @@ export class PrismaTagRepository extends PrismaBaseRepository<Tag, PrismaTag> im
 
   async removeTagFromTodo(todoId: string, tagId: string): Promise<void> {
     return this.executePrismaOperation(async () => {
+      // まず関連が存在するか確認
+      const todoTag = await this.prisma.todoTag.findUnique({
+        where: {
+          todoId_tagId: {
+            todoId,
+            tagId,
+          },
+        },
+      });
+
+      if (!todoTag) {
+        throw new Error(`Tag with ID '${tagId}' is not assigned to todo with ID '${todoId}'`);
+      }
+
+      // 削除を実行
       await this.prisma.todoTag.delete({
         where: {
           todoId_tagId: {

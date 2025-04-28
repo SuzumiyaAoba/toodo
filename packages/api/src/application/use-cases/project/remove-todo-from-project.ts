@@ -36,8 +36,7 @@ export class RemoveTodoFromProjectUseCase {
     }
 
     // Remove the todo from the project
-    const updatedTodo = todo.removeFromProject();
-    await this.todoRepository.update(todo.id, updatedTodo);
+    await this.projectRepository.removeTodo(input.projectId, input.todoId);
   }
 }
 
