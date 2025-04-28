@@ -38,21 +38,21 @@ describe("GetTodoWorkTimeUseCase", () => {
     mockTodoRepository.findById.mockClear();
   });
 
-  test("should get todo work time information", async () => {
+  test("should calculate work time for active todo including current session", async () => {
     // Arrange
     const todoId = "todo-id";
     const now = new Date();
-    const startedAt = new Date(now.getTime() - 3600000); // 1時間前
+    const startedAt = new Date(now.getTime() - 3600000); // 1 hour ago
 
     const mockTodo = createTestTodo({
       id: todoId,
       title: "Test Todo",
       description: "Description",
       status: TodoStatus.PENDING,
-      workState: WorkState.ACTIVE, // 作業中の状態
-      totalWorkTime: 7200, // 既に2時間の作業あり
-      lastStateChangeAt: startedAt, // 1時間前に作業開始
-      createdAt: new Date(now.getTime() - 86400000), // 1日前に作成
+      workState: WorkState.ACTIVE, // Active work state
+      totalWorkTime: 7200, // Already 2 hours of work
+      lastStateChangeAt: startedAt, // Started working 1 hour ago
+      createdAt: new Date(now.getTime() - 86400000), // Created 1 day ago
       updatedAt: startedAt,
       priority: PriorityLevel.MEDIUM,
     });
@@ -65,9 +65,9 @@ describe("GetTodoWorkTimeUseCase", () => {
     // Assert
     expect(mockTodoRepository.findById).toHaveBeenCalledTimes(1);
     expect(mockTodoRepository.findById).toHaveBeenCalledWith(todoId);
-    expect(result.totalWorkTime).toBeGreaterThanOrEqual(10800); // 既存の2時間 + 現在進行中の約1時間
+    expect(result.totalWorkTime).toBeGreaterThanOrEqual(10800); // Existing 2 hours + current session of about 1 hour
     expect(result.workState).toBe(WorkState.ACTIVE);
-    expect(result.formattedTime).toMatch(/^3h \d+m$/); // "3h XXm" 形式
+    expect(result.formattedTime).toMatch(/^3h \d+m$/); // Format "3h XXm"
   });
 
   test("should format work time correctly", async () => {

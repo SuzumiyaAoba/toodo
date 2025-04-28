@@ -62,10 +62,10 @@ export class GetTodoWorkTimeUseCase {
 
     if (hours > 0) {
       parts.push(`${hours}h`);
-      // 時間がある場合は常に分を表示（0分でも表示）
+      // Always display minutes when hours exist (even if 0)
       parts.push(`${minutes}m`);
     } else {
-      // 時間がない場合
+      // When no hours
       if (minutes > 0) {
         parts.push(`${minutes}m`);
       }

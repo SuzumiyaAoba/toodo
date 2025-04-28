@@ -2,18 +2,18 @@
  * ErrorCode defines all possible error codes in the application
  */
 export enum ErrorCode {
-  // 汎用エラー
+  // General errors
   INTERNAL_ERROR = "INTERNAL_ERROR",
   VALIDATION_ERROR = "VALIDATION_ERROR",
 
-  // リソース関連エラー
+  // Resource related errors
   NOT_FOUND = "NOT_FOUND",
   CONFLICT = "CONFLICT",
 
-  // 権限・アクセス関連エラー
+  // Permission and access related errors
   FORBIDDEN = "FORBIDDEN",
 
-  // 状態遷移関連エラー
+  // State transition related errors
   INVALID_STATE = "INVALID_STATE",
 }
 

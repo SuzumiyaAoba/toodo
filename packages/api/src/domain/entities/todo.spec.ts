@@ -561,7 +561,7 @@ describe("Todo Entity", () => {
     it("should update due date", () => {
       // Arrange
       const todo = new Todo("test-id", "Test Todo");
-      const dueDate = new Date(2025, 4, 30); // 2025年5月30日
+      const dueDate = new Date(2025, 4, 30); // May 30, 2025
 
       // Act
       const updatedTodo = todo.updateDueDate(dueDate);
@@ -597,8 +597,8 @@ describe("Todo Entity", () => {
 
     it("should detect overdue todos", () => {
       // Arrange
-      const pastDate = new Date(2025, 3, 1); // 2025年4月1日 (過去の日付)
-      const currentDate = new Date(2025, 3, 15); // 2025年4月15日 (現在の日付)
+      const pastDate = new Date(2025, 3, 1); // April 1, 2025 (past date)
+      const currentDate = new Date(2025, 3, 15); // April 15, 2025 (current date)
       const todo = new Todo(
         "test-id",
         "Test Todo",
@@ -620,8 +620,8 @@ describe("Todo Entity", () => {
 
     it("should not detect completed todos as overdue", () => {
       // Arrange
-      const pastDate = new Date(2025, 3, 1); // 2025年4月1日 (過去の日付)
-      const currentDate = new Date(2025, 3, 15); // 2025年4月15日 (現在の日付)
+      const pastDate = new Date(2025, 3, 1); // April 1, 2025 (past date)
+      const currentDate = new Date(2025, 3, 15); // April 15, 2025 (current date)
       const todo = new Todo(
         "test-id",
         "Test Todo",
@@ -651,8 +651,8 @@ describe("Todo Entity", () => {
 
     it("should detect todos due soon", () => {
       // Arrange
-      const currentDate = new Date(2025, 3, 15); // 2025年4月15日
-      const soonDate = new Date(2025, 3, 16); // 2025年4月16日 (1日後)
+      const currentDate = new Date(2025, 3, 15); // April 15, 2025
+      const soonDate = new Date(2025, 3, 16); // April 16, 2025 (1 day later)
       const todo = new Todo(
         "test-id",
         "Test Todo",
@@ -674,8 +674,8 @@ describe("Todo Entity", () => {
 
     it("should not detect completed todos as due soon", () => {
       // Arrange
-      const currentDate = new Date(2025, 3, 15); // 2025年4月15日
-      const soonDate = new Date(2025, 3, 16); // 2025年4月16日 (1日後)
+      const currentDate = new Date(2025, 3, 15); // April 15, 2025
+      const soonDate = new Date(2025, 3, 16); // April 16, 2025 (1 day later)
       const todo = new Todo(
         "test-id",
         "Test Todo",
@@ -705,8 +705,8 @@ describe("Todo Entity", () => {
 
     it("should not detect todos with due date beyond soon threshold", () => {
       // Arrange
-      const currentDate = new Date(2025, 3, 15); // 2025年4月15日
-      const farDate = new Date(2025, 3, 20); // 2025年4月20日 (5日後)
+      const currentDate = new Date(2025, 3, 15); // April 15, 2025
+      const farDate = new Date(2025, 3, 20); // April 20, 2025 (5 days later)
       const todo = new Todo(
         "test-id",
         "Test Todo",
@@ -723,7 +723,7 @@ describe("Todo Entity", () => {
       );
 
       // Act & Assert
-      expect(todo.isDueSoon(2, currentDate)).toBe(false); // 2日以内ではない
+      expect(todo.isDueSoon(2, currentDate)).toBe(false); // Not within 2 days
     });
   });
 });
