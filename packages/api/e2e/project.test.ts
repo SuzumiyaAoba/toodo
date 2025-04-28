@@ -16,10 +16,10 @@ describe("Project API E2E Tests", () => {
     await teardownTestDatabase();
   });
 
-  test("プロジェクトの新規作成が正常に行えること", async () => {
+  test("should create a new project successfully", async () => {
     const projectData = {
-      name: "テストプロジェクト",
-      description: "E2Eテスト用のプロジェクト",
+      name: "Test Project",
+      description: "Project for E2E test",
       color: "#4287f5",
     };
 
@@ -44,7 +44,7 @@ describe("Project API E2E Tests", () => {
     createdProjectId = responseData.id;
   });
 
-  test("プロジェクト一覧が取得できること", async () => {
+  test("should get the list of all projects", async () => {
     const response = await app.request(`${apiBase}/projects`);
     expect(response.status).toBe(200);
     const responseData = (await response.json()) as Array<{
@@ -56,31 +56,31 @@ describe("Project API E2E Tests", () => {
     expect(Array.isArray(responseData)).toBe(true);
     expect(responseData.length).toBeGreaterThan(0);
 
-    // 作成したプロジェクトが含まれていることを確認
+    // Check that the created project is included
     const foundProject = responseData.find((project) => project.id === createdProjectId);
     expect(foundProject).toBeDefined();
   });
 
-  test("IDでプロジェクトを取得できること", async () => {
+  test("should get a project by ID", async () => {
     const response = await app.request(`${apiBase}/projects/${createdProjectId}`);
 
     expect(response.status).toBe(200);
     const responseData = (await response.json()) as Project;
     expect(responseData).toHaveProperty("id", createdProjectId);
-    expect(responseData).toHaveProperty("name", "テストプロジェクト");
+    expect(responseData).toHaveProperty("name", "Test Project");
   });
 
-  test("存在しないプロジェクトへのアクセスで404が返ること", async () => {
+  test("should return 404 when accessing a non-existent project", async () => {
     const nonExistentId = "00000000-0000-0000-0000-000000000000";
     const response = await app.request(`${apiBase}/projects/${nonExistentId}`);
 
     expect(response.status).toBe(404);
   });
 
-  test("プロジェクトの更新が正常に行えること", async () => {
+  test("should update a project successfully", async () => {
     const updateData = {
-      name: "更新されたプロジェクト名",
-      description: "更新された説明",
+      name: "Updated project name",
+      description: "Updated description",
       color: "#f54242",
     };
 
@@ -97,11 +97,11 @@ describe("Project API E2E Tests", () => {
     expect(responseData).toHaveProperty("color", updateData.color);
   });
 
-  test("プロジェクトにTodoを追加できること", async () => {
-    // まずTodoを作成
+  test("should add a todo to a project", async () => {
+    // First, create a todo
     const todoData = {
-      title: "プロジェクト用Todo",
-      description: "このTodoはプロジェクトに追加するためのものです",
+      title: "Todo for project",
+      description: "This todo is for adding to a project.",
     };
 
     const todoResponse = await app.request(`${apiBase}/todos`, {
@@ -114,7 +114,7 @@ describe("Project API E2E Tests", () => {
     const todoResponseData = (await todoResponse.json()) as Todo;
     createdTodoId = todoResponseData.id;
 
-    // Todoをプロジェクトに追加
+    // Add todo to project
     const addTodoResponse = await app.request(`${apiBase}/projects/${createdProjectId}/todos`, {
       method: "POST",
       body: JSON.stringify({ todoId: createdTodoId }),
@@ -124,7 +124,7 @@ describe("Project API E2E Tests", () => {
     expect(addTodoResponse.status).toBe(201);
   });
 
-  test("プロジェクト内のTodo一覧が取得できること", async () => {
+  test("should get the list of todos in a project", async () => {
     const response = await app.request(`${apiBase}/projects/${createdProjectId}/todos`);
 
     expect(response.status).toBe(200);
@@ -132,34 +132,33 @@ describe("Project API E2E Tests", () => {
     expect(Array.isArray(responseData)).toBe(true);
     expect(responseData.length).toBeGreaterThan(0);
 
-    // 追加したTodoが含まれていることを確認
+    // Check that the added todo is included
     const foundTodo = responseData.find((todo) => todo.id === createdTodoId);
     expect(foundTodo).toBeDefined();
   });
 
-  test("プロジェクトからTodoを削除できること", async () => {
+  test("should remove a todo from a project", async () => {
     const response = await app.request(`${apiBase}/projects/${createdProjectId}/todos/${createdTodoId}`, {
       method: "DELETE",
     });
 
     expect(response.status).toBe(204);
 
-    // 削除後にプロジェクト内のTodoを検索
+    // Check that the removed todo is not in the project
     const checkResponse = await app.request(`${apiBase}/projects/${createdProjectId}/todos`);
     const checkData = (await checkResponse.json()) as Todo[];
 
-    // 削除したTodoがないことを確認
     const foundTodo = checkData.find((todo) => todo.id === createdTodoId);
     expect(foundTodo).toBeUndefined();
   });
 
-  test("プロジェクトの削除が正常に行えること", async () => {
+  test("should delete a project successfully", async () => {
     const deleteResponse = await app.request(`${apiBase}/projects/${createdProjectId}`, {
       method: "DELETE",
     });
     expect(deleteResponse.status).toBe(204);
 
-    // 削除後にアクセスして404が返ることを確認
+    // Check that 404 is returned after deletion
     const getResponse = await app.request(`${apiBase}/projects/${createdProjectId}`);
     expect(getResponse.status).toBe(404);
   });

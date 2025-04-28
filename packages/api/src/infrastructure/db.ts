@@ -2,6 +2,6 @@
 import { PrismaClient } from "../generated/prisma";
 
 /**
- * Prismaクライアントのシングルトンインスタンス
+ * Singleton instance of the Prisma client
  */
 export const prisma = new PrismaClient();

@@ -135,91 +135,105 @@ export class PrismaTodoRepository extends PrismaBaseRepository<Todo, PrismaTodo>
     }, id);
   }
 
-  async addDependency(todoId: TodoId, dependencyId: TodoId): Promise<void> {
-    return this.executePrismaOperation(async () => {
-      // 自分自身への依存関係は作成できない
-      if (todoId === dependencyId) {
-        throw new SelfDependencyError(todoId);
-      }
+  async addDependency(todoId: string, dependencyId: string): Promise<void> {
+    // Check if todo and dependency exist
+    const [todo, dependency] = await Promise.all([
+      this.prisma.todo.findUnique({ where: { id: todoId } }),
+      this.prisma.todo.findUnique({ where: { id: dependencyId } }),
+    ]);
 
-      // 両方のTodoが存在するか確認
-      const todo = await this.prisma.todo.findUnique({ where: { id: todoId } });
-      const dependency = await this.prisma.todo.findUnique({ where: { id: dependencyId } });
+    if (!todo) {
+      throw new TodoNotFoundError(todoId);
+    }
 
-      if (!todo) {
-        throw new TodoNotFoundError(todoId);
-      }
-      if (!dependency) {
-        throw new TodoNotFoundError(dependencyId);
-      }
+    if (!dependency) {
+      throw new TodoNotFoundError(dependencyId);
+    }
 
-      // 既存の依存関係を確認
-      const existingDependency = await this.prisma.todoDependency.findUnique({
-        where: {
-          dependentId_dependencyId: {
-            dependentId: todoId,
-            dependencyId: dependencyId,
-          },
-        },
-      });
-
-      if (existingDependency) {
-        throw new DependencyExistsError(todoId, dependencyId);
-      }
-
-      // 依存関係の追加によって循環依存が発生しないか確認
-      const wouldCreateCycle = await this.wouldCreateDependencyCycle(todoId, dependencyId);
-      if (wouldCreateCycle) {
-        throw new DependencyCycleError(todoId, dependencyId);
-      }
-
-      // 依存関係を追加
-      await this.prisma.todoDependency.create({
-        data: {
+    // Check if dependency already exists
+    const existingDependency = await this.prisma.todoDependency.findUnique({
+      where: {
+        dependentId_dependencyId: {
           dependentId: todoId,
-          dependencyId: dependencyId,
+          dependencyId,
         },
-      });
-    }, `${todoId}-${dependencyId}`);
+      },
+    });
+
+    if (existingDependency) {
+      throw new DependencyExistsError(todoId, dependencyId);
+    }
+
+    // Check for potential cycle in dependencies
+    const wouldCreateCycle = await this.wouldCreateDependencyCycle(todoId, dependencyId);
+    if (wouldCreateCycle) {
+      throw new DependencyCycleError(todoId, dependencyId);
+    }
+
+    // Add dependency
+    await this.prisma.todoDependency.create({
+      data: {
+        dependentId: todoId,
+        dependencyId,
+      },
+    });
   }
 
-  async removeDependency(todoId: TodoId, dependencyId: TodoId): Promise<void> {
-    return this.executePrismaOperation(async () => {
-      // 依存関係が存在するか確認
-      const existingDependency = await this.prisma.todoDependency.findUnique({
-        where: {
-          dependentId_dependencyId: {
-            dependentId: todoId,
-            dependencyId: dependencyId,
-          },
+  async removeDependency(todoId: string, dependencyId: string): Promise<void> {
+    // Check if dependency exists
+    const existingDependency = await this.prisma.todoDependency.findUnique({
+      where: {
+        dependentId_dependencyId: {
+          dependentId: todoId,
+          dependencyId,
         },
-      });
+      },
+    });
 
-      if (!existingDependency) {
-        throw new DependencyNotFoundError(todoId, dependencyId);
-      }
+    if (!existingDependency) {
+      throw new DependencyNotFoundError(todoId, dependencyId);
+    }
 
-      // 依存関係を削除
-      await this.prisma.todoDependency.delete({
-        where: {
-          dependentId_dependencyId: {
-            dependentId: todoId,
-            dependencyId: dependencyId,
-          },
+    // Remove dependency
+    await this.prisma.todoDependency.delete({
+      where: {
+        dependentId_dependencyId: {
+          dependentId: todoId,
+          dependencyId,
         },
-      });
-    }, `${todoId}-${dependencyId}`);
+      },
+    });
+  }
+
+  async getUpstreamDependencies(todoId: string): Promise<Todo[]> {
+    // Check if Todo exists
+    const todo = await this.prisma.todo.findUnique({ where: { id: todoId } });
+    if (!todo) {
+      throw new TodoNotFoundError(todoId);
+    }
+
+    // Get todos that this todo depends on
+    const dependencies = await this.prisma.todoDependency.findMany({
+      where: { dependentId: todoId },
+      include: { dependency: true },
+    });
+
+    // Extract the dependency todos from the relation objects
+    const dependencyTodos = dependencies.map((dep) => dep.dependency);
+
+    // Convert to domain entities
+    return this.mapToDomainArray(dependencyTodos);
   }
 
   async findDependents(todoId: TodoId): Promise<Todo[]> {
     return this.executePrismaOperation(async () => {
-      // Todoが存在するか確認
+      // Check if Todo exists
       const todo = await this.prisma.todo.findUnique({ where: { id: todoId } });
       if (!todo) {
         throw new TodoNotFoundError(todoId);
       }
 
-      // このTodoに依存しているTodoを取得
+      // Get todos that depend on this todo
       const dependents = await this.prisma.todo.findMany({
         where: {
           dependsOn: {
@@ -240,13 +254,13 @@ export class PrismaTodoRepository extends PrismaBaseRepository<Todo, PrismaTodo>
 
   async findDependencies(todoId: TodoId): Promise<Todo[]> {
     return this.executePrismaOperation(async () => {
-      // Todoが存在するか確認
+      // Check if Todo exists
       const todo = await this.prisma.todo.findUnique({ where: { id: todoId } });
       if (!todo) {
         throw new TodoNotFoundError(todoId);
       }
 
-      // このTodoが依存しているTodoを取得
+      // Get todos that this todo depends on
       const dependencies = await this.prisma.todo.findMany({
         where: {
           dependents: {
@@ -267,48 +281,48 @@ export class PrismaTodoRepository extends PrismaBaseRepository<Todo, PrismaTodo>
 
   async wouldCreateDependencyCycle(todoId: TodoId, dependencyId: TodoId): Promise<boolean> {
     return this.executePrismaOperation(async () => {
-      // 自分自身への依存は循環依存
+      // Self-dependency is a cycle
       if (todoId === dependencyId) {
         return true;
       }
 
-      // 依存関係をたどって循環を探す
-      // 深さ優先探索で実装
+      // Search for cycles by traversing dependencies
+      // Implemented with depth-first search
       const visited = new Set<string>();
       const visiting = new Set<string>();
 
       const hasCycle = async (currentId: string): Promise<boolean> => {
-        // 既に訪問済みなら循環なし
+        // If already visited, no cycle
         if (visited.has(currentId)) {
           return false;
         }
 
-        // 現在探索中のノードなら循環あり
+        // If currently visiting, cycle detected
         if (visiting.has(currentId)) {
           return true;
         }
 
         visiting.add(currentId);
 
-        // 現在のノードの依存先を取得
+        // Get dependencies of the current node
         const currentDependencies = await this.prisma.todoDependency.findMany({
           where: { dependentId: currentId },
           select: { dependencyId: true },
         });
 
-        // 新しい依存関係を仮想的に追加
+        // Virtually add the new dependency
         if (currentId === todoId) {
           currentDependencies.push({ dependencyId });
         }
 
-        // 依存先をたどって循環を探索
+        // Explore dependencies to search for cycles
         for (const { dependencyId: nextId } of currentDependencies) {
           if (await hasCycle(nextId)) {
             return true;
           }
         }
 
-        // 探索完了
+        // Exploration complete
         visiting.delete(currentId);
         visited.add(currentId);
         return false;
@@ -484,48 +498,48 @@ export class PrismaTodoRepository extends PrismaBaseRepository<Todo, PrismaTodo>
 
   async checkForHierarchyCycle(todoId: TodoId, potentialParentId: TodoId): Promise<boolean> {
     return this.executePrismaOperation(async () => {
-      // 自分自身を親にはできない（直接的な循環）
+      // Cannot set itself as parent (direct cycle)
       if (todoId === potentialParentId) {
         return true;
       }
 
-      // 潜在的な親から上に向かって探索し、todoIdが現れるかを確認
+      // Search upwards from potential parent to check if todoId appears
       const visited = new Set<string>();
       const visiting = new Set<string>();
 
       const hasCycle = async (currentId: string): Promise<boolean> => {
-        // 既に訪問済みならループなし
+        // If already visited, no cycle
         if (visited.has(currentId)) {
           return false;
         }
 
-        // 現在探索中のノードならループあり
+        // If currently visiting, cycle detected
         if (visiting.has(currentId)) {
           return true;
         }
 
         visiting.add(currentId);
 
-        // 現在のノードの親を取得
+        // Get parent of current node
         const current = await this.prisma.todo.findUnique({
           where: { id: currentId },
           select: { parentId: true },
         });
 
-        // 親がある場合は親をたどる
+        // If parent exists, traverse upwards
         if (current?.parentId) {
-          // 親がtodoIdと同じならループ発生
+          // If parent is todoId, cycle detected
           if (current.parentId === todoId) {
             return true;
           }
 
-          // 親を再帰的に探索
+          // Recursively search parent
           if (await hasCycle(current.parentId)) {
             return true;
           }
         }
 
-        // 探索完了
+        // Exploration complete
         visiting.delete(currentId);
         visited.add(currentId);
         return false;
@@ -634,7 +648,7 @@ export class PrismaTodoRepository extends PrismaBaseRepository<Todo, PrismaTodo>
     return this.findByDueDateRange(startDate, endDate);
   }
 
-  // 既存の実装
+  // Existing implementation
   async findAllCompleted(): Promise<Todo[]> {
     return this.executePrismaOperation(async () => {
       const todos = await this.prisma.todo.findMany({
@@ -670,7 +684,7 @@ export class PrismaTodoRepository extends PrismaBaseRepository<Todo, PrismaTodo>
 
   async findDueSoon(days = 2, currentDate: Date = new Date()): Promise<Todo[]> {
     return this.executePrismaOperation(async () => {
-      // 現在から指定日数後までの日付を計算
+      // Calculate date from now to specified days in future
       const futureDate = new Date(currentDate);
       futureDate.setDate(futureDate.getDate() + days);
 

@@ -85,14 +85,14 @@ export class PrismaTagRepository extends PrismaBaseRepository<Tag, PrismaTag> im
         throw new TagNotFoundError(id);
       }
 
-      // トランザクションを使って、タグとそのタグに関連するTodoTagを削除
+      // Use a transaction to delete the tag and related TodoTag
       await this.prisma.$transaction(async (prisma) => {
-        // まず関連するTodoTagを削除
+        // First, delete related TodoTag
         await prisma.todoTag.deleteMany({
           where: { tagId: id },
         });
 
-        // 次にタグ自体を削除
+        // Next, delete the tag itself
         await prisma.tag.delete({
           where: { id },
         });
@@ -113,7 +113,7 @@ export class PrismaTagRepository extends PrismaBaseRepository<Tag, PrismaTag> im
 
   async removeTagFromTodo(todoId: string, tagId: string): Promise<void> {
     return this.executePrismaOperation(async () => {
-      // まず関連が存在するか確認
+      // First, check if the relation exists
       const todoTag = await this.prisma.todoTag.findUnique({
         where: {
           todoId_tagId: {
@@ -127,7 +127,7 @@ export class PrismaTagRepository extends PrismaBaseRepository<Tag, PrismaTag> im
         throw new Error(`Tag with ID '${tagId}' is not assigned to todo with ID '${todoId}'`);
       }
 
-      // 削除を実行
+      // Execute the deletion
       await this.prisma.todoTag.delete({
         where: {
           todoId_tagId: {
@@ -161,8 +161,8 @@ export class PrismaTagRepository extends PrismaBaseRepository<Tag, PrismaTag> im
 
   async getTodoIdsWithAllTags(tagIds: string[]): Promise<string[]> {
     return this.executePrismaOperation(async () => {
-      // 効率的な実装のためにRaw SQLを使用
-      // 指定されたすべてのタグを持つTodoを取得
+      // Use raw SQL for efficient implementation
+      // Get all todos with the specified tags
       const todos = await this.prisma.$queryRaw<Array<{ todoId: string }>>`
         SELECT tt.todoId
         FROM TodoTag tt
@@ -195,7 +195,7 @@ export class PrismaTagRepository extends PrismaBaseRepository<Tag, PrismaTag> im
 
   async bulkAssignTagToTodos(tagId: string, todoIds: string[]): Promise<number> {
     return this.executePrismaOperation(async () => {
-      // 既存の関連を取得して、重複を避ける
+      // Get existing relations to avoid duplicates
       const existingRelations = await this.prisma.todoTag.findMany({
         where: {
           tagId,
@@ -215,7 +215,7 @@ export class PrismaTagRepository extends PrismaBaseRepository<Tag, PrismaTag> im
         return 0;
       }
 
-      // 新しい関連を一括作成
+      // New relations are created in bulk
       const result = await this.prisma.todoTag.createMany({
         data: newTodoIds.map((todoId) => ({
           todoId,
@@ -229,7 +229,7 @@ export class PrismaTagRepository extends PrismaBaseRepository<Tag, PrismaTag> im
 
   async bulkRemoveTagFromTodos(tagId: string, todoIds: string[]): Promise<number> {
     return this.executePrismaOperation(async () => {
-      // 削除対象の関連を取得
+      // Get relations to be deleted
       const relations = await this.prisma.todoTag.findMany({
         where: {
           tagId,
@@ -243,7 +243,7 @@ export class PrismaTagRepository extends PrismaBaseRepository<Tag, PrismaTag> im
         return 0;
       }
 
-      // 関連を一括削除
+      // Delete relations in bulk
       await this.prisma.todoTag.deleteMany({
         where: {
           tagId,
@@ -268,13 +268,13 @@ export class PrismaTagRepository extends PrismaBaseRepository<Tag, PrismaTag> im
     }>
   > {
     return this.executePrismaOperation(async () => {
-      // すべてのタグを取得
+      // Get all tags
       const tags = await this.prisma.tag.findMany();
 
-      // タグごとの統計情報を収集
+      // Collect statistics for each tag
       const statistics = await Promise.all(
         tags.map(async (tag) => {
-          // タグが付けられたすべてのTodoを取得
+          // Get all todos with the specified tag
           const todoTags = await this.prisma.todoTag.findMany({
             where: { tagId: tag.id },
             include: { todo: true },
@@ -295,7 +295,7 @@ export class PrismaTagRepository extends PrismaBaseRepository<Tag, PrismaTag> im
         }),
       );
 
-      // 使用頻度順にソート
+      // Sort by usage frequency
       return statistics.sort((a, b) => b.usageCount - a.usageCount);
     });
   }

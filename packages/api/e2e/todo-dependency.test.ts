@@ -50,10 +50,10 @@ describe("Todo Dependency API E2E Tests", () => {
     await teardownTestDatabase();
   });
 
-  test("依存元となるTodoの新規作成が正常に行えること", async () => {
+  test("should create a parent todo successfully", async () => {
     const todoData = {
-      title: "親タスク",
-      description: "このタスクは他のタスクに依存します",
+      title: "Parent Task",
+      description: "This task depends on another task.",
       priority: "high",
     };
 
@@ -71,10 +71,10 @@ describe("Todo Dependency API E2E Tests", () => {
     parentTodoId = responseData.id;
   });
 
-  test("依存先となるTodoの新規作成が正常に行えること", async () => {
+  test("should create a dependency todo successfully", async () => {
     const todoData = {
-      title: "依存先タスク",
-      description: "このタスクは他のタスクから依存されます",
+      title: "Dependency Task",
+      description: "This task is depended on by another task.",
       priority: "medium",
     };
 
@@ -92,7 +92,7 @@ describe("Todo Dependency API E2E Tests", () => {
     dependencyTodoId = responseData.id;
   });
 
-  test("Todo間の依存関係を追加できること", async () => {
+  test("should add a dependency between todos", async () => {
     const response = await app.request(`${apiBase}/todos/${parentTodoId}/dependencies/${dependencyTodoId}`, {
       method: "POST",
       headers: new Headers({ "Content-Type": "application/json" }),
@@ -101,7 +101,7 @@ describe("Todo Dependency API E2E Tests", () => {
     expect(response.status).toBe(204);
   });
 
-  test("同じ依存関係を重複して追加しようとするとエラーになること", async () => {
+  test("should return error when adding the same dependency twice", async () => {
     const response = await app.request(`${apiBase}/todos/${parentTodoId}/dependencies/${dependencyTodoId}`, {
       method: "POST",
       headers: new Headers({ "Content-Type": "application/json" }),
@@ -112,7 +112,7 @@ describe("Todo Dependency API E2E Tests", () => {
     expect(responseData).toHaveProperty("error");
   });
 
-  test("自己参照の依存関係を追加しようとするとエラーになること", async () => {
+  test("should return error when adding a self-dependency", async () => {
     const response = await app.request(`${apiBase}/todos/${parentTodoId}/dependencies/${parentTodoId}`, {
       method: "POST",
       headers: new Headers({ "Content-Type": "application/json" }),
@@ -123,8 +123,8 @@ describe("Todo Dependency API E2E Tests", () => {
     expect(responseData).toHaveProperty("error");
   });
 
-  test("循環依存を作成しようとするとエラーになること", async () => {
-    // まず逆方向の依存関係を作ろうとする
+  test("should return error when creating a circular dependency", async () => {
+    // Try to create a dependency in the reverse direction
     const response = await app.request(`${apiBase}/todos/${dependencyTodoId}/dependencies/${parentTodoId}`, {
       method: "POST",
       headers: new Headers({ "Content-Type": "application/json" }),
@@ -135,7 +135,7 @@ describe("Todo Dependency API E2E Tests", () => {
     expect(responseData).toHaveProperty("error");
   });
 
-  test("Todoの依存関係リストを取得できること", async () => {
+  test("should get the list of dependencies for a todo", async () => {
     const response = await app.request(`${apiBase}/todos/${parentTodoId}/dependencies`);
 
     expect(response.status).toBe(200);
@@ -149,7 +149,7 @@ describe("Todo Dependency API E2E Tests", () => {
     }
   });
 
-  test("Todoの被依存関係（依存元）リストを取得できること", async () => {
+  test("should get the list of dependents for a todo", async () => {
     const response = await app.request(`${apiBase}/todos/${dependencyTodoId}/dependents`);
 
     expect(response.status).toBe(200);
@@ -163,7 +163,7 @@ describe("Todo Dependency API E2E Tests", () => {
     }
   });
 
-  test("依存関係ツリーを取得できること", async () => {
+  test("should get the dependency tree for a todo", async () => {
     const response = await app.request(`${apiBase}/todos/${parentTodoId}/dependency-tree`);
 
     expect(response.status).toBe(200);
@@ -178,14 +178,14 @@ describe("Todo Dependency API E2E Tests", () => {
     }
   });
 
-  test("依存関係を削除できること", async () => {
+  test("should remove a dependency", async () => {
     const response = await app.request(`${apiBase}/todos/${parentTodoId}/dependencies/${dependencyTodoId}`, {
       method: "DELETE",
     });
 
     expect(response.status).toBe(204);
 
-    // 依存関係が実際に削除されたことを確認
+    // Check that the dependency was actually removed
     const checkResponse = await app.request(`${apiBase}/todos/${parentTodoId}/dependencies`);
     expect(checkResponse.status).toBe(200);
     const checkData = (await checkResponse.json()) as TodoDependencyListResponse;
@@ -195,7 +195,7 @@ describe("Todo Dependency API E2E Tests", () => {
     }
   });
 
-  test("存在しない依存関係を削除しようとするとエラーになること", async () => {
+  test("should return error when removing a non-existent dependency", async () => {
     const response = await app.request(`${apiBase}/todos/${parentTodoId}/dependencies/${dependencyTodoId}`, {
       method: "DELETE",
     });
@@ -205,20 +205,20 @@ describe("Todo Dependency API E2E Tests", () => {
     expect(responseData).toHaveProperty("error");
   });
 
-  test("Todoを削除すると関連する依存関係も削除されること", async () => {
-    // まず依存関係を再作成
+  test("should remove related dependencies when a todo is deleted", async () => {
+    // Re-create the dependency first
     await app.request(`${apiBase}/todos/${parentTodoId}/dependencies/${dependencyTodoId}`, {
       method: "POST",
       headers: new Headers({ "Content-Type": "application/json" }),
     });
 
-    // 親Todoを削除
+    // Delete the parent todo
     const deleteResponse = await app.request(`${apiBase}/todos/${parentTodoId}`, {
       method: "DELETE",
     });
     expect(deleteResponse.status).toBe(204);
 
-    // 子Todoからの被依存関係リストが空になることを確認
+    // Check that the dependents list for the child todo is empty
     const dependentsResponse = await app.request(`${apiBase}/todos/${dependencyTodoId}/dependents`);
     expect(dependentsResponse.status).toBe(200);
     const dependentsData = (await dependentsResponse.json()) as TodoDependentListResponse;

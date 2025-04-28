@@ -78,7 +78,7 @@ export class PrismaProjectRepository implements ProjectRepository {
   }
 
   async addTodo(projectId: ProjectId, todoId: string): Promise<void> {
-    // todoのprojectIdフィールドを更新
+    // Update the projectId field of the todo
     await this.prisma.todo.update({
       where: { id: todoId },
       data: { projectId },
@@ -86,7 +86,7 @@ export class PrismaProjectRepository implements ProjectRepository {
   }
 
   async removeTodo(projectId: ProjectId, todoId: string): Promise<void> {
-    // todoからprojectIdを削除
+    // Remove projectId from todo
     await this.prisma.todo.update({
       where: { id: todoId },
       data: { projectId: null },

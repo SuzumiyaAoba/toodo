@@ -1,22 +1,22 @@
-// 型のエクスポート
+// Type exports
 // export * from "./types/index.js";
 
-// ドメインエンティティのエクスポート
+// Domain entity exports
 export * from "./domain/entities/tag.js";
 export * from "./domain/entities/project.js";
 export * from "./domain/entities/todo.js";
 export * from "./domain/entities/todo-activity.js";
 
-// ドメインエラーのエクスポート
+// Domain error exports
 // export * from "./domain/errors/tag-errors.js";
 // export * from "./domain/errors/project-errors.js";
 // export * from "./domain/errors/todo-errors.js";
 
-// ドメインリポジトリのエクスポート
+// Domain repository exports
 // export * from "./domain/repositories/tag-repository.js";
 export * from "./domain/repositories/project-repository.js";
 export * from "./domain/repositories/todo-repository.js";
 // export * from "./domain/repositories/todo-activity-repository.js";
 
-// アプリケーションユースケースのエクスポート
+// Application use case exports
 // export * from "./application/use-cases/tag/multiple-tag-filters/index.js";

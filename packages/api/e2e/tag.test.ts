@@ -11,12 +11,12 @@ describe("Tag API E2E Tests", () => {
   beforeAll(async () => {
     await setupTestDatabase();
 
-    // テスト用のTodoを作成
+    // Create a todo for testing
     const todoResponse = await app.request(`${apiBase}/todos`, {
       method: "POST",
       body: JSON.stringify({
-        title: "タグテスト用Todo",
-        description: "タグのE2Eテストで使用するTodoです",
+        title: "Todo for tag test",
+        description: "This todo is used for E2E tag test.",
       }),
       headers: new Headers({ "Content-Type": "application/json" }),
     });
@@ -29,9 +29,9 @@ describe("Tag API E2E Tests", () => {
     await teardownTestDatabase();
   });
 
-  test("タグの新規作成が正常に行えること", async () => {
+  test("should create a new tag successfully", async () => {
     const tagData = {
-      name: "E2Eテスト用タグ",
+      name: "Tag for E2E test",
       color: "#ff5733",
     };
 
@@ -50,7 +50,7 @@ describe("Tag API E2E Tests", () => {
     createdTagId = responseData.id;
   });
 
-  test("全タグのリストが取得できること", async () => {
+  test("should get the list of all tags", async () => {
     const response = await app.request(`${apiBase}/tags`);
 
     expect(response.status).toBe(200);
@@ -58,30 +58,30 @@ describe("Tag API E2E Tests", () => {
     expect(Array.isArray(responseData)).toBe(true);
     expect(responseData.length).toBeGreaterThan(0);
 
-    // 作成したタグが含まれていることを確認
+    // Check that the created tag is included
     const foundTag = responseData.find((tag) => tag.id === createdTagId);
     expect(foundTag).toBeDefined();
   });
 
-  test("IDでタグを取得できること", async () => {
+  test("should get a tag by ID", async () => {
     const response = await app.request(`${apiBase}/tags/${createdTagId}`);
 
     expect(response.status).toBe(200);
     const responseData = (await response.json()) as Tag;
     expect(responseData).toHaveProperty("id", createdTagId);
-    expect(responseData).toHaveProperty("name", "E2Eテスト用タグ");
+    expect(responseData).toHaveProperty("name", "Tag for E2E test");
   });
 
-  test("存在しないタグへのアクセスで404が返ること", async () => {
+  test("should return 404 when accessing a non-existent tag", async () => {
     const nonExistentId = "00000000-0000-0000-0000-000000000000";
     const response = await app.request(`${apiBase}/tags/${nonExistentId}`);
 
     expect(response.status).toBe(404);
   });
 
-  test("タグの更新が正常に行えること", async () => {
+  test("should update a tag successfully", async () => {
     const updateData = {
-      name: "更新されたタグ名",
+      name: "Updated tag name",
       color: "#33ff57",
     };
 
@@ -97,7 +97,7 @@ describe("Tag API E2E Tests", () => {
     expect(responseData).toHaveProperty("color", updateData.color);
   });
 
-  test("Todoにタグを付与できること", async () => {
+  test("should assign a tag to a todo", async () => {
     const response = await app.request(`${apiBase}/todos/${createdTodoId}/tags`, {
       method: "POST",
       body: JSON.stringify({ tagId: createdTagId }),
@@ -107,7 +107,7 @@ describe("Tag API E2E Tests", () => {
     expect(response.status).toBe(201);
   });
 
-  test("タグでTodoを検索できること", async () => {
+  test("should get todos by tag", async () => {
     const response = await app.request(`${apiBase}/tags/${createdTagId}/todos`);
 
     expect(response.status).toBe(200);
@@ -115,12 +115,12 @@ describe("Tag API E2E Tests", () => {
     expect(Array.isArray(responseData)).toBe(true);
     expect(responseData.length).toBeGreaterThan(0);
 
-    // 作成したTodoが含まれていることを確認
+    // Check that the created todo is included
     const foundTodo = responseData.find((todo) => todo.id === createdTodoId);
     expect(foundTodo).toBeDefined();
   });
 
-  test("Todoからタグを削除できること", async () => {
+  test("should remove a tag from a todo", async () => {
     const response = await app.request(`${apiBase}/todos/${createdTodoId}/tags/${createdTagId}`, {
       method: "DELETE",
     });
@@ -128,13 +128,13 @@ describe("Tag API E2E Tests", () => {
     expect(response.status).toBe(204);
   });
 
-  test("タグの削除が正常に行えること", async () => {
+  test("should delete a tag successfully", async () => {
     const deleteResponse = await app.request(`${apiBase}/tags/${createdTagId}`, {
       method: "DELETE",
     });
     expect(deleteResponse.status).toBe(204);
 
-    // 削除後にアクセスして404が返ることを確認
+    // Check that 404 is returned after deletion
     const getResponse = await app.request(`${apiBase}/tags/${createdTagId}`);
     expect(getResponse.status).toBe(404);
   });

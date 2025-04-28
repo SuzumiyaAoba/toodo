@@ -25,13 +25,13 @@ const runMiddleware = async (error: Error) => {
   return context;
 };
 
-// より単純なValiErrorのモック方法
+// Simpler way to mock ValiError
 function createValiErrorMock(): unknown {
-  // Errorオブジェクトを直接拡張
+  // Directly extend Error object
   const error = new Error("Validation error");
   error.name = "ValiError";
 
-  // ValiErrorオブジェクトとして機能するために必要なプロパティを追加
+  // Add properties needed to function as a ValiError object
   const valiError = Object.assign(error, {
     issues: [{ message: "Invalid input" }],
   });
@@ -103,8 +103,10 @@ describe("errorHandler", () => {
   });
 
   it("should handle validation errors with 400 status code", async () => {
-    const mockValiError = createValiErrorMock();
-    const context = await runMiddleware(mockValiError as Error);
+    const error = createValiErrorMock() as Error;
+    error.name = "ValiError";
+
+    const context = await runMiddleware(error);
 
     expect(context.json).toHaveBeenCalledWith(
       {

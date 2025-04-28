@@ -5,7 +5,7 @@ import type { Project } from "./project";
 import type { PriorityLevel, Todo, TodoStatus, WorkState } from "./todo";
 
 /**
- * テスト用のTodoオブジェクトを作成する
+ * Create a Todo object for testing
  */
 export function createTestTodo(params: {
   id: string;
@@ -42,7 +42,7 @@ export function createTestTodo(params: {
 }
 
 /**
- * Prisma用のモックTodoオブジェクトを作成
+ * Create a mock Todo object for Prisma
  */
 export function createMockPrismaTodo(params: {
   id: string;
@@ -100,7 +100,7 @@ export function workStateToString(state: WorkState): string {
 }
 
 /**
- * モック化したTodoRepositoryを作成する
+ * Create a mocked TodoRepository
  */
 export function createMockedTodoRepository(): TodoRepository {
   return {
@@ -138,7 +138,7 @@ export function createMockedTodoRepository(): TodoRepository {
 }
 
 /**
- * モック化したProjectRepositoryを作成する
+ * Create a mocked ProjectRepository
  */
 export function createMockedProjectRepository(): ProjectRepository {
   return {

@@ -50,7 +50,7 @@ describe("TodoActivity Entity", () => {
 
       // Assert
       expect(domainActivity.workTime).toBeUndefined();
-      // 実装では null の場合は null として扱われる
+      // In the implementation, null is treated as null
       expect(domainActivity.previousState).toBeNull();
       expect(domainActivity.note).toBeUndefined();
     });
