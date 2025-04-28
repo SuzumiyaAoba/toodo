@@ -52,10 +52,10 @@ export const TodoSchema = v.object({
   dueDate: CommonSchemas.dueDate(),
   createdAt: DateSchema,
   updatedAt: DateSchema,
-  priority: CommonSchemas.priorityLevel(), // 共通のスキーマを使用
+  priority: CommonSchemas.priorityLevel(), // Using common schema
   projectId: v.optional(CommonSchemas.uuid()),
-  dependencies: v.optional(v.array(CommonSchemas.uuid())), // 依存するTodoのIDリスト
-  dependents: v.optional(v.array(CommonSchemas.uuid())), // このTodoに依存するTodoのIDリスト
+  dependencies: v.optional(v.array(CommonSchemas.uuid())), // List of IDs of dependent Todos
+  dependents: v.optional(v.array(CommonSchemas.uuid())), // List of IDs of Todos dependent on this Todo
 });
 
 /**
@@ -71,7 +71,7 @@ export const CreateTodoSchema = v.object({
   description: CommonSchemas.description(),
   status: v.optional(v.picklist([TodoStatus.PENDING, TodoStatus.COMPLETED])),
   workState: v.optional(CommonSchemas.workState()),
-  priority: v.optional(CommonSchemas.priorityLevel()), // 共通のスキーマを使用
+  priority: v.optional(CommonSchemas.priorityLevel()), // Using common schema
   dueDate: CommonSchemas.dueDate(),
   projectId: v.optional(CommonSchemas.uuid()),
 });
@@ -89,7 +89,7 @@ export const UpdateTodoSchema = v.object({
   description: CommonSchemas.description(),
   status: v.optional(v.picklist([TodoStatus.PENDING, TodoStatus.COMPLETED])),
   workState: v.optional(CommonSchemas.workState()),
-  priority: v.optional(CommonSchemas.priorityLevel()), // 共通のスキーマを使用
+  priority: v.optional(CommonSchemas.priorityLevel()), // Using common schema
   dueDate: CommonSchemas.dueDate(),
   projectId: v.optional(CommonSchemas.uuid()),
 });
@@ -235,7 +235,7 @@ export const BasicTodoInfoSchema = v.object({
   id: CommonSchemas.uuid(),
   title: v.string(),
   status: CommonSchemas.todoStatus(),
-  priority: CommonSchemas.priorityLevel(), // 共通のスキーマを使用
+  priority: CommonSchemas.priorityLevel(), // Using common schema
 });
 
 type TodoDependencyNode = {
@@ -253,7 +253,7 @@ export const TodoDependencyNodeSchema: v.GenericSchema<TodoDependencyNode> = v.o
   id: CommonSchemas.uuid(),
   title: v.string(),
   status: CommonSchemas.todoStatus(),
-  priority: v.nullable(CommonSchemas.priorityLevel()), // 共通のスキーマを使用
+  priority: v.nullable(CommonSchemas.priorityLevel()), // Using common schema
   dependencies: v.array(v.lazy(() => TodoDependencyNodeSchema)),
 });
 

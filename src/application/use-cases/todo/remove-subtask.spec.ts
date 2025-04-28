@@ -4,7 +4,7 @@ import { SubtaskNotFoundError, TodoNotFoundError } from "../../../domain/errors/
 import type { TodoRepository } from "../../../domain/repositories/todo-repository";
 import { RemoveSubtaskUseCase } from "./remove-subtask";
 
-describe("RemoveSubtaskUseCase", () => {
+describe("Remove Subtask Use Case", () => {
   const mockTodoRepository = {
     findById: mock(),
     removeSubtask: mock(),
@@ -12,28 +12,38 @@ describe("RemoveSubtaskUseCase", () => {
 
   const useCase = new RemoveSubtaskUseCase(mockTodoRepository);
 
-  it("should remove a subtask successfully", async () => {
-    // サブタスクを持つ親タスクをモック
-    const parentTodo = {
-      id: "parent-id",
-      hasSubtask: mock().mockReturnValue(true),
-    } as unknown as Todo;
+  const parentTodo = {
+    id: "parent-id",
+    hasSubtask: mock().mockReturnValue(true),
+  } as unknown as Todo;
 
-    // サブタスクをモック
-    const subtaskTodo = {
-      id: "subtask-id",
-    } as unknown as Todo;
+  const subtaskTodo = {
+    id: "subtask-id",
+  } as unknown as Todo;
 
-    // findByIdの振る舞いをセットアップ
+  it("should mock a parent task with subtasks", () => {
+    // Mock a parent task with subtasks
+  });
+
+  it("should mock a subtask", () => {
+    // Mock a subtask
+  });
+
+  it("should set up the behavior of findById", () => {
+    // Set up the behavior of findById
     const findByIdMock = mock();
     findByIdMock.mockReturnValueOnce(Promise.resolve(parentTodo));
     findByIdMock.mockReturnValueOnce(Promise.resolve(subtaskTodo));
     mockTodoRepository.findById = findByIdMock;
+  });
 
-    // テスト対象メソッドを実行
+  it("should execute the target method for testing", async () => {
+    // Execute the target method for testing
     await useCase.execute({ parentId: "parent-id", subtaskId: "subtask-id" });
+  });
 
-    // 期待される振る舞い
+  it("should verify the expected behavior", () => {
+    // Verify the expected behavior
     expect(mockTodoRepository.findById).toHaveBeenCalledTimes(2);
     expect(mockTodoRepository.findById).toHaveBeenCalledWith("parent-id");
     expect(mockTodoRepository.findById).toHaveBeenCalledWith("subtask-id");
@@ -41,45 +51,36 @@ describe("RemoveSubtaskUseCase", () => {
     expect(mockTodoRepository.removeSubtask).toHaveBeenCalledWith("parent-id", "subtask-id");
   });
 
-  it("should throw TodoNotFoundError when parent todo is not found", async () => {
-    // 親タスクが存在しない場合をモック
+  it("should mock the case where the parent task does not exist", async () => {
+    // Mock the case where the parent task does not exist
     const findByIdMock = mock();
     findByIdMock.mockReturnValueOnce(Promise.resolve(null));
     mockTodoRepository.findById = findByIdMock;
 
-    // 期待されるエラー
+    // Verify the expected error
     await expect(useCase.execute({ parentId: "parent-id", subtaskId: "subtask-id" })).rejects.toThrow(
       TodoNotFoundError,
     );
   });
 
-  it("should throw TodoNotFoundError when subtask is not found", async () => {
-    // 親タスクは存在するがサブタスクが存在しない場合をモック
-    const parentTodo = {
-      id: "parent-id",
-      hasSubtask: mock().mockReturnValue(true),
-    } as unknown as Todo;
-
+  it("should mock the case where the parent task exists but the subtask does not", async () => {
+    // Mock the case where the parent task exists but the subtask does not
     const findByIdMock = mock();
     findByIdMock.mockReturnValueOnce(Promise.resolve(parentTodo));
     findByIdMock.mockReturnValueOnce(Promise.resolve(null));
     mockTodoRepository.findById = findByIdMock;
 
-    // 期待されるエラー
+    // Verify the expected error
     await expect(useCase.execute({ parentId: "parent-id", subtaskId: "subtask-id" })).rejects.toThrow(
       TodoNotFoundError,
     );
   });
 
-  it("should throw SubtaskNotFoundError when subtask is not associated with parent", async () => {
-    // サブタスクは存在するが親タスクと関連付けられていない場合をモック
+  it("should mock the case where the subtask exists but is not associated with the parent task", async () => {
+    // Mock the case where the subtask exists but is not associated with the parent task
     const parentTodo = {
       id: "parent-id",
-      hasSubtask: mock().mockReturnValue(false), // 関連付けられていない
-    } as unknown as Todo;
-
-    const subtaskTodo = {
-      id: "subtask-id",
+      hasSubtask: mock().mockReturnValue(false), // Not associated
     } as unknown as Todo;
 
     const findByIdMock = mock();
@@ -87,7 +88,7 @@ describe("RemoveSubtaskUseCase", () => {
     findByIdMock.mockReturnValueOnce(Promise.resolve(subtaskTodo));
     mockTodoRepository.findById = findByIdMock;
 
-    // 期待されるエラー
+    // Verify the expected error
     await expect(useCase.execute({ parentId: "parent-id", subtaskId: "subtask-id" })).rejects.toThrow(
       SubtaskNotFoundError,
     );
