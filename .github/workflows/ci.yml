@@ -27,5 +27,8 @@ jobs:
       - name: Set up database (Prisma migrate deploy)
         run: cd packages/api && bunx prisma migrate deploy
 
+      - name: Generate Prisma client
+        run: cd packages/api && bunx prisma generate
+
       - name: Run tests
         run: cd packages/api && bun test
