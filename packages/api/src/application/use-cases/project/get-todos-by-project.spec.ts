@@ -2,8 +2,8 @@ import { type Mock, beforeEach, describe, expect, it, mock } from "bun:test";
 import { Project } from "../../../domain/entities/project";
 import { Todo } from "../../../domain/entities/todo";
 import { ProjectNotFoundError } from "../../../domain/errors/project-errors";
-import { ProjectRepository } from "../../../domain/repositories/project-repository";
-import { TodoRepository } from "../../../domain/repositories/todo-repository";
+import type { ProjectRepository } from "../../../domain/repositories/project-repository";
+import type { TodoRepository } from "../../../domain/repositories/todo-repository";
 import { GetTodosByProject } from "./get-todos-by-project";
 
 describe("GetTodosByProject", () => {

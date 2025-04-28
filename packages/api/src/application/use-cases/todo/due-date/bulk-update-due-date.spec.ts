@@ -1,7 +1,7 @@
 import { describe, expect, it, jest } from "bun:test";
 import { BulkUpdateDueDateUseCase } from "../../../../application/use-cases/todo/due-date/bulk-update-due-date";
 import { PriorityLevel, Todo, TodoStatus, WorkState } from "../../../../domain/entities/todo";
-import { TodoRepository } from "../../../../domain/repositories/todo-repository";
+import type { TodoRepository } from "../../../../domain/repositories/todo-repository";
 
 describe("BulkUpdateDueDateUseCase", () => {
   it("should update due dates for multiple todos", async () => {
@@ -121,8 +121,10 @@ describe("BulkUpdateDueDateUseCase", () => {
     expect(result).toHaveLength(1);
     expect(mockTodoRepository.findById).toHaveBeenCalledTimes(3);
     expect(mockTodoRepository.update).toHaveBeenCalledTimes(1);
-    expect(result[0].id).toBe("1");
-    expect(result[0].dueDate).toEqual(dueDate);
+    if (result[0]) {
+      expect(result[0].id).toBe("1");
+      expect(result[0].dueDate).toEqual(dueDate);
+    }
   });
 
   it("should remove due dates when undefined is passed", async () => {

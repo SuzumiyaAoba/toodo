@@ -7,8 +7,8 @@ import {
   TodoAlreadyInProjectError,
   TodoNotFoundError,
 } from "../../../domain/errors/project-errors";
-import { ProjectRepository } from "../../../domain/repositories/project-repository";
-import { TodoRepository } from "../../../domain/repositories/todo-repository";
+import type { ProjectRepository } from "../../../domain/repositories/project-repository";
+import type { TodoRepository } from "../../../domain/repositories/todo-repository";
 import type { MockedFunction } from "../../../test/types";
 import { AddTodoToProjectUseCase } from "./add-todo-to-project";
 

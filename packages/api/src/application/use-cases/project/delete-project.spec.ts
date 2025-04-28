@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, mock } from "bun:test";
 import { Project } from "../../../domain/entities/project";
 import { ProjectNotFoundError } from "../../../domain/errors/project-errors";
-import { ProjectRepository } from "../../../domain/repositories/project-repository";
+import type { ProjectRepository } from "../../../domain/repositories/project-repository";
 import { DeleteProject } from "./delete-project";
 
 describe("DeleteProject", () => {

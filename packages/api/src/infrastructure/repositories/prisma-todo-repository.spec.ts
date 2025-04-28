@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, test } from "bun:test";
-import { PriorityLevel, Todo, TodoStatus, WorkState } from "../../domain/entities/todo";
+import { PriorityLevel, Todo, TodoStatus, WorkState } from "@toodo/core";
 import {
   DependencyCycleError,
   DependencyExistsError,
@@ -41,6 +41,7 @@ describe("PrismaTodoRepository", () => {
       // Todo.createNewを使用してTodoエンティティを作成
       parentTodo = await repository.create(
         Todo.createNew({
+          id: "test-parent-id",
           title: "Parent Todo",
           status: TodoStatus.PENDING,
           workState: WorkState.IDLE,
@@ -53,6 +54,7 @@ describe("PrismaTodoRepository", () => {
       // Create subtasks
       subtask1 = await repository.create(
         Todo.createNew({
+          id: "test-subtask1-id",
           title: "Subtask 1",
           status: TodoStatus.PENDING,
           workState: WorkState.IDLE,
@@ -64,6 +66,7 @@ describe("PrismaTodoRepository", () => {
 
       subtask2 = await repository.create(
         Todo.createNew({
+          id: "test-subtask2-id",
           title: "Subtask 2",
           status: TodoStatus.PENDING,
           workState: WorkState.IDLE,
@@ -84,7 +87,7 @@ describe("PrismaTodoRepository", () => {
 
       const children = await repository.findByParent(parentTodo.id);
       expect(children.length).toBe(1);
-      expect(children[0].id).toBe(subtask1.id);
+      expect(children[0]?.id).toBe(subtask1.id);
     });
 
     it("should remove a subtask", async () => {
@@ -167,6 +170,7 @@ describe("PrismaTodoRepository", () => {
       // Create deeper nesting for testing maxDepth
       const deepSubtask = await repository.create(
         Todo.createNew({
+          id: "test-deep-subtask-id",
           title: "Deep Subtask",
           status: TodoStatus.PENDING,
           workState: WorkState.IDLE,
@@ -183,15 +187,15 @@ describe("PrismaTodoRepository", () => {
 
       // Assert
       expect(childrenTree.length).toBe(1);
-      expect(childrenTree[0].id).toBe(subtask1.id);
-      expect(childrenTree[0].subtaskIds.length).toBe(1);
-      expect(childrenTree[0].subtaskIds[0]).toBe(subtask2.id);
+      expect(childrenTree[0]?.id).toBe(subtask1.id);
+      expect(childrenTree[0]?.subtaskIds.length).toBe(1);
+      expect(childrenTree[0]?.subtaskIds[0]).toBe(subtask2.id);
 
       // 深さ制限テスト
       expect(limitedTree.length).toBe(1);
-      expect(limitedTree[0].id).toBe(subtask1.id);
-      // 深さ制限により、subtask1の子（subtask2）は含まれない
-      expect(limitedTree[0].subtaskIds.length).toBe(0);
+      expect(limitedTree[0]?.id).toBe(subtask1.id);
+      // 深さが1に制限されているので、subtask2は含まれない
+      expect(limitedTree[0]?.subtaskIds.length).toBe(0);
     });
   });
 });

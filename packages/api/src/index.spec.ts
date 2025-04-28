@@ -48,7 +48,14 @@ describe("Toodo API", () => {
     });
 
     expect(response.status).toBe(201);
-    const data = await response.json();
+    const data = (await response.json()) as {
+      id: string;
+      title: string;
+      description: string;
+      status: string;
+      workState: string;
+      totalWorkTime: number;
+    };
     expect(data.title).toBe("Test Todo");
     expect(data.description).toBe("This is a test todo");
     expect(data.status).toBe("pending");
@@ -62,7 +69,7 @@ describe("Toodo API", () => {
   test("should get the list of todos", async () => {
     const response = await fetch(`${server.url}${apiPath}/todos`);
     expect(response.status).toBe(200);
-    const data = await response.json();
+    const data = (await response.json()) as Array<Record<string, any>>;
     expect(Array.isArray(data)).toBe(true);
     expect(data.length).toBeGreaterThan(0);
   });
@@ -70,7 +77,7 @@ describe("Toodo API", () => {
   test("should get a specific todo", async () => {
     const response = await fetch(`${server.url}${apiPath}/todos/${createdTodoId}`);
     expect(response.status).toBe(200);
-    const data = await response.json();
+    const data = (await response.json()) as { id: string; title: string };
     expect(data.id).toBe(createdTodoId);
     expect(data.title).toBe("Test Todo");
   });
@@ -87,7 +94,10 @@ describe("Toodo API", () => {
     });
 
     expect(response.status).toBe(200);
-    const data = await response.json();
+    const data = (await response.json()) as {
+      title: string;
+      description: string;
+    };
     expect(data.title).toBe("Updated Todo");
     expect(data.description).toBe("This is a test todo");
   });
@@ -105,7 +115,11 @@ describe("Toodo API", () => {
     });
 
     expect(response.status).toBe(201);
-    const data = await response.json();
+    const data = (await response.json()) as {
+      todoId: string;
+      type: string;
+      note: string;
+    };
     expect(data.todoId).toBe(createdTodoId);
     expect(data.type).toBe("started");
     expect(data.note).toBe("Starting work on this task");
@@ -114,16 +128,20 @@ describe("Toodo API", () => {
   test("should get activities for a todo", async () => {
     const response = await fetch(`${server.url}${apiPath}/todos/${createdTodoId}/activities`);
     expect(response.status).toBe(200);
-    const data = await response.json();
+    const data = (await response.json()) as Array<{ todoId: string }>;
     expect(Array.isArray(data)).toBe(true);
     expect(data.length).toBeGreaterThan(0);
-    expect(data[0].todoId).toBe(createdTodoId);
+    expect(data[0]?.todoId).toBe(createdTodoId);
   });
 
   test("should get work time for a todo", async () => {
     const response = await fetch(`${server.url}${apiPath}/todos/${createdTodoId}/work-time`);
     expect(response.status).toBe(200);
-    const data = await response.json();
+    const data = (await response.json()) as {
+      id: string;
+      totalWorkTime: number;
+      formattedTime: string;
+    };
     expect(data.id).toBe(createdTodoId);
     expect(typeof data.totalWorkTime).toBe("number");
     expect(typeof data.formattedTime).toBe("string");

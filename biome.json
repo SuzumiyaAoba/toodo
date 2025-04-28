@@ -10,6 +10,6 @@
     "ignore": ["*.spec.ts"]
   },
   "files": {
-    "ignore": [".github/**", "docs/**", "prisma", "src/generated/**"]
+    "ignore": [".github/**", "docs/**", "prisma", "src/generated/**", "**/dist/**"]
   }
 }

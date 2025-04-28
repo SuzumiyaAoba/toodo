@@ -18,9 +18,9 @@ export class Project {
   constructor(
     id: ProjectId,
     name: string,
-    status: ProjectStatus = "active",
     description?: string,
     color?: string,
+    status: ProjectStatus = "active",
     createdAt?: Date,
     updatedAt?: Date,
   ) {
@@ -36,29 +36,29 @@ export class Project {
   static create(
     id: ProjectId,
     name: string,
-    status?: ProjectStatus,
     description?: string,
     color?: string,
+    status?: ProjectStatus,
     createdAt?: Date,
     updatedAt?: Date,
   ): Project {
-    return new Project(id, name, status, description, color, createdAt, updatedAt);
+    return new Project(id, name, description, color, status, createdAt, updatedAt);
   }
 
   updateName(name: string): Project {
-    return new Project(this.id, name, this.status, this.description, this.color, this.createdAt, new Date());
+    return new Project(this.id, name, this.description, this.color, this.status, this.createdAt, new Date());
   }
 
   updateDescription(description?: string): Project {
-    return new Project(this.id, this.name, this.status, description, this.color, this.createdAt, new Date());
+    return new Project(this.id, this.name, description, this.color, this.status, this.createdAt, new Date());
   }
 
   updateColor(color?: string): Project {
-    return new Project(this.id, this.name, this.status, this.description, color, this.createdAt, new Date());
+    return new Project(this.id, this.name, this.description, color, this.status, this.createdAt, new Date());
   }
 
   updateStatus(status: ProjectStatus): Project {
-    return new Project(this.id, this.name, status, this.description, this.color, this.createdAt, new Date());
+    return new Project(this.id, this.name, this.description, this.color, status, this.createdAt, new Date());
   }
 
   archive(): Project {

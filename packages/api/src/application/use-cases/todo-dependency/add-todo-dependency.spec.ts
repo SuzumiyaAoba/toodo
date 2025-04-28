@@ -7,7 +7,7 @@ import {
   SelfDependencyError,
   TodoNotFoundError,
 } from "../../../domain/errors/todo-errors";
-import { TodoRepository } from "../../../domain/repositories/todo-repository";
+import type { TodoRepository } from "../../../domain/repositories/todo-repository";
 import { AddTodoDependencyUseCase } from "./add-todo-dependency";
 
 describe("AddTodoDependencyUseCase", () => {

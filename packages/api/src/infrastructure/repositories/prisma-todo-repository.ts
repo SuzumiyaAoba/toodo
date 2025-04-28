@@ -1,5 +1,5 @@
-import type { PriorityLevel, Todo, TodoId } from "../../domain/entities/todo";
-import { TodoStatus, mapToDomainTodo } from "../../domain/entities/todo";
+import { PriorityLevel, type Todo, TodoStatus, WorkState, mapToDomainTodo } from "@toodo/core";
+import type { TodoId } from "@toodo/core";
 import {
   DependencyCycleError,
   DependencyExistsError,

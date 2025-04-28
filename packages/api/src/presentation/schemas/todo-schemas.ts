@@ -1,5 +1,5 @@
+import { PriorityLevel, TodoStatus, WorkState } from "@toodo/core";
 import * as v from "valibot";
-import { PriorityLevel, TodoStatus, WorkState } from "../../domain/entities/todo";
 import { ActivityType } from "../../domain/entities/todo-activity";
 
 const ISO8601_DATE_REGEX = /^\d{4}-?\d\d-?\d\d(?:T\d\d(?::?\d\d(?::?\d\d(?:\.\d+)?)?)?(?:Z|[+-]\d\d:?\d\d)?)?$/;

@@ -118,8 +118,12 @@ describe("GetTodoActivityListUseCase", () => {
     expect(mockTodoActivityRepository.findByTodoId).toHaveBeenCalledTimes(1);
     expect(mockTodoActivityRepository.findByTodoId).toHaveBeenCalledWith(todoId);
     expect(result).toHaveLength(2);
-    expect(result[0].id).toBe("activity-1");
-    expect(result[1].id).toBe("activity-2");
+    if (result[0]) {
+      expect(result[0].id).toBe("activity-1");
+    }
+    if (result[1]) {
+      expect(result[1].id).toBe("activity-2");
+    }
   });
 
   test("should return empty array when todo has no activities", async () => {

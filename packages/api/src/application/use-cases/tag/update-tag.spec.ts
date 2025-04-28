@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, mock } from "bun:test";
-import { Tag } from "../../../domain/entities/tag";
+import type { Tag } from "../../../domain/entities/tag";
 import { TagNameExistsError, TagNotFoundError } from "../../../domain/errors/tag-errors";
-import { TagRepository } from "../../../domain/repositories/tag-repository";
+import type { TagRepository } from "../../../domain/repositories/tag-repository";
 import { UpdateTagUseCase } from "./update-tag";
 
 describe("UpdateTagUseCase", () => {

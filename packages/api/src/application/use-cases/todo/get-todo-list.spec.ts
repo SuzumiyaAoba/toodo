@@ -73,9 +73,9 @@ describe("GetTodoListUseCase", () => {
 
     // Assert
     expect(mockTodoRepository.findAll).toHaveBeenCalledTimes(1);
-    expect(result).toHaveLength(2);
-    expect(result[0].id).toBe("todo-1");
-    expect(result[1].id).toBe("todo-2");
+    expect(result.length).toBe(2);
+    expect(result[0]?.id).toBe("todo-1");
+    expect(result[1]?.id).toBe("todo-2");
   });
 
   test("should return empty array when no todos exist", async () => {

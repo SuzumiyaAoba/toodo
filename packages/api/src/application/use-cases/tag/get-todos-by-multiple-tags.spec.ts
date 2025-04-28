@@ -108,8 +108,8 @@ describe("GetTodosByMultipleTagsUseCase", () => {
     });
 
     expect(result.length).toBe(2);
-    expect(result[0].id).toBe("todo-1");
-    expect(result[1].id).toBe("todo-2");
+    expect(result[0]?.id).toBe("todo-1");
+    expect(result[1]?.id).toBe("todo-2");
     expect(mockTagRepository.getTodoIdsWithAllTags).toHaveBeenCalledWith(validTagIds);
     expect(mockTagRepository.getTodoIdsWithAnyTag).not.toHaveBeenCalled();
   });
@@ -127,9 +127,9 @@ describe("GetTodosByMultipleTagsUseCase", () => {
     });
 
     expect(result.length).toBe(3);
-    expect(result[0].id).toBe("todo-1");
-    expect(result[1].id).toBe("todo-2");
-    expect(result[2].id).toBe("todo-3");
+    expect(result[0]?.id).toBe("todo-1");
+    expect(result[1]?.id).toBe("todo-2");
+    expect(result[2]?.id).toBe("todo-3");
     expect(mockTagRepository.getTodoIdsWithAnyTag).toHaveBeenCalledWith(validTagIds);
     expect(mockTagRepository.getTodoIdsWithAllTags).not.toHaveBeenCalled();
   });
@@ -172,7 +172,7 @@ describe("GetTodosByMultipleTagsUseCase", () => {
     try {
       await expect(
         useCase.execute({
-          tagIds: [validTagIds[0], nonExistentTagId],
+          tagIds: [validTagIds[0]!, nonExistentTagId],
           mode: "all",
         }),
       ).rejects.toThrow(`Tag with ID '${nonExistentTagId}' not found`);

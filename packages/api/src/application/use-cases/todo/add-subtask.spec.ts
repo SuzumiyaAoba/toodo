@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, mock } from "bun:test";
 import { createMockedTodoRepository } from "../../../domain/entities/test-helpers";
 import { PriorityLevel, Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
 import { TodoNotFoundError } from "../../../domain/errors/todo-errors";
-import { TodoRepository } from "../../../domain/repositories/todo-repository";
+import type { TodoRepository } from "../../../domain/repositories/todo-repository";
 import type { MockedFunction } from "../../../test/types";
 import { AddSubtaskUseCase } from "./add-subtask";
 

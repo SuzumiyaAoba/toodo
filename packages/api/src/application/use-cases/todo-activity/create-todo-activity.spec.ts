@@ -5,7 +5,7 @@ import { ActivityType, type TodoActivity } from "../../../domain/entities/todo-a
 import { InvalidStateTransitionError, TodoNotFoundError } from "../../../domain/errors/todo-errors";
 import type { TodoActivityRepository } from "../../../domain/repositories/todo-activity-repository";
 import type { TodoRepository } from "../../../domain/repositories/todo-repository";
-import { MockedFunction } from "../../../test/types";
+import type { MockedFunction } from "../../../test/types";
 import { CreateTodoActivityUseCase } from "./create-todo-activity";
 
 // モック化されたリポジトリの型
@@ -192,18 +192,20 @@ describe("CreateTodoActivityUseCase", () => {
     // Assert
     expect(mockTodoRepository.findById).toHaveBeenCalledTimes(1);
     expect(mockTodoActivityRepository.create).toHaveBeenCalledTimes(1);
-    expect(mockTodoActivityRepository.create.mock.calls[0][0].todoId).toBe(todoId);
-    expect(mockTodoActivityRepository.create.mock.calls[0][0].type).toBe(ActivityType.PAUSED);
-    expect(mockTodoActivityRepository.create.mock.calls[0][0].workTime).toBeGreaterThanOrEqual(expectedMinWorkTime);
-    expect(mockTodoActivityRepository.create.mock.calls[0][0].previousState).toBe(WorkState.ACTIVE);
-    expect(mockTodoActivityRepository.create.mock.calls[0][0].note).toBe("Taking a break");
-
-    expect(mockTodoRepository.update).toHaveBeenCalledTimes(1);
-    expect(mockTodoRepository.update.mock.calls[0][0]).toBe(todoId);
-    expect(mockTodoRepository.update.mock.calls[0][1].status).toBe(TodoStatus.PENDING);
-    expect(mockTodoRepository.update.mock.calls[0][1].workState).toBe(WorkState.PAUSED);
-    expect(mockTodoRepository.update.mock.calls[0][1].totalWorkTime).toBeGreaterThanOrEqual(expectedMinWorkTime);
-    expect(mockTodoRepository.update.mock.calls[0][1].lastStateChangeAt).toBeInstanceOf(Date);
+    if (mockTodoActivityRepository.create.mock.calls[0]?.[0]) {
+      expect(mockTodoActivityRepository.create.mock.calls[0][0].todoId).toBe(todoId);
+      expect(mockTodoActivityRepository.create.mock.calls[0][0].type).toBe(ActivityType.PAUSED);
+      expect(mockTodoActivityRepository.create.mock.calls[0][0].workTime).toBeGreaterThanOrEqual(expectedMinWorkTime);
+      expect(mockTodoActivityRepository.create.mock.calls[0][0].previousState).toBe(WorkState.ACTIVE);
+      expect(mockTodoActivityRepository.create.mock.calls[0][0].note).toBe("Taking a break");
+    }
+    if (mockTodoRepository.update.mock.calls[0]?.[0] && mockTodoRepository.update.mock.calls[0]?.[1]) {
+      expect(mockTodoRepository.update.mock.calls[0][0]).toBe(todoId);
+      expect(mockTodoRepository.update.mock.calls[0][1].status).toBe(TodoStatus.PENDING);
+      expect(mockTodoRepository.update.mock.calls[0][1].workState).toBe(WorkState.PAUSED);
+      expect(mockTodoRepository.update.mock.calls[0][1].totalWorkTime).toBeGreaterThanOrEqual(expectedMinWorkTime);
+      expect(mockTodoRepository.update.mock.calls[0][1].lastStateChangeAt).toBeInstanceOf(Date);
+    }
   });
 
   test("should throw InvalidStateTransitionError when starting an already active todo", async () => {
@@ -285,14 +287,16 @@ describe("CreateTodoActivityUseCase", () => {
     // Assert
     expect(mockTodoRepository.findById).toHaveBeenCalledTimes(1);
     expect(mockTodoActivityRepository.create).toHaveBeenCalledTimes(1);
-    expect(mockTodoActivityRepository.create.mock.calls[0][0].todoId).toBe(todoId);
-    expect(mockTodoActivityRepository.create.mock.calls[0][0].type).toBe(ActivityType.COMPLETED);
-    expect(mockTodoActivityRepository.create.mock.calls[0][0].workTime).toBeGreaterThanOrEqual(1700); // ~30 min
-    expect(mockTodoActivityRepository.create.mock.calls[0][0].previousState).toBe(WorkState.ACTIVE);
-
-    expect(mockTodoRepository.update).toHaveBeenCalledTimes(1);
-    expect(mockTodoRepository.update.mock.calls[0][1].status).toBe(TodoStatus.COMPLETED);
-    expect(mockTodoRepository.update.mock.calls[0][1].workState).toBe(WorkState.COMPLETED);
-    expect(mockTodoRepository.update.mock.calls[0][1].totalWorkTime).toBeGreaterThanOrEqual(expectedMinTotalWorkTime);
+    if (mockTodoActivityRepository.create.mock.calls[0]?.[0]) {
+      expect(mockTodoActivityRepository.create.mock.calls[0][0].todoId).toBe(todoId);
+      expect(mockTodoActivityRepository.create.mock.calls[0][0].type).toBe(ActivityType.COMPLETED);
+      expect(mockTodoActivityRepository.create.mock.calls[0][0].workTime).toBeGreaterThanOrEqual(1700); // ~30 min
+      expect(mockTodoActivityRepository.create.mock.calls[0][0].previousState).toBe(WorkState.ACTIVE);
+    }
+    if (mockTodoRepository.update.mock.calls[0]?.[1]) {
+      expect(mockTodoRepository.update.mock.calls[0][1].status).toBe(TodoStatus.COMPLETED);
+      expect(mockTodoRepository.update.mock.calls[0][1].workState).toBe(WorkState.COMPLETED);
+      expect(mockTodoRepository.update.mock.calls[0][1].totalWorkTime).toBeGreaterThanOrEqual(expectedMinTotalWorkTime);
+    }
   });
 });

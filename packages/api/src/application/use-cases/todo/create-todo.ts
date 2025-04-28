@@ -1,4 +1,4 @@
-import { type PriorityLevel, Todo, type TodoStatus, type WorkState } from "../../../domain/entities/todo";
+import { type PriorityLevel, Todo, type TodoStatus, type WorkState } from "@toodo/core";
 import type { TodoActivityRepository } from "../../../domain/repositories/todo-activity-repository";
 import type { TodoRepository } from "../../../domain/repositories/todo-repository";
 
@@ -28,6 +28,7 @@ export class CreateTodoUseCase {
   }): Promise<Todo> {
     return this.todoRepository.create(
       Todo.createNew({
+        id: Date.now().toString(),
         title: data.title,
         description: data.description,
         status: data.status,
