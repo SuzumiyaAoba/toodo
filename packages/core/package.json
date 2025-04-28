@@ -1,0 +1,18 @@
+{
+  "name": "@toodo/core",
+  "version": "0.1.0",
+  "description": "Core domain logic for Toodo application",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "test": "bun test src/**/*.spec.ts src/**/*.test.ts",
+    "lint": "biome check .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
