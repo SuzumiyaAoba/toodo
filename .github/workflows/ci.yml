@@ -24,6 +24,9 @@ jobs:
       - name: Run Biome linter
         run: bunx biome check .
 
+      - name: Build core package
+        run: cd packages/core && bun build
+
       - name: Set up database (Prisma migrate deploy)
         run: cd packages/api && bunx prisma migrate deploy
 
