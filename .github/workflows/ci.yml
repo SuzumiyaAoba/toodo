@@ -25,7 +25,7 @@ jobs:
         run: bunx biome check .
 
       - name: Build core package
-        run: cd packages/core && bun build
+        run: cd packages/core && bun run build
 
       - name: Set up database (Prisma migrate deploy)
         run: cd packages/api && bunx prisma migrate deploy
