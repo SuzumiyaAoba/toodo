@@ -1,5 +1,5 @@
 import { describe, expect, it, mock } from "bun:test";
-import { createTestTodo } from "../../../domain/entities/test-helpers";
+import { createMockedTodoRepository, createTestTodo } from "../../../domain/entities/test-helpers";
 import { PriorityLevel, TodoStatus, WorkState } from "../../../domain/entities/todo";
 import { BulkAssignTagUseCase, BulkRemoveTagUseCase } from "./bulk-tag-operations";
 
@@ -43,21 +43,7 @@ describe("BulkTagOperations", () => {
   });
 
   const createMockTodoRepository = () => ({
-    create: mock(() =>
-      Promise.resolve(
-        createTestTodo({
-          id: "new-todo-id",
-          title: "New Todo",
-          status: TodoStatus.PENDING,
-          workState: WorkState.IDLE,
-          totalWorkTime: 0,
-          lastStateChangeAt: new Date(),
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          priority: PriorityLevel.MEDIUM,
-        }),
-      ),
-    ),
+    ...createMockedTodoRepository(),
     findById: mock((id: string) => {
       if (validTodoIds.includes(id)) {
         return Promise.resolve(
@@ -76,67 +62,6 @@ describe("BulkTagOperations", () => {
       }
       return Promise.resolve(null);
     }),
-    findAll: mock(() => Promise.resolve([])),
-    update: mock(() =>
-      Promise.resolve(
-        createTestTodo({
-          id: "updated-todo-id",
-          title: "Updated Todo",
-          status: TodoStatus.PENDING,
-          workState: WorkState.IDLE,
-          totalWorkTime: 0,
-          lastStateChangeAt: new Date(),
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          priority: PriorityLevel.MEDIUM,
-        }),
-      ),
-    ),
-    delete: mock(() => Promise.resolve()),
-    updateWorkState: mock(() =>
-      Promise.resolve(
-        createTestTodo({
-          id: "todo-id",
-          title: "Todo",
-          status: TodoStatus.PENDING,
-          workState: WorkState.ACTIVE,
-          totalWorkTime: 0,
-          lastStateChangeAt: new Date(),
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          priority: PriorityLevel.MEDIUM,
-        }),
-      ),
-    ),
-    updateWorkTime: mock(() =>
-      Promise.resolve(
-        createTestTodo({
-          id: "todo-id",
-          title: "Todo",
-          status: TodoStatus.PENDING,
-          workState: WorkState.IDLE,
-          totalWorkTime: 60,
-          lastStateChangeAt: new Date(),
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          priority: PriorityLevel.MEDIUM,
-        }),
-      ),
-    ),
-    // 依存関係関連のメソッドを追加
-    addDependency: mock(() => Promise.resolve()),
-    removeDependency: mock(() => Promise.resolve()),
-    findDependents: mock(() => Promise.resolve([])),
-    findDependencies: mock(() => Promise.resolve([])),
-    wouldCreateDependencyCycle: mock(() => Promise.resolve(false)),
-    findAllCompleted: mock(() => Promise.resolve([])),
-    // 期限日関連のメソッドを追加
-    findOverdue: mock(() => Promise.resolve([])),
-    findDueSoon: mock(() => Promise.resolve([])),
-    findByDueDateRange: mock(() => Promise.resolve([])),
-    // その他不足しているメソッド
-    findByProjectId: mock(() => Promise.resolve([])),
-    findByTagId: mock(() => Promise.resolve([])),
   });
 
   describe("BulkAssignTagUseCase", () => {

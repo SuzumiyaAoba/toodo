@@ -4,6 +4,7 @@ import type { Env, Schema } from "hono";
 import { describeRoute } from "hono-openapi";
 import { resolver, validator as vValidator } from "hono-openapi/valibot";
 import { parse } from "valibot";
+import type * as v from "valibot";
 import { AddTodoDependencyUseCase } from "../../application/use-cases/todo-dependency/add-todo-dependency";
 import { GetTodoDependenciesUseCase } from "../../application/use-cases/todo-dependency/get-todo-dependencies";
 import { GetTodoDependencyTreeUseCase } from "../../application/use-cases/todo-dependency/get-todo-dependency-tree";
@@ -84,7 +85,7 @@ export function setupTodoDependencyRoutes<E extends Env = Env, S extends Schema 
     }),
     vValidator("param", TodoDependencyParamSchema),
     async (c) => {
-      const { id, dependencyId } = c.req.valid("param");
+      const { id, dependencyId } = c.req.valid("param") as v.InferOutput<typeof TodoDependencyParamSchema>;
       const useCase = new AddTodoDependencyUseCase(todoRepository);
 
       try {
@@ -151,7 +152,7 @@ export function setupTodoDependencyRoutes<E extends Env = Env, S extends Schema 
     }),
     vValidator("param", TodoDependencyParamSchema),
     async (c) => {
-      const { id, dependencyId } = c.req.valid("param");
+      const { id, dependencyId } = c.req.valid("param") as v.InferOutput<typeof TodoDependencyParamSchema>;
       const useCase = new RemoveTodoDependencyUseCase(todoRepository);
 
       try {
@@ -206,7 +207,7 @@ export function setupTodoDependencyRoutes<E extends Env = Env, S extends Schema 
     }),
     vValidator("param", IdParamSchema),
     async (c) => {
-      const { id } = c.req.valid("param");
+      const { id } = c.req.valid("param") as v.InferOutput<typeof IdParamSchema>;
       const useCase = new GetTodoDependenciesUseCase(todoRepository);
 
       try {
@@ -265,7 +266,7 @@ export function setupTodoDependencyRoutes<E extends Env = Env, S extends Schema 
     }),
     vValidator("param", IdParamSchema),
     async (c) => {
-      const { id } = c.req.valid("param");
+      const { id } = c.req.valid("param") as v.InferOutput<typeof IdParamSchema>;
       const useCase = new GetTodoDependentsUseCase(todoRepository);
 
       try {
@@ -337,7 +338,7 @@ export function setupTodoDependencyRoutes<E extends Env = Env, S extends Schema 
     }),
     vValidator("param", IdParamSchema),
     async (c) => {
-      const { id } = c.req.valid("param");
+      const { id } = c.req.valid("param") as v.InferOutput<typeof IdParamSchema>;
 
       // クエリパラメータから最大深度を取得（デフォルト値は10）
       const queryParams = {

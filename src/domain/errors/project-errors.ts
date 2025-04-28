@@ -11,3 +11,20 @@ export class ProjectNameExistsError extends Error {
     this.name = "ProjectNameExistsError";
   }
 }
+
+export class TodoNotInProjectError extends Error {
+  constructor(todoId: string, projectId: string) {
+    super(`Todo ${todoId} does not belong to project ${projectId}`);
+    this.name = "TodoNotInProjectError";
+  }
+}
+
+export class TodoAlreadyInProjectError extends Error {
+  constructor(todoId: string, projectId: string) {
+    super(`Todo ${todoId} is already in project ${projectId}`);
+    this.name = "TodoAlreadyInProjectError";
+  }
+}
+
+// Re-export TodoNotFoundError from todo-errors for convenience
+export { TodoNotFoundError } from "./todo-errors";

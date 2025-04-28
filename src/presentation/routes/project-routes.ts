@@ -3,6 +3,7 @@ import type { Hono } from "hono";
 import type { Env, Schema } from "hono";
 import { describeRoute } from "hono-openapi";
 import { resolver, validator as vValidator } from "hono-openapi/valibot";
+import type * as v from "valibot";
 import { AddTodoToProject } from "../../application/use-cases/project/add-todo-to-project";
 import { CreateProject } from "../../application/use-cases/project/create-project";
 import { DeleteProject } from "../../application/use-cases/project/delete-project";
@@ -99,7 +100,7 @@ export function setupProjectRoutes<E extends Env = Env, S extends Schema = Schem
     }),
     vValidator("json", createProjectRequestSchema),
     async (c) => {
-      const input = c.req.valid("json");
+      const input = c.req.valid("json") as CreateProjectRequest;
       const createProject = new CreateProject(projectRepository);
 
       try {
@@ -161,14 +162,14 @@ export function setupProjectRoutes<E extends Env = Env, S extends Schema = Schem
     "/projects/:id",
     describeRoute({
       tags: ["Projects"],
-      summary: "Get a specific project",
-      description: "Retrieve a project by its ID",
+      summary: "Get a project by ID",
+      description: "Retrieve a project by its unique identifier",
       request: {
         params: resolver(IdParamSchema, valibotConfig),
       },
       responses: {
         200: {
-          description: "Project details",
+          description: "Project found",
           content: {
             "application/json": {
               schema: resolver(ProjectSchema, valibotConfig),
@@ -187,11 +188,11 @@ export function setupProjectRoutes<E extends Env = Env, S extends Schema = Schem
     }),
     vValidator("param", IdParamSchema),
     async (c) => {
-      const { id } = c.req.valid("param");
-      const getProject = new GetProject(projectRepository);
+      const { id } = c.req.valid("param") as v.InferOutput<typeof IdParamSchema>;
+      const useCase = new GetProject(projectRepository);
 
       try {
-        const project = await getProject.execute(id);
+        const project = await useCase.execute(id);
         return c.json({ project });
       } catch (error) {
         if (error instanceof ProjectNotFoundError) {
@@ -250,8 +251,8 @@ export function setupProjectRoutes<E extends Env = Env, S extends Schema = Schem
     vValidator("param", IdParamSchema),
     vValidator("json", updateProjectRequestSchema),
     async (c) => {
-      const { id } = c.req.valid("param");
-      const input = c.req.valid("json");
+      const { id } = c.req.valid("param") as v.InferOutput<typeof IdParamSchema>;
+      const input = c.req.valid("json") as UpdateProjectRequest;
       const updateProject = new UpdateProject(projectRepository);
 
       try {
@@ -298,7 +299,7 @@ export function setupProjectRoutes<E extends Env = Env, S extends Schema = Schem
     }),
     vValidator("param", IdParamSchema),
     async (c) => {
-      const { id } = c.req.valid("param");
+      const { id } = c.req.valid("param") as v.InferOutput<typeof IdParamSchema>;
       const useCase = new DeleteProject(projectRepository);
 
       try {
@@ -382,7 +383,7 @@ export function setupProjectRoutes<E extends Env = Env, S extends Schema = Schem
     }),
     vValidator("param", IdParamSchema),
     async (c) => {
-      const { id } = c.req.valid("param");
+      const { id } = c.req.valid("param") as v.InferOutput<typeof IdParamSchema>;
       const useCase = new GetTodosByProject(projectRepository, todoRepository);
 
       try {
@@ -450,8 +451,8 @@ export function setupProjectRoutes<E extends Env = Env, S extends Schema = Schem
     vValidator("param", IdParamSchema),
     vValidator("json", addTodoToProjectRequestSchema),
     async (c) => {
-      const { id } = c.req.valid("param");
-      const { todoId } = c.req.valid("json");
+      const { id } = c.req.valid("param") as v.InferOutput<typeof IdParamSchema>;
+      const { todoId } = c.req.valid("json") as AddTodoToProjectRequest;
       const useCase = new AddTodoToProject(projectRepository, todoRepository);
 
       try {
@@ -503,7 +504,7 @@ export function setupProjectRoutes<E extends Env = Env, S extends Schema = Schem
     }),
     vValidator("param", ProjectTodoParamSchema),
     async (c) => {
-      const { id, todoId } = c.req.valid("param");
+      const { id, todoId } = c.req.valid("param") as v.InferOutput<typeof ProjectTodoParamSchema>;
       const useCase = new RemoveTodoFromProject(projectRepository, todoRepository);
 
       try {

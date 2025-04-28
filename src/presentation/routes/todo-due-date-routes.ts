@@ -1,6 +1,7 @@
 import { vValidator } from "@hono/valibot-validator";
 import type { Hono } from "hono";
 import type { Env, Schema } from "hono";
+import type * as v from "valibot";
 import type { BulkUpdateDueDateUseCase } from "../../application/use-cases/todo/due-date/bulk-update-due-date";
 import type { FindByDueDateRangeUseCase } from "../../application/use-cases/todo/due-date/find-by-due-date-range";
 import type { FindDueSoonTodosUseCase } from "../../application/use-cases/todo/due-date/find-due-soon-todos";
@@ -31,7 +32,7 @@ export function setupTodoDueDateRoutes<E extends Env = Env, S extends Schema = S
 
   // Get todos due soon
   app.get("/todos/due-soon", vValidator("query", DueDateQuerySchema), async (c) => {
-    const query = c.req.valid("query");
+    const query = c.req.valid("query") as v.InferOutput<typeof DueDateQuerySchema>;
     const days = query.days ?? 2; // デフォルトは2日以内
     const todos = await findDueSoonTodosUseCase.execute(days);
     return c.json(todos);
@@ -39,7 +40,7 @@ export function setupTodoDueDateRoutes<E extends Env = Env, S extends Schema = S
 
   // Get todos by due date range
   app.get("/todos/by-due-date", vValidator("query", DueDateRangeQuerySchema), async (c) => {
-    const { startDate, endDate } = c.req.valid("query");
+    const { startDate, endDate } = c.req.valid("query") as v.InferOutput<typeof DueDateRangeQuerySchema>;
 
     // 終了日が開始日より前の場合はエラー
     if (endDate < startDate) {
@@ -52,7 +53,7 @@ export function setupTodoDueDateRoutes<E extends Env = Env, S extends Schema = S
 
   // Bulk update due dates
   app.post("/todos/bulk-due-date", vValidator("json", BulkDueDateUpdateSchema), async (c) => {
-    const { todoIds, dueDate } = c.req.valid("json");
+    const { todoIds, dueDate } = c.req.valid("json") as v.InferOutput<typeof BulkDueDateUpdateSchema>;
 
     // 少なくとも1つのIDが必要
     if (todoIds.length === 0) {

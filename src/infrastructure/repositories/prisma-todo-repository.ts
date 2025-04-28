@@ -5,6 +5,7 @@ import {
   DependencyExistsError,
   DependencyNotFoundError,
   SelfDependencyError,
+  SubtaskNotFoundError,
   TodoNotFoundError,
 } from "../../domain/errors/todo-errors";
 import type { TodoRepository } from "../../domain/repositories/todo-repository";
@@ -26,6 +27,7 @@ export class PrismaTodoRepository extends PrismaBaseRepository<Todo, PrismaTodo>
     prismaTodo: PrismaTodo & {
       dependsOn?: { dependencyId: string }[];
       dependents?: { dependentId: string }[];
+      subtasks?: PrismaTodo[];
     },
   ): Todo {
     return mapToDomainTodo(prismaTodo);
@@ -37,6 +39,7 @@ export class PrismaTodoRepository extends PrismaBaseRepository<Todo, PrismaTodo>
         include: {
           dependsOn: true,
           dependents: true,
+          subtasks: true,
         },
       });
       return this.mapToDomainArray(todos);
@@ -50,6 +53,7 @@ export class PrismaTodoRepository extends PrismaBaseRepository<Todo, PrismaTodo>
         include: {
           dependsOn: true,
           dependents: true,
+          subtasks: true,
         },
       });
       return todo ? this.mapToDomain(todo) : null;
@@ -69,10 +73,12 @@ export class PrismaTodoRepository extends PrismaBaseRepository<Todo, PrismaTodo>
           dueDate: todo.dueDate,
           priority: todo.priority,
           projectId: todo.projectId,
+          parentId: todo.parentId,
         },
         include: {
           dependsOn: true,
           dependents: true,
+          subtasks: true,
         },
       });
       return this.mapToDomain(createdTodo);
@@ -105,10 +111,12 @@ export class PrismaTodoRepository extends PrismaBaseRepository<Todo, PrismaTodo>
           ...(todo.priority !== undefined && { priority: todo.priority }),
           ...(todo.projectId !== undefined && { projectId: todo.projectId }),
           ...(todo.dueDate !== undefined && { dueDate: todo.dueDate }),
+          ...(todo.parentId !== undefined && { parentId: todo.parentId }),
         },
         include: {
           dependsOn: true,
           dependents: true,
+          subtasks: true,
         },
       });
       return this.mapToDomain(updatedTodo);
@@ -310,6 +318,323 @@ export class PrismaTodoRepository extends PrismaBaseRepository<Todo, PrismaTodo>
     }, `${todoId}-${dependencyId}`);
   }
 
+  // サブタスク関連の実装
+  async findByParent(parentId: TodoId): Promise<Todo[]> {
+    return this.executePrismaOperation(async () => {
+      // 親タスクが存在するか確認
+      const parent = await this.prisma.todo.findUnique({ where: { id: parentId } });
+      if (!parent) {
+        throw new TodoNotFoundError(parentId);
+      }
+
+      // 親タスクに関連するサブタスクを取得
+      const subtasks = await this.prisma.todo.findMany({
+        where: { parentId },
+        include: {
+          dependsOn: true,
+          dependents: true,
+          subtasks: true,
+        },
+      });
+
+      return this.mapToDomainArray(subtasks);
+    }, parentId);
+  }
+
+  async findChildrenTree(parentId: TodoId, maxDepth = 10): Promise<Todo[]> {
+    return this.executePrismaOperation(async () => {
+      // 親タスクが存在するか確認
+      const parent = await this.prisma.todo.findUnique({ where: { id: parentId } });
+      if (!parent) {
+        throw new TodoNotFoundError(parentId);
+      }
+
+      // 再帰的に子タスクを取得する関数
+      const fetchSubtasksRecursively = async (currentParentId: TodoId, currentDepth: number): Promise<PrismaTodo[]> => {
+        if (currentDepth >= maxDepth) {
+          return [];
+        }
+
+        const subtasks = await this.prisma.todo.findMany({
+          where: { parentId: currentParentId },
+          include: {
+            dependsOn: true,
+            dependents: true,
+          },
+        });
+
+        // 各サブタスクの子タスクを再帰的に取得
+        const subtasksWithChildren = await Promise.all(
+          subtasks.map(async (subtask) => {
+            const children = await fetchSubtasksRecursively(subtask.id, currentDepth + 1);
+            return { ...subtask, subtasks: children };
+          }),
+        );
+
+        return subtasksWithChildren;
+      };
+
+      // 親タスクのサブタスクを取得（再帰的に）
+      const subtasksWithNesting = await fetchSubtasksRecursively(parentId, 0);
+
+      // ドメインモデルに変換
+      return this.mapToDomainArray(subtasksWithNesting);
+    }, `${parentId}-${maxDepth}`);
+  }
+
+  async updateParent(todoId: TodoId, parentId: TodoId | null): Promise<Todo> {
+    return this.executePrismaOperation(async () => {
+      // タスクが存在するか確認
+      const todo = await this.prisma.todo.findUnique({ where: { id: todoId } });
+      if (!todo) {
+        throw new TodoNotFoundError(todoId);
+      }
+
+      // 親タスクが指定されている場合、存在するか確認
+      if (parentId !== null) {
+        const parent = await this.prisma.todo.findUnique({ where: { id: parentId } });
+        if (!parent) {
+          throw new TodoNotFoundError(parentId);
+        }
+
+        // 自分自身を親にはできない
+        if (todoId === parentId) {
+          throw new SelfDependencyError(todoId);
+        }
+
+        // 循環参照がないか確認
+        const wouldCreateCycle = await this.checkForHierarchyCycle(todoId, parentId);
+        if (wouldCreateCycle) {
+          throw new DependencyCycleError(todoId, parentId);
+        }
+      }
+
+      // 親タスクを更新
+      const updatedTodo = await this.prisma.todo.update({
+        where: { id: todoId },
+        data: { parentId },
+        include: {
+          dependsOn: true,
+          dependents: true,
+          subtasks: true,
+        },
+      });
+
+      return this.mapToDomain(updatedTodo);
+    }, `${todoId}-${parentId}`);
+  }
+
+  async addSubtask(parentId: TodoId, subtaskId: TodoId): Promise<void> {
+    return this.executePrismaOperation(async () => {
+      // 両方のタスクが存在するか確認
+      const parent = await this.prisma.todo.findUnique({ where: { id: parentId } });
+      const subtask = await this.prisma.todo.findUnique({ where: { id: subtaskId } });
+
+      if (!parent) {
+        throw new TodoNotFoundError(parentId);
+      }
+      if (!subtask) {
+        throw new TodoNotFoundError(subtaskId);
+      }
+
+      // 自分自身をサブタスクにはできない
+      if (parentId === subtaskId) {
+        throw new SelfDependencyError(parentId);
+      }
+
+      // 循環参照がないか確認
+      const wouldCreateCycle = await this.checkForHierarchyCycle(subtaskId, parentId);
+      if (wouldCreateCycle) {
+        throw new DependencyCycleError(subtaskId, parentId);
+      }
+
+      // サブタスクの親を設定
+      await this.prisma.todo.update({
+        where: { id: subtaskId },
+        data: { parentId },
+      });
+    }, `${parentId}-${subtaskId}`);
+  }
+
+  async removeSubtask(parentId: TodoId, subtaskId: TodoId): Promise<void> {
+    return this.executePrismaOperation(async () => {
+      // 両方のタスクが存在するか確認
+      const parent = await this.prisma.todo.findUnique({ where: { id: parentId } });
+      const subtask = await this.prisma.todo.findUnique({ where: { id: subtaskId } });
+
+      if (!parent) {
+        throw new TodoNotFoundError(parentId);
+      }
+      if (!subtask) {
+        throw new TodoNotFoundError(subtaskId);
+      }
+
+      // サブタスクの関係を確認
+      if (subtask.parentId !== parentId) {
+        throw new SubtaskNotFoundError(subtaskId, parentId);
+      }
+
+      // サブタスクの親を解除（undefinedではなくnullを明示的に設定）
+      await this.prisma.todo.update({
+        where: { id: subtaskId },
+        data: { parentId: null },
+      });
+    }, `${parentId}-${subtaskId}`);
+  }
+
+  async checkForHierarchyCycle(todoId: TodoId, potentialParentId: TodoId): Promise<boolean> {
+    return this.executePrismaOperation(async () => {
+      // 自分自身を親にはできない（直接的な循環）
+      if (todoId === potentialParentId) {
+        return true;
+      }
+
+      // 潜在的な親から上に向かって探索し、todoIdが現れるかを確認
+      const visited = new Set<string>();
+      const visiting = new Set<string>();
+
+      const hasCycle = async (currentId: string): Promise<boolean> => {
+        // 既に訪問済みならループなし
+        if (visited.has(currentId)) {
+          return false;
+        }
+
+        // 現在探索中のノードならループあり
+        if (visiting.has(currentId)) {
+          return true;
+        }
+
+        visiting.add(currentId);
+
+        // 現在のノードの親を取得
+        const current = await this.prisma.todo.findUnique({
+          where: { id: currentId },
+          select: { parentId: true },
+        });
+
+        // 親がある場合は親をたどる
+        if (current?.parentId) {
+          // 親がtodoIdと同じならループ発生
+          if (current.parentId === todoId) {
+            return true;
+          }
+
+          // 親を再帰的に探索
+          if (await hasCycle(current.parentId)) {
+            return true;
+          }
+        }
+
+        // 探索完了
+        visiting.delete(currentId);
+        visited.add(currentId);
+        return false;
+      };
+
+      return hasCycle(potentialParentId);
+    }, `${todoId}-${potentialParentId}`);
+  }
+
+  // TodoRepository インターフェースの実装
+  async findByStatus(status: string): Promise<Todo[]> {
+    return this.executePrismaOperation(async () => {
+      const todos = await this.prisma.todo.findMany({
+        where: { status },
+        include: {
+          dependsOn: true,
+          dependents: true,
+          subtasks: true,
+        },
+      });
+      return this.mapToDomainArray(todos);
+    });
+  }
+
+  async findByPriority(priority: string): Promise<Todo[]> {
+    return this.executePrismaOperation(async () => {
+      const todos = await this.prisma.todo.findMany({
+        where: { priority },
+        include: {
+          dependsOn: true,
+          dependents: true,
+          subtasks: true,
+        },
+      });
+      return this.mapToDomainArray(todos);
+    });
+  }
+
+  async findByProject(projectId: string): Promise<Todo[]> {
+    return this.findByProjectId(projectId);
+  }
+
+  async findByTag(tagId: string): Promise<Todo[]> {
+    return this.findByTagId(tagId);
+  }
+
+  async findByDependency(dependencyId: string): Promise<Todo[]> {
+    return this.executePrismaOperation(async () => {
+      const todos = await this.prisma.todo.findMany({
+        where: {
+          dependsOn: {
+            some: {
+              dependencyId,
+            },
+          },
+        },
+        include: {
+          dependsOn: true,
+          dependents: true,
+          subtasks: true,
+        },
+      });
+      return this.mapToDomainArray(todos);
+    });
+  }
+
+  async findByDependent(dependentId: string): Promise<Todo[]> {
+    return this.executePrismaOperation(async () => {
+      const todos = await this.prisma.todo.findMany({
+        where: {
+          dependents: {
+            some: {
+              dependentId,
+            },
+          },
+        },
+        include: {
+          dependsOn: true,
+          dependents: true,
+          subtasks: true,
+        },
+      });
+      return this.mapToDomainArray(todos);
+    });
+  }
+
+  async findWithDueDateBefore(date: Date): Promise<Todo[]> {
+    return this.executePrismaOperation(async () => {
+      const todos = await this.prisma.todo.findMany({
+        where: {
+          dueDate: {
+            lt: date,
+          },
+        },
+        include: {
+          dependsOn: true,
+          dependents: true,
+          subtasks: true,
+        },
+      });
+      return this.mapToDomainArray(todos);
+    });
+  }
+
+  async findWithDueDateBetween(startDate: Date, endDate: Date): Promise<Todo[]> {
+    return this.findByDueDateRange(startDate, endDate);
+  }
+
+  // 既存の実装
   async findAllCompleted(): Promise<Todo[]> {
     return this.executePrismaOperation(async () => {
       const todos = await this.prisma.todo.findMany({

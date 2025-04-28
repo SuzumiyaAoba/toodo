@@ -22,6 +22,9 @@ export class CreateTodoUseCase {
     status?: TodoStatus;
     workState?: WorkState;
     priority?: PriorityLevel;
+    parentId?: string;
+    dueDate?: Date;
+    projectId?: string;
   }): Promise<Todo> {
     return this.todoRepository.create(
       Todo.createNew({
@@ -30,6 +33,9 @@ export class CreateTodoUseCase {
         status: data.status,
         workState: data.workState,
         priority: data.priority,
+        parentId: data.parentId,
+        dueDate: data.dueDate,
+        projectId: data.projectId,
       }),
     );
   }

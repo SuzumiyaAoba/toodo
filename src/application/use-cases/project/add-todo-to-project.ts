@@ -1,6 +1,6 @@
 import type { ProjectId } from "../../../domain/entities/project";
 import type { TodoId } from "../../../domain/entities/todo";
-import { ProjectNotFoundError } from "../../../domain/errors/project-errors";
+import { ProjectNotFoundError, TodoAlreadyInProjectError } from "../../../domain/errors/project-errors";
 import { TodoNotFoundError } from "../../../domain/errors/todo-errors";
 import type { ProjectRepository } from "../../../domain/repositories/project-repository";
 import type { TodoRepository } from "../../../domain/repositories/todo-repository";
@@ -10,7 +10,7 @@ export interface AddTodoToProjectInput {
   todoId: TodoId;
 }
 
-export class AddTodoToProject {
+export class AddTodoToProjectUseCase {
   constructor(
     private readonly projectRepository: ProjectRepository,
     private readonly todoRepository: TodoRepository,
@@ -29,8 +29,16 @@ export class AddTodoToProject {
       throw new TodoNotFoundError(input.todoId);
     }
 
+    // Check if todo is already in the project
+    if (todo.projectId === input.projectId) {
+      throw new TodoAlreadyInProjectError(input.todoId, input.projectId);
+    }
+
     // Add the todo to the project
     const updatedTodo = todo.assignToProject(input.projectId);
     await this.todoRepository.update(updatedTodo.id, updatedTodo);
   }
 }
+
+// 別名エクスポートを追加して互換性を保持
+export const AddTodoToProject = AddTodoToProjectUseCase;

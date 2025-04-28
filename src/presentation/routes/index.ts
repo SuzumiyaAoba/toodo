@@ -6,6 +6,7 @@ import { PrismaProjectRepository } from "../../infrastructure/repositories/prism
 import { PrismaTagRepository } from "../../infrastructure/repositories/prisma-tag-repository";
 import { PrismaTodoRepository } from "../../infrastructure/repositories/prisma-todo-repository";
 import { setupProjectRoutes } from "./project-routes";
+import { subtaskRoutes } from "./subtask-routes";
 import { setupTagRoutes } from "./tag-routes";
 import { setupTodoDependencyRoutes } from "./todo-dependency-routes";
 import { setupTodoDueDateRoutes } from "./todo-due-date-routes";
@@ -105,6 +106,9 @@ export function setupRoutes<E extends Env = Env, S extends Schema = Schema>(
     findByDueDateRangeUseCase,
     bulkUpdateDueDateUseCase,
   );
+
+  // 6. サブタスク関連ルート
+  app.route("/todos", subtaskRoutes);
 
   return app;
 }

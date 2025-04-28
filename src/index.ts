@@ -4,13 +4,13 @@ import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";
 import { logger } from "hono/logger";
 import { secureHeaders } from "hono/secure-headers";
-import { AddTodoToProject } from "./application/use-cases/project/add-todo-to-project";
+import { AddTodoToProjectUseCase } from "./application/use-cases/project/add-todo-to-project";
 import { CreateProject } from "./application/use-cases/project/create-project";
 import { DeleteProject } from "./application/use-cases/project/delete-project";
 import { GetAllProjects } from "./application/use-cases/project/get-all-projects";
 import { GetProject } from "./application/use-cases/project/get-project";
 import { GetTodosByProject } from "./application/use-cases/project/get-todos-by-project";
-import { RemoveTodoFromProject } from "./application/use-cases/project/remove-todo-from-project";
+import { RemoveTodoFromProjectUseCase } from "./application/use-cases/project/remove-todo-from-project";
 import { UpdateProject } from "./application/use-cases/project/update-project";
 import { BulkAssignTagUseCase, BulkRemoveTagUseCase } from "./application/use-cases/tag/bulk-tag-operations";
 import { CreateTagUseCase } from "./application/use-cases/tag/create-tag";
@@ -102,8 +102,8 @@ const getProjectUseCase = new GetProject(projectRepository);
 const updateProjectUseCase = new UpdateProject(projectRepository);
 const deleteProjectUseCase = new DeleteProject(projectRepository);
 const getProjectTodosUseCase = new GetTodosByProject(projectRepository, todoRepository);
-const assignTodoToProjectUseCase = new AddTodoToProject(projectRepository, todoRepository);
-const removeTodoFromProjectUseCase = new RemoveTodoFromProject(projectRepository, todoRepository);
+const assignTodoToProjectUseCase = new AddTodoToProjectUseCase(projectRepository, todoRepository);
+const removeTodoFromProjectUseCase = new RemoveTodoFromProjectUseCase(projectRepository, todoRepository);
 
 // Create Hono app
 const app = new Hono();

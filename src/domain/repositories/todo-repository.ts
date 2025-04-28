@@ -6,104 +6,44 @@ import type { Todo, TodoId } from "../entities/todo";
  * TodoRepository interface
  */
 export interface TodoRepository {
-  /**
-   * Find all todos
-   */
   findAll(): Promise<Todo[]>;
-
-  /**
-   * Find todo by id
-   * @param id Todo id
-   */
-  findById(id: string): Promise<Todo | null>;
-
-  /**
-   * Create todo
-   * @param todo Todo data to create
-   */
+  findById(id: TodoId): Promise<Todo | null>;
   create(todo: Omit<Todo, "id" | "createdAt" | "updatedAt">): Promise<Todo>;
+  update(id: TodoId, todo: Partial<Omit<Todo, "id" | "createdAt" | "updatedAt">>): Promise<Todo | null>;
+  delete(id: TodoId): Promise<void>;
+  findByStatus(status: string): Promise<Todo[]>;
+  findByPriority(priority: string): Promise<Todo[]>;
+  findByProject(projectId: ProjectId): Promise<Todo[]>;
+  findByTag(tagId: TagId): Promise<Todo[]>;
+  findByDependency(dependencyId: TodoId): Promise<Todo[]>;
+  findByDependent(dependentId: TodoId): Promise<Todo[]>;
+  findWithDueDateBefore(date: Date): Promise<Todo[]>;
+  findWithDueDateBetween(startDate: Date, endDate: Date): Promise<Todo[]>;
 
-  /**
-   * Update todo
-   * @param id Todo id
-   * @param todo Todo data to update
-   */
-  update(id: string, todo: Partial<Todo>): Promise<Todo | null>;
+  // サブタスク関連のメソッド
+  findByParent(parentId: TodoId): Promise<Todo[]>;
+  findChildrenTree(parentId: TodoId, maxDepth?: number): Promise<Todo[]>;
+  updateParent(todoId: TodoId, parentId: TodoId | null): Promise<Todo>;
+  addSubtask(parentId: TodoId, subtaskId: TodoId): Promise<void>;
+  removeSubtask(parentId: TodoId, subtaskId: TodoId): Promise<void>;
 
-  /**
-   * Delete todo
-   * @param id Todo id
-   */
-  delete(id: string): Promise<void>;
+  // 循環参照チェック
+  checkForHierarchyCycle(todoId: TodoId, potentialParentId: TodoId): Promise<boolean>;
 
-  /**
-   * Add dependency relationship between todos
-   * @param todoId ID of the todo that depends on another todo
-   * @param dependencyId ID of the todo that is depended on
-   */
+  // 依存関係管理のメソッド
   addDependency(todoId: TodoId, dependencyId: TodoId): Promise<void>;
-
-  /**
-   * Remove dependency relationship between todos
-   * @param todoId ID of the todo that depends on another todo
-   * @param dependencyId ID of the todo that is depended on
-   */
   removeDependency(todoId: TodoId, dependencyId: TodoId): Promise<void>;
-
-  /**
-   * Find todos that depend on the specified todo
-   * @param todoId ID of the todo to find dependents for
-   */
-  findDependents(todoId: TodoId): Promise<Todo[]>;
-
-  /**
-   * Find todos that the specified todo depends on
-   * @param todoId ID of the todo to find dependencies for
-   */
   findDependencies(todoId: TodoId): Promise<Todo[]>;
-
-  /**
-   * Check if adding a dependency would create a cycle
-   * @param todoId ID of the todo that would depend on another
-   * @param dependencyId ID of the todo that would be depended on
-   * @returns true if adding the dependency would create a cycle
-   */
+  findDependents(todoId: TodoId): Promise<Todo[]>;
   wouldCreateDependencyCycle(todoId: TodoId, dependencyId: TodoId): Promise<boolean>;
 
-  /**
-   * Get all completed todos
-   */
-  findAllCompleted(): Promise<Todo[]>;
-
-  /**
-   * Find overdue todos (todos with due date in the past that are not completed)
-   * @param currentDate Optional date to compare against (defaults to now)
-   */
+  // 期日関連のメソッド
   findOverdue(currentDate?: Date): Promise<Todo[]>;
-
-  /**
-   * Find todos due soon
-   * @param days Number of days to consider "soon" (default: 2)
-   * @param currentDate Optional date to compare against (defaults to now)
-   */
   findDueSoon(days?: number, currentDate?: Date): Promise<Todo[]>;
-
-  /**
-   * Find todos by due date range
-   * @param startDate Start date of the range (inclusive)
-   * @param endDate End date of the range (inclusive)
-   */
   findByDueDateRange(startDate: Date, endDate: Date): Promise<Todo[]>;
 
-  /**
-   * Find todos by project id
-   * @param projectId Project id
-   */
-  findByProjectId(projectId: ProjectId): Promise<Todo[]>;
-
-  /**
-   * Find todos by tag id
-   * @param tagId Tag id
-   */
-  findByTagId(tagId: TagId): Promise<Todo[]>;
+  // その他の便利なメソッド
+  findAllCompleted(): Promise<Todo[]>;
+  findByProjectId(projectId: string): Promise<Todo[]>;
+  findByTagId(tagId: string): Promise<Todo[]>;
 }

@@ -3,6 +3,7 @@ import type { Hono } from "hono";
 import type { Env, Schema } from "hono";
 import { describeRoute } from "hono-openapi";
 import { resolver, validator as vValidator } from "hono-openapi/valibot";
+import type * as v from "valibot";
 import type { CreateTodoActivityUseCase } from "../../application/use-cases/todo-activity/create-todo-activity";
 import type { DeleteTodoActivityUseCase } from "../../application/use-cases/todo-activity/delete-todo-activity";
 import type { GetTodoActivityListUseCase } from "../../application/use-cases/todo-activity/get-todo-activity-list";
@@ -95,7 +96,7 @@ export function setupTodoRoutes<E extends Env = Env, S extends Schema = Schema>(
     }),
     vValidator("json", CreateTodoSchema),
     async (c) => {
-      const data = c.req.valid("json");
+      const data = c.req.valid("json") as v.InferOutput<typeof CreateTodoSchema>;
 
       // 文字列のpriorityをPriorityLevel型に変換
       const todoData = {
@@ -161,7 +162,7 @@ export function setupTodoRoutes<E extends Env = Env, S extends Schema = Schema>(
     }),
     vValidator("param", IdParamSchema),
     async (c) => {
-      const { id } = c.req.valid("param");
+      const { id } = c.req.valid("param") as v.InferOutput<typeof IdParamSchema>;
       try {
         const todo = await getTodoUseCase.execute(id);
         return c.json(todo);
@@ -221,8 +222,8 @@ export function setupTodoRoutes<E extends Env = Env, S extends Schema = Schema>(
     vValidator("param", IdParamSchema),
     vValidator("json", UpdateTodoSchema),
     async (c) => {
-      const { id } = c.req.valid("param");
-      const data = c.req.valid("json");
+      const { id } = c.req.valid("param") as v.InferOutput<typeof IdParamSchema>;
+      const data = c.req.valid("json") as v.InferOutput<typeof UpdateTodoSchema>;
 
       // 文字列のpriorityをPriorityLevel型に変換
       const todoData = {
@@ -267,7 +268,7 @@ export function setupTodoRoutes<E extends Env = Env, S extends Schema = Schema>(
     }),
     vValidator("param", IdParamSchema),
     async (c) => {
-      const { id } = c.req.valid("param");
+      const { id } = c.req.valid("param") as v.InferOutput<typeof IdParamSchema>;
 
       try {
         await deleteTodoUseCase.execute(id);
@@ -312,7 +313,7 @@ export function setupTodoRoutes<E extends Env = Env, S extends Schema = Schema>(
     }),
     vValidator("param", IdParamSchema),
     async (c) => {
-      const { id } = c.req.valid("param");
+      const { id } = c.req.valid("param") as v.InferOutput<typeof IdParamSchema>;
 
       try {
         const workTimeInfo = await getTodoWorkTimeUseCase.execute(id);
@@ -374,8 +375,8 @@ export function setupTodoRoutes<E extends Env = Env, S extends Schema = Schema>(
     vValidator("param", IdParamSchema),
     vValidator("json", CreateTodoActivitySchema),
     async (c) => {
-      const { id } = c.req.valid("param");
-      const data = c.req.valid("json");
+      const { id } = c.req.valid("param") as v.InferOutput<typeof IdParamSchema>;
+      const data = c.req.valid("json") as v.InferOutput<typeof CreateTodoActivitySchema>;
 
       try {
         const activity = await createTodoActivityUseCase.execute(id, data);
@@ -422,7 +423,7 @@ export function setupTodoRoutes<E extends Env = Env, S extends Schema = Schema>(
     }),
     vValidator("param", IdParamSchema),
     async (c) => {
-      const { id } = c.req.valid("param");
+      const { id } = c.req.valid("param") as v.InferOutput<typeof IdParamSchema>;
 
       try {
         const activities = await getTodoActivityListUseCase.execute(id);
@@ -469,7 +470,7 @@ export function setupTodoRoutes<E extends Env = Env, S extends Schema = Schema>(
     }),
     vValidator("param", TodoActivityIdParamSchema),
     async (c) => {
-      const { id, activityId } = c.req.valid("param");
+      const { id, activityId } = c.req.valid("param") as v.InferOutput<typeof TodoActivityIdParamSchema>;
 
       try {
         await deleteTodoActivityUseCase.execute(id, activityId);
