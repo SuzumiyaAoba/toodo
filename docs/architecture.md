@@ -48,16 +48,19 @@ The application follows a clean architecture pattern with the following layers:
 **Layer Responsibilities:**
 
 1. **Presentation Layer** (`/src/presentation`):
+
    - API endpoints and routing
    - Request/response validation
    - Error handling
 
 2. **Application Layer** (`/src/application`):
+
    - Use cases implementing business logic
    - Orchestration of domain entities
    - Independent of external frameworks
 
 3. **Domain Layer** (`/src/domain`):
+
    - Business models and entities
    - Repository interfaces
    - Domain-specific errors
@@ -147,39 +150,89 @@ export class Todo {
   ) {}
 
   // Domain methods - all return new Todo instances
-  updateTitle(title: string): Todo { /* implementation */ }
-  updateDescription(description?: string): Todo { /* implementation */ }
-  updateStatus(status: TodoStatus): Todo { /* implementation */ }
-  updatePriority(priority: PriorityLevel): Todo { /* implementation */ }
-  updateDueDate(dueDate?: Date): Todo { /* implementation */ }
-  
+  updateTitle(title: string): Todo {
+    /* implementation */
+  }
+  updateDescription(description?: string): Todo {
+    /* implementation */
+  }
+  updateStatus(status: TodoStatus): Todo {
+    /* implementation */
+  }
+  updatePriority(priority: PriorityLevel): Todo {
+    /* implementation */
+  }
+  updateDueDate(dueDate?: Date): Todo {
+    /* implementation */
+  }
+
   // State management methods
-  complete(currentTime?: Date): Todo { /* implementation */ }
-  reopen(currentTime?: Date): Todo { /* implementation */ }
-  start(currentTime?: Date): Todo { /* implementation */ }
-  pause(currentTime?: Date): Todo { /* implementation */ }
-  resume(currentTime?: Date): Todo { /* implementation */ }
-  
+  complete(currentTime?: Date): Todo {
+    /* implementation */
+  }
+  reopen(currentTime?: Date): Todo {
+    /* implementation */
+  }
+  start(currentTime?: Date): Todo {
+    /* implementation */
+  }
+  pause(currentTime?: Date): Todo {
+    /* implementation */
+  }
+  resume(currentTime?: Date): Todo {
+    /* implementation */
+  }
+
   // Dependency management methods
-  addDependency(dependencyId: TodoId): Todo { /* implementation */ }
-  removeDependency(dependencyId: TodoId): Todo { /* implementation */ }
-  addDependent(dependentId: TodoId): Todo { /* implementation */ }
-  removeDependent(dependentId: TodoId): Todo { /* implementation */ }
-  hasDependencyOn(dependencyId: TodoId): boolean { /* implementation */ }
-  hasDependent(dependentId: TodoId): boolean { /* implementation */ }
-  canBeCompleted(completedTodoIds: TodoId[]): boolean { /* implementation */ }
-  
+  addDependency(dependencyId: TodoId): Todo {
+    /* implementation */
+  }
+  removeDependency(dependencyId: TodoId): Todo {
+    /* implementation */
+  }
+  addDependent(dependentId: TodoId): Todo {
+    /* implementation */
+  }
+  removeDependent(dependentId: TodoId): Todo {
+    /* implementation */
+  }
+  hasDependencyOn(dependencyId: TodoId): boolean {
+    /* implementation */
+  }
+  hasDependent(dependentId: TodoId): boolean {
+    /* implementation */
+  }
+  canBeCompleted(completedTodoIds: TodoId[]): boolean {
+    /* implementation */
+  }
+
   // Due date methods
-  isOverdue(currentDate: Date = new Date()): boolean { /* implementation */ }
-  daysUntilDue(currentDate: Date = new Date()): number | null { /* implementation */ }
-  
+  isOverdue(currentDate: Date = new Date()): boolean {
+    /* implementation */
+  }
+  daysUntilDue(currentDate: Date = new Date()): number | null {
+    /* implementation */
+  }
+
   // Subtask management methods
-  addSubtask(subtaskId: TodoId): Todo { /* implementation */ }
-  removeSubtask(subtaskId: TodoId): Todo { /* implementation */ }
-  setParent(parentId: TodoId): Todo { /* implementation */ }
-  removeParent(): Todo { /* implementation */ }
-  hasSubtask(subtaskId: TodoId): boolean { /* implementation */ }
-  isChildOf(parentId: TodoId): boolean { /* implementation */ }
+  addSubtask(subtaskId: TodoId): Todo {
+    /* implementation */
+  }
+  removeSubtask(subtaskId: TodoId): Todo {
+    /* implementation */
+  }
+  setParent(parentId: TodoId): Todo {
+    /* implementation */
+  }
+  removeParent(): Todo {
+    /* implementation */
+  }
+  hasSubtask(subtaskId: TodoId): boolean {
+    /* implementation */
+  }
+  isChildOf(parentId: TodoId): boolean {
+    /* implementation */
+  }
 }
 ```
 
@@ -216,8 +269,12 @@ export class Tag {
   ) {}
 
   // Domain methods - all return new Tag instances
-  updateName(name: string): Tag { /* implementation */ }
-  updateColor(color: string | null): Tag { /* implementation */ }
+  updateName(name: string): Tag {
+    /* implementation */
+  }
+  updateColor(color: string | null): Tag {
+    /* implementation */
+  }
 }
 ```
 
@@ -228,7 +285,7 @@ Groups related todos together. Project entities are also implemented as immutabl
 ```typescript
 export enum ProjectStatus {
   ACTIVE = "active",
-  ARCHIVED = "archived", 
+  ARCHIVED = "archived",
 }
 
 export class Project {
@@ -243,16 +300,176 @@ export class Project {
   ) {}
 
   // Domain methods - all return new Project instances
-  updateName(name: string): Project { /* implementation */ }
-  updateDescription(description: string | null): Project { /* implementation */ }
-  updateColor(color: string | null): Project { /* implementation */ }
-  updateStatus(status: ProjectStatus): Project { /* implementation */ }
-  archive(): Project { /* implementation */ }
-  activate(): Project { /* implementation */ }
+  updateName(name: string): Project {
+    /* implementation */
+  }
+  updateDescription(description: string | null): Project {
+    /* implementation */
+  }
+  updateColor(color: string | null): Project {
+    /* implementation */
+  }
+  updateStatus(status: ProjectStatus): Project {
+    /* implementation */
+  }
+  archive(): Project {
+    /* implementation */
+  }
+  activate(): Project {
+    /* implementation */
+  }
 }
 ```
 
-### 4.2 Repository Pattern
+#### 4.1.5 WorkPeriod Entity
+
+Represents a time period during which work is performed. WorkPeriod entities are also implemented as immutable objects.
+
+```typescript
+export class WorkPeriod {
+  constructor(
+    public readonly id: string,
+    public readonly name: string,
+    public readonly date: Date,
+    public readonly startTime: string,
+    public readonly endTime: string,
+    public readonly createdAt: Date,
+    public readonly updatedAt: Date
+  ) {}
+
+  // Domain methods - all return new WorkPeriod instances
+  updateName(name: string): WorkPeriod {
+    /* implementation */
+  }
+  updateDate(date: Date): WorkPeriod {
+    /* implementation */
+  }
+  updateTime(startTime: string, endTime: string): WorkPeriod {
+    /* implementation */
+  }
+}
+```
+
+### 4.2 Entity Relationships
+
+The following diagram shows the relationships between domain entities:
+
+```mermaid
+erDiagram
+    Todo ||--o{ TodoActivity : "has"
+    Todo ||--o{ Todo : "depends on"
+    Todo ||--o{ Todo : "has subtasks"
+    Todo }o--|| Project : "belongs to"
+    Todo }o--o{ Tag : "has"
+    TodoActivity }o--o{ WorkPeriod : "associated with"
+
+    Todo {
+        string id PK
+        string title
+        string description
+        TodoStatus status
+        WorkState workState
+        number totalWorkTime
+        datetime lastStateChangeAt
+        PriorityLevel priority
+        string projectId FK
+        datetime dueDate
+        string parentId FK
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    TodoActivity {
+        string id PK
+        string todoId FK
+        ActivityType type
+        number workTime
+        WorkState previousState
+        string note
+        string workPeriodId FK
+        datetime createdAt
+    }
+
+    Tag {
+        string id PK
+        string name
+        string color
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    Project {
+        string id PK
+        string name
+        string description
+        string color
+        ProjectStatus status
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    WorkPeriod {
+        string id PK
+        string name
+        date date
+        string startTime
+        string endTime
+        datetime createdAt
+        datetime updatedAt
+    }
+```
+
+### 4.3 Bulk Operations
+
+The application supports bulk operations for efficient handling of multiple entities:
+
+#### 4.3.1 Bulk Tag Operations
+
+```typescript
+// application/use-cases/tag/bulk-tag-operations.ts
+export class BulkAssignTagUseCase {
+  constructor(
+    private tagRepository: TagRepository,
+    private todoRepository: TodoRepository
+  ) {}
+
+  async execute(params: { tagId: string; todoIds: string[] }): Promise<{
+    successCount: number;
+    failedCount: number;
+  }> {
+    // Implementation details
+  }
+}
+
+export class BulkRemoveTagUseCase {
+  constructor(
+    private tagRepository: TagRepository,
+    private todoRepository: TodoRepository
+  ) {}
+
+  async execute(params: { tagId: string; todoIds: string[] }): Promise<{
+    successCount: number;
+    failedCount: number;
+  }> {
+    // Implementation details
+  }
+}
+```
+
+#### 4.3.2 Bulk Due Date Operations
+
+```typescript
+// application/use-cases/todo/due-date/bulk-update-due-date.ts
+export class BulkUpdateDueDateUseCase {
+  constructor(private todoRepository: TodoRepository) {}
+
+  async execute(todoIds: string[], dueDate?: Date): Promise<Todo[]> {
+    // Implementation details
+  }
+}
+```
+
+### 4.4 Repository Pattern
 
 The application uses the repository pattern to abstract data access logic:
 
@@ -290,7 +507,7 @@ export class PrismaTodoRepository implements TodoRepository {
 
   async findAll(): Promise<Todo[]> {
     const todos = await this.prisma.todo.findMany();
-    return todos.map(todo => this.mapToDomainTodo(todo));
+    return todos.map((todo) => this.mapToDomainTodo(todo));
   }
 
   async findById(id: string): Promise<Todo | null> {
@@ -350,12 +567,12 @@ export class CreateTodoUseCase {
     // Default values
     const status = params.status || TodoStatus.PENDING;
     const priority = params.priority || PriorityLevel.MEDIUM;
-    
+
     // Domain validation
-    if (params.title.trim() === '') {
-      throw new InvalidTodoError('Title cannot be empty');
+    if (params.title.trim() === "") {
+      throw new InvalidTodoError("Title cannot be empty");
     }
-    
+
     // Create the todo entity
     const todo = await this.todoRepository.create({
       title: params.title,
@@ -367,7 +584,7 @@ export class CreateTodoUseCase {
       priority,
       projectId: params.projectId || null,
     });
-    
+
     return todo;
   }
 }
@@ -393,47 +610,59 @@ export class RecordTodoActivityUseCase {
     if (!todo) {
       throw new TodoNotFoundError(params.todoId);
     }
-    
+
     // Calculate work time if needed
     let workTime: number | null = null;
     let newWorkState: WorkState;
-    
+
     switch (params.type) {
       case ActivityType.STARTED:
-        if (todo.workState !== WorkState.IDLE && todo.workState !== WorkState.PAUSED) {
-          throw new InvalidStateTransitionError(todo.workState, WorkState.ACTIVE);
+        if (
+          todo.workState !== WorkState.IDLE &&
+          todo.workState !== WorkState.PAUSED
+        ) {
+          throw new InvalidStateTransitionError(
+            todo.workState,
+            WorkState.ACTIVE
+          );
         }
         newWorkState = WorkState.ACTIVE;
         break;
-      
+
       case ActivityType.PAUSED:
         if (todo.workState !== WorkState.ACTIVE) {
-          throw new InvalidStateTransitionError(todo.workState, WorkState.PAUSED);
+          throw new InvalidStateTransitionError(
+            todo.workState,
+            WorkState.PAUSED
+          );
         }
         workTime = this.calculateWorkTime(todo);
         newWorkState = WorkState.PAUSED;
         break;
-      
+
       case ActivityType.COMPLETED:
         if (todo.workState === WorkState.COMPLETED) {
-          throw new InvalidStateTransitionError(todo.workState, WorkState.COMPLETED);
+          throw new InvalidStateTransitionError(
+            todo.workState,
+            WorkState.COMPLETED
+          );
         }
         if (todo.workState === WorkState.ACTIVE) {
           workTime = this.calculateWorkTime(todo);
         }
         newWorkState = WorkState.COMPLETED;
         break;
-      
+
       // Handle other cases
     }
-    
+
     // Update todo state
     const updatedTodo = await this.todoRepository.update(todo.id, {
       workState: newWorkState,
       lastStateChangeAt: new Date(),
       totalWorkTime: todo.totalWorkTime + (workTime || 0),
     });
-    
+
     // Record activity
     const activity = await this.todoActivityRepository.create({
       todoId: todo.id,
@@ -442,16 +671,18 @@ export class RecordTodoActivityUseCase {
       previousState: todo.workState,
       note: params.note || null,
     });
-    
+
     return activity;
   }
-  
+
   private calculateWorkTime(todo: Todo): number {
     if (todo.workState !== WorkState.ACTIVE) {
       return 0;
     }
     const now = new Date();
-    return Math.floor((now.getTime() - todo.lastStateChangeAt.getTime()) / 1000);
+    return Math.floor(
+      (now.getTime() - todo.lastStateChangeAt.getTime()) / 1000
+    );
   }
 }
 ```
@@ -463,7 +694,11 @@ The presentation layer uses Valibot for input/output validation with reusable sc
 ```typescript
 // presentation/schemas/todo-schemas.ts
 import * as v from "valibot";
-import { PriorityLevel, TodoStatus, WorkState } from "../../domain/entities/todo";
+import {
+  PriorityLevel,
+  TodoStatus,
+  WorkState,
+} from "../../domain/entities/todo";
 import { ActivityType } from "../../domain/entities/todo-activity";
 
 /**
@@ -474,11 +709,28 @@ export const CommonSchemas = {
   title: () => v.pipe(v.string(), v.minLength(1), v.maxLength(100)),
   description: () => v.optional(v.pipe(v.string(), v.maxLength(1000))),
   note: () => v.optional(v.pipe(v.string(), v.maxLength(500))),
-  todoStatus: () => v.picklist([TodoStatus.PENDING, TodoStatus.IN_PROGRESS, TodoStatus.COMPLETED]),
-  workState: () => v.picklist([WorkState.IDLE, WorkState.ACTIVE, WorkState.PAUSED, WorkState.COMPLETED]),
+  todoStatus: () =>
+    v.picklist([
+      TodoStatus.PENDING,
+      TodoStatus.IN_PROGRESS,
+      TodoStatus.COMPLETED,
+    ]),
+  workState: () =>
+    v.picklist([
+      WorkState.IDLE,
+      WorkState.ACTIVE,
+      WorkState.PAUSED,
+      WorkState.COMPLETED,
+    ]),
   activityType: () =>
-    v.picklist([ActivityType.STARTED, ActivityType.PAUSED, ActivityType.COMPLETED, ActivityType.DISCARDED]),
-  priorityLevel: () => v.picklist([PriorityLevel.LOW, PriorityLevel.MEDIUM, PriorityLevel.HIGH]),
+    v.picklist([
+      ActivityType.STARTED,
+      ActivityType.PAUSED,
+      ActivityType.COMPLETED,
+      ActivityType.DISCARDED,
+    ]),
+  priorityLevel: () =>
+    v.picklist([PriorityLevel.LOW, PriorityLevel.MEDIUM, PriorityLevel.HIGH]),
   dueDate: () => v.optional(DateSchema),
 };
 
@@ -537,14 +789,14 @@ export class DIContainer {
     tagRepository: TagRepository;
     projectRepository: ProjectRepository;
   };
-  
+
   private useCases: {
     // Todo use cases
     createTodoUseCase: CreateTodoUseCase;
     updateTodoUseCase: UpdateTodoUseCase;
     // ... more use cases
   };
-  
+
   constructor(prisma: PrismaClient) {
     // Initialize repositories
     this.repositories = {
@@ -553,20 +805,24 @@ export class DIContainer {
       tagRepository: new PrismaTagRepository(prisma),
       projectRepository: new PrismaProjectRepository(prisma),
     };
-    
+
     // Initialize use cases
     this.useCases = {
-      createTodoUseCase: new CreateTodoUseCase(this.repositories.todoRepository),
-      updateTodoUseCase: new UpdateTodoUseCase(this.repositories.todoRepository),
+      createTodoUseCase: new CreateTodoUseCase(
+        this.repositories.todoRepository
+      ),
+      updateTodoUseCase: new UpdateTodoUseCase(
+        this.repositories.todoRepository
+      ),
       // ... initialize other use cases
     };
   }
-  
+
   // Getters for use cases
   getCreateTodoUseCase(): CreateTodoUseCase {
     return this.useCases.createTodoUseCase;
   }
-  
+
   // ... more getters
 }
 ```
@@ -575,11 +831,11 @@ export class DIContainer {
 
 ```typescript
 // src/index.ts
-import { Hono } from 'hono';
-import { PrismaClient } from '@prisma/client';
-import { DIContainer } from './di-container';
-import { todoRoutes } from './presentation/routes/todo-routes';
-import { errorHandler } from './presentation/middlewares/error-handler';
+import { Hono } from "hono";
+import { PrismaClient } from "@prisma/client";
+import { DIContainer } from "./di-container";
+import { todoRoutes } from "./presentation/routes/todo-routes";
+import { errorHandler } from "./presentation/middlewares/error-handler";
 
 // Initialize the application
 const app = new Hono();
@@ -589,10 +845,10 @@ const prisma = new PrismaClient();
 const container = new DIContainer(prisma);
 
 // Add global middlewares
-app.use('*', errorHandler);
+app.use("*", errorHandler);
 
 // Register routes
-app.route('/todos', todoRoutes(container));
+app.route("/todos", todoRoutes(container));
 // ... register other routes
 
 // Export the app
@@ -610,21 +866,21 @@ The application implements a robust error handling strategy through domain-speci
 export class TodoNotFoundError extends Error {
   constructor(id: string) {
     super(`Todo with id '${id}' not found`);
-    this.name = 'TodoNotFoundError';
+    this.name = "TodoNotFoundError";
   }
 }
 
 export class InvalidTodoError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'InvalidTodoError';
+    this.name = "InvalidTodoError";
   }
 }
 
 export class InvalidStateTransitionError extends Error {
   constructor(currentState: WorkState, targetState: WorkState) {
     super(`Cannot transition from '${currentState}' to '${targetState}'`);
-    this.name = 'InvalidStateTransitionError';
+    this.name = "InvalidStateTransitionError";
   }
 }
 ```
@@ -633,73 +889,99 @@ export class InvalidStateTransitionError extends Error {
 
 ```typescript
 // presentation/middlewares/error-handler.ts
-import { Context, Next } from 'hono';
-import { HttpError } from '../errors/api-errors';
+import { Context, Next } from "hono";
+import { HttpError } from "../errors/api-errors";
 
 export const errorHandler = async (c: Context, next: Next) => {
   try {
     await next();
   } catch (error) {
     console.error(error);
-    
+
     // Handle domain-specific errors
-    if (error.name === 'TodoNotFoundError' || error.name === 'TagNotFoundError' || error.name === 'ProjectNotFoundError') {
-      return c.json({ 
-        error: {
-          code: 'NOT_FOUND',
-          message: error.message
-        } 
-      }, 404);
+    if (
+      error.name === "TodoNotFoundError" ||
+      error.name === "TagNotFoundError" ||
+      error.name === "ProjectNotFoundError"
+    ) {
+      return c.json(
+        {
+          error: {
+            code: "NOT_FOUND",
+            message: error.message,
+          },
+        },
+        404
+      );
     }
-    
-    if (error.name === 'InvalidTodoError' || error.name === 'InvalidTagError' || error.name === 'InvalidProjectError') {
-      return c.json({ 
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: error.message
-        } 
-      }, 400);
+
+    if (
+      error.name === "InvalidTodoError" ||
+      error.name === "InvalidTagError" ||
+      error.name === "InvalidProjectError"
+    ) {
+      return c.json(
+        {
+          error: {
+            code: "VALIDATION_ERROR",
+            message: error.message,
+          },
+        },
+        400
+      );
     }
-    
-    if (error.name === 'InvalidStateTransitionError') {
-      return c.json({ 
-        error: {
-          code: 'INVALID_STATE',
-          message: error.message
-        } 
-      }, 400);
+
+    if (error.name === "InvalidStateTransitionError") {
+      return c.json(
+        {
+          error: {
+            code: "INVALID_STATE",
+            message: error.message,
+          },
+        },
+        400
+      );
     }
-    
+
     // Handle validation errors
-    if (error.name === 'ValidationError') {
-      return c.json({ 
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: error.message,
-          details: error.details
-        } 
-      }, 400);
+    if (error.name === "ValidationError") {
+      return c.json(
+        {
+          error: {
+            code: "VALIDATION_ERROR",
+            message: error.message,
+            details: error.details,
+          },
+        },
+        400
+      );
     }
-    
+
     // Handle HTTP errors explicitly thrown by controllers
     if (error instanceof HttpError) {
-      return c.json({
-        error: {
-          code: error.code,
-          message: error.message
-        }
-      }, error.status);
+      return c.json(
+        {
+          error: {
+            code: error.code,
+            message: error.message,
+          },
+        },
+        error.status
+      );
     }
-    
+
     // Fallback for unexpected errors
-    return c.json({ 
-      error: {
-        code: 'INTERNAL_ERROR',
-        message: 'An unexpected error occurred'
-      } 
-    }, 500);
+    return c.json(
+      {
+        error: {
+          code: "INTERNAL_ERROR",
+          message: "An unexpected error occurred",
+        },
+      },
+      500
+    );
   }
-}
+};
 ```
 
 ## 7. API Documentation
@@ -708,14 +990,14 @@ The application provides API documentation through OpenAPI specification:
 
 ```typescript
 // src/index.ts
-import { swaggerUI } from '@hono/swagger-ui';
-import { openAPISpec } from './presentation/openapi/spec';
+import { swaggerUI } from "@hono/swagger-ui";
+import { openAPISpec } from "./presentation/openapi/spec";
 
 // ... set up app and routes
 
 // OpenAPI documentation
-app.get('/openapi.json', (c) => c.json(openAPISpec));
-app.get('/docs', swaggerUI({ url: '/openapi.json' }));
+app.get("/openapi.json", (c) => c.json(openAPISpec));
+app.get("/docs", swaggerUI({ url: "/openapi.json" }));
 ```
 
 ## 8. Testing Strategy
@@ -728,7 +1010,11 @@ Each component is tested in isolation with mocked dependencies. The project uses
 // application/use-cases/todo/create-todo.spec.ts
 import { describe, expect, it, mock } from "bun:test";
 import { CreateTodoUseCase } from "./create-todo";
-import { PriorityLevel, TodoStatus, WorkState } from "../../../domain/entities/todo";
+import {
+  PriorityLevel,
+  TodoStatus,
+  WorkState,
+} from "../../../domain/entities/todo";
 import { createTestTodo } from "../../../domain/entities/test-helpers";
 
 describe("CreateTodoUseCase", () => {
@@ -736,9 +1022,9 @@ describe("CreateTodoUseCase", () => {
     create: mock(() => Promise.resolve()),
     // ... other repository methods
   };
-  
+
   const useCase = new CreateTodoUseCase(mockTodoRepository);
-  
+
   test("should create a todo with default values when only title is provided", async () => {
     // Arrange
     const todoData = {
@@ -758,7 +1044,9 @@ describe("CreateTodoUseCase", () => {
       priority: PriorityLevel.MEDIUM,
     });
 
-    mockTodoRepository.create.mockImplementationOnce(async () => Promise.resolve(createdTodo));
+    mockTodoRepository.create.mockImplementationOnce(async () =>
+      Promise.resolve(createdTodo)
+    );
 
     // Act
     const result = await useCase.execute(todoData);
@@ -768,7 +1056,7 @@ describe("CreateTodoUseCase", () => {
     expect(mockTodoRepository.create).toHaveBeenCalledWith(
       expect.objectContaining({
         title: "New Test Todo",
-      }),
+      })
     );
     expect(result).toEqual(createdTodo);
   });

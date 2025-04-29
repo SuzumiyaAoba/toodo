@@ -693,3 +693,195 @@ Possible errors:
 
 - `TODO_NOT_FOUND` - Parent todo not found (HTTP 404)
 - `VALIDATION_ERROR` - Invalid input data (HTTP 400)
+
+### Work Periods
+
+#### Get Work Periods
+
+```
+GET /work-periods
+```
+
+Query parameters:
+
+- `startDate` - Filter by start date (ISO date string, optional)
+- `endDate` - Filter by end date (ISO date string, optional)
+
+Response:
+
+```json
+{
+  "workPeriods": [
+    {
+      "id": "string",
+      "name": "string",
+      "date": "ISO date string",
+      "startTime": "ISO time string",
+      "endTime": "ISO time string",
+      "createdAt": "ISO date string",
+      "updatedAt": "ISO date string"
+    }
+  ]
+}
+```
+
+#### Create Work Period
+
+```
+POST /work-periods
+```
+
+Request body:
+
+```json
+{
+  "name": "string",
+  "date": "ISO date string",
+  "startTime": "ISO time string",
+  "endTime": "ISO time string"
+}
+```
+
+Response: Created work period object (201 Created)
+
+#### Update Work Period
+
+```
+PATCH /work-periods/:id
+```
+
+Request body:
+
+```json
+{
+  "name": "string", // Optional
+  "date": "ISO date string", // Optional
+  "startTime": "ISO time string", // Optional
+  "endTime": "ISO time string" // Optional
+}
+```
+
+Response: Updated work period object
+
+#### Delete Work Period
+
+```
+DELETE /work-periods/:id
+```
+
+Response: 200 OK
+
+```json
+{
+  "success": true
+}
+```
+
+### Bulk Tag Operations
+
+#### Bulk Assign Tag
+
+```
+POST /tags/:id/bulk-assign
+```
+
+Assigns a tag to multiple todos at once.
+
+Request body:
+
+```json
+{
+  "todoIds": ["string"]
+}
+```
+
+Response:
+
+```json
+{
+  "successCount": "number",
+  "failedCount": "number"
+}
+```
+
+#### Bulk Remove Tag
+
+```
+DELETE /tags/:id/bulk-remove
+```
+
+Removes a tag from multiple todos at once.
+
+Request body:
+
+```json
+{
+  "todoIds": ["string"]
+}
+```
+
+Response:
+
+```json
+{
+  "successCount": "number",
+  "failedCount": "number"
+}
+```
+
+### Project-Todo Relationships
+
+#### Get Project Todos
+
+```
+GET /projects/:id/todos
+```
+
+Gets all todos associated with a specific project.
+
+Response:
+
+```json
+[
+  {
+    "id": "string",
+    "title": "string",
+    "description": "string | null",
+    "status": "pending | in_progress | completed",
+    "workState": "idle | active | paused | completed",
+    "priority": "low | medium | high",
+    "dueDate": "ISO date string | null"
+    // other Todo properties
+  }
+]
+```
+
+#### Add Todo to Project
+
+```
+POST /projects/:id/todos
+```
+
+Request body:
+
+```json
+{
+  "todoId": "string"
+}
+```
+
+Response: 201 Created
+
+```json
+{
+  "success": true
+}
+```
+
+#### Remove Todo from Project
+
+```
+DELETE /projects/:id/todos/:todoId
+```
+
+Response: 204 No Content
