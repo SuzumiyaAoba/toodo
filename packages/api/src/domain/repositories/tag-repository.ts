@@ -1,4 +1,4 @@
-import type { Tag } from "../entities/tag";
+import type { Tag } from "@toodo/core";
 import type { Todo } from "../entities/todo";
 
 /**
@@ -88,4 +88,14 @@ export interface TagRepository {
       completedTodoCount: number;
     }>
   >;
+
+  findAll(): Promise<Tag[]>;
+  findById(id: string): Promise<Tag | null>;
+  create(tag: Tag): Promise<Tag>;
+  update(tag: Tag): Promise<Tag>;
+  delete(id: string): Promise<void>;
+  findByName(name: string): Promise<Tag | null>;
+  getTodosByTagId(id: string): Promise<string[]>;
+  addTagToTodo(tagId: string, todoId: string): Promise<void>;
+  removeTagFromTodo(tagId: string, todoId: string): Promise<void>;
 }

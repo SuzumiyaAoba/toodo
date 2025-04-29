@@ -46,12 +46,35 @@ describe("UpdateTagUseCase", () => {
       removeTagFromTodo: mock(() => Promise.resolve()),
       getTagsForTodo: mock(() => Promise.resolve([])),
       getTodoIdsForTag: mock(() => Promise.resolve([])),
-      // 追加されたメソッド
       getTodoIdsWithAllTags: mock(() => Promise.resolve([])),
       getTodoIdsWithAnyTag: mock(() => Promise.resolve([])),
       bulkAssignTagToTodos: mock(() => Promise.resolve(0)),
       bulkRemoveTagFromTodos: mock(() => Promise.resolve(0)),
       getTagStatistics: mock(() => Promise.resolve([])),
+      findAll: mock(() => Promise.resolve([])),
+      findById: mock(() => Promise.resolve(null)),
+      create: mock(() =>
+        Promise.resolve({
+          id: "mock-tag-id",
+          name: "Mock Tag",
+          color: "#000000",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        } as Tag),
+      ),
+      update: mock(() =>
+        Promise.resolve({
+          id: "mock-tag-id",
+          name: "Mock Tag",
+          color: "#000000",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        } as Tag),
+      ),
+      delete: mock(() => Promise.resolve()),
+      findByName: mock(() => Promise.resolve(null)),
+      getTodosByTagId: mock(() => Promise.resolve([])),
+      addTagToTodo: mock(() => Promise.resolve()),
     };
 
     updateTagUseCase = new UpdateTagUseCase(tagRepository);

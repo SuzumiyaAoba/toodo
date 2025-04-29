@@ -1,4 +1,5 @@
 import { Project, type ProjectId } from "../../domain/entities/project";
+import { ProjectNotFoundError } from "../../domain/errors/project-errors";
 import type { ProjectRepository } from "../../domain/repositories/project-repository";
 import { PrismaClient } from "../../generated/prisma";
 import { PrismaBaseRepository } from "./prisma-base-repository";
@@ -93,6 +94,24 @@ export class PrismaProjectRepository implements ProjectRepository {
     });
   }
 
+  /**
+   * Get all todos associated with a specific project
+   */
+  async getTodosByProject(projectId: string): Promise<string[]> {
+    return this.executePrismaOperation(async () => {
+      const todos = await this.prisma.todo.findMany({
+        where: {
+          projectId,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      return todos.map((todo) => todo.id);
+    });
+  }
+
   private mapToProject(data: {
     id: string;
     name: string;
@@ -111,5 +130,24 @@ export class PrismaProjectRepository implements ProjectRepository {
       data.createdAt,
       data.updatedAt,
     );
+  }
+
+  protected async executePrismaOperation<T>(operation: () => Promise<T>, id?: string): Promise<T> {
+    try {
+      return await operation();
+    } catch (error) {
+      if (error instanceof Error) {
+        if (
+          error.message.includes("Record to update not found") ||
+          error.message.includes("Record to delete does not exist") ||
+          error.message.includes("No Project found")
+        ) {
+          if (id) {
+            throw new ProjectNotFoundError(id);
+          }
+        }
+      }
+      throw error;
+    }
   }
 }

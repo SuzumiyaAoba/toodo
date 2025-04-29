@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
+import type { TodoActivity } from "@toodo/core/src/domain/entities/todo-activity";
+import { ActivityType } from "@toodo/core/src/domain/entities/todo-activity";
 import { createTestTodo } from "../../../domain/entities/test-helpers";
 import { PriorityLevel, Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
-import { ActivityType, type TodoActivity } from "../../../domain/entities/todo-activity";
 import { TodoNotFoundError } from "../../../domain/errors/todo-errors";
 import type { TodoActivityRepository } from "../../../domain/repositories/todo-activity-repository";
 import type { TodoRepository } from "../../../domain/repositories/todo-repository";
@@ -21,11 +22,17 @@ interface MockedTodoRepository extends TodoRepository {
   delete: MockedFunction<(id: string) => Promise<void>>;
 }
 
-interface MockedTodoActivityRepository extends TodoActivityRepository {
+interface MockedTodoActivityRepository {
   findByTodoId: MockedFunction<(todoId: string) => Promise<TodoActivity[]>>;
   findById: MockedFunction<(id: string) => Promise<TodoActivity | null>>;
   create: MockedFunction<(activity: Omit<TodoActivity, "id" | "createdAt">) => Promise<TodoActivity>>;
   delete: MockedFunction<(id: string) => Promise<void>>;
+  updateWorkPeriod: MockedFunction<(id: string, workPeriodId: string | null) => Promise<TodoActivity | null>>;
+  findByWorkPeriodId: MockedFunction<(workPeriodId: string) => Promise<TodoActivity[]>>;
+  findByDateRange: MockedFunction<(startDate: Date, endDate: Date) => Promise<TodoActivity[]>>;
+  update: MockedFunction<(id: string, todoActivity: Partial<TodoActivity>) => Promise<TodoActivity | null>>;
+  getTotalWorkTime: MockedFunction<(todoId: string) => Promise<number>>;
+  findByWorkPeriod: MockedFunction<(workPeriodId: string) => Promise<TodoActivity[]>>;
 }
 
 describe("GetTodoActivityListUseCase", () => {
@@ -46,12 +53,25 @@ describe("GetTodoActivityListUseCase", () => {
       Promise.resolve({} as TodoActivity),
     ),
     delete: mock<(id: string) => Promise<void>>(() => Promise.resolve()),
+    updateWorkPeriod: mock<(id: string, workPeriodId: string | null) => Promise<TodoActivity | null>>(() =>
+      Promise.resolve(null),
+    ),
+    findByWorkPeriodId: mock<(workPeriodId: string) => Promise<TodoActivity[]>>(() => Promise.resolve([])),
+    findByDateRange: mock<(startDate: Date, endDate: Date) => Promise<TodoActivity[]>>(() => Promise.resolve([])),
+    update: mock<(id: string, todoActivity: Partial<TodoActivity>) => Promise<TodoActivity | null>>(() =>
+      Promise.resolve(null),
+    ),
+    getTotalWorkTime: mock<(todoId: string) => Promise<number>>(() => Promise.resolve(0)),
+    findByWorkPeriod: mock<(workPeriodId: string) => Promise<TodoActivity[]>>(() => Promise.resolve([])),
   } as MockedTodoActivityRepository;
 
   let useCase: GetTodoActivityListUseCase;
 
   beforeEach(() => {
-    useCase = new GetTodoActivityListUseCase(mockTodoRepository, mockTodoActivityRepository);
+    useCase = new GetTodoActivityListUseCase(
+      mockTodoRepository,
+      mockTodoActivityRepository as unknown as TodoActivityRepository,
+    );
     // Clear mock calls between tests
     mockTodoRepository.findById.mockClear();
     mockTodoActivityRepository.findByTodoId.mockClear();

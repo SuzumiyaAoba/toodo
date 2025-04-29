@@ -1,6 +1,6 @@
-import { PrismaClient } from "../src/generated/prisma/client";
+import { prisma } from "../src/infrastructure/db";
 
-export const prisma = new PrismaClient();
+export { prisma };
 
 export const setupTestDatabase = async () => {
   // データベースをクリーンアップ

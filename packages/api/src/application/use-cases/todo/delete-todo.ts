@@ -1,4 +1,4 @@
-import { ActivityType } from "../../../domain/entities/todo-activity";
+import { ActivityType } from "@toodo/core";
 import type { TodoActivityRepository } from "../../../domain/repositories/todo-activity-repository";
 import type { TodoRepository } from "../../../domain/repositories/todo-repository";
 

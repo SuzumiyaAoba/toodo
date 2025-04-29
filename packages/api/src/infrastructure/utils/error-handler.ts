@@ -1,4 +1,3 @@
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { ProjectNameExistsError, ProjectNotFoundError } from "../../domain/errors/project-errors";
 import { TagNameExistsError, TagNotFoundError } from "../../domain/errors/tag-errors";
 import {
@@ -6,6 +5,7 @@ import {
   TodoNotFoundError,
   UnauthorizedActivityDeletionError,
 } from "../../domain/errors/todo-errors";
+import { PrismaClientKnownRequestError } from "../../generated/prisma/runtime/library";
 
 type EntityType = "Todo" | "TodoActivity" | "Tag" | "Project";
 

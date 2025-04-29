@@ -1,13 +1,14 @@
-import type { Project, ProjectId } from "../entities/project";
+import type { Project } from "@toodo/core";
 
 export interface ProjectRepository {
-  create(project: Project): Promise<Project>;
-  findById(id: ProjectId): Promise<Project | null>;
-  findByName(name: string): Promise<Project | null>;
   findAll(): Promise<Project[]>;
+  findById(id: string): Promise<Project | null>;
+  create(project: Project): Promise<Project>;
   update(project: Project): Promise<Project>;
-  delete(id: ProjectId): Promise<void>;
-  findTodosByProjectId(id: ProjectId): Promise<string[]>;
-  addTodo(projectId: ProjectId, todoId: string): Promise<void>;
-  removeTodo(projectId: ProjectId, todoId: string): Promise<void>;
+  delete(id: string): Promise<void>;
+  findByName(name: string): Promise<Project | null>;
+  findTodosByProjectId(id: string): Promise<string[]>;
+  addTodo(projectId: string, todoId: string): Promise<void>;
+  removeTodo(projectId: string, todoId: string): Promise<void>;
+  getTodosByProject(projectId: string): Promise<string[]>;
 }

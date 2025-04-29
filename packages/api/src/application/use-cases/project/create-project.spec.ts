@@ -19,6 +19,7 @@ describe("CreateProject", () => {
       findTodosByProjectId: mock(async () => []),
       addTodo: mock(async () => {}),
       removeTodo: mock(async () => {}),
+      getTodosByProject: mock(async () => []),
     };
   });
 

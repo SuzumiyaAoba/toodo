@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { type Tag, mapToDomainTag } from "../../domain/entities/tag";
 import { TodoStatus } from "../../domain/entities/todo";
 import { TagNotFoundError } from "../../domain/errors/tag-errors";
@@ -111,34 +112,6 @@ export class PrismaTagRepository extends PrismaBaseRepository<Tag, PrismaTag> im
     });
   }
 
-  async removeTagFromTodo(todoId: string, tagId: string): Promise<void> {
-    return this.executePrismaOperation(async () => {
-      // First, check if the relation exists
-      const todoTag = await this.prisma.todoTag.findUnique({
-        where: {
-          todoId_tagId: {
-            todoId,
-            tagId,
-          },
-        },
-      });
-
-      if (!todoTag) {
-        throw new Error(`Tag with ID '${tagId}' is not assigned to todo with ID '${todoId}'`);
-      }
-
-      // Execute the deletion
-      await this.prisma.todoTag.delete({
-        where: {
-          todoId_tagId: {
-            todoId,
-            tagId,
-          },
-        },
-      });
-    });
-  }
-
   async getTagsForTodo(todoId: string): Promise<Tag[]> {
     return this.executePrismaOperation(async () => {
       const todoTags = await this.prisma.todoTag.findMany({
@@ -163,13 +136,15 @@ export class PrismaTagRepository extends PrismaBaseRepository<Tag, PrismaTag> im
     return this.executePrismaOperation(async () => {
       // Use raw SQL for efficient implementation
       // Get all todos with the specified tags
-      const todos = await this.prisma.$queryRaw<Array<{ todoId: string }>>`
-        SELECT tt.todoId
-        FROM TodoTag tt
-        WHERE tt.tagId IN (${tagIds.join(",")})
-        GROUP BY tt.todoId
-        HAVING COUNT(DISTINCT tt.tagId) = ${tagIds.length}
-      `;
+      const todos = await this.prisma.$queryRawUnsafe<Array<{ todoId: string }>>(
+        `
+          SELECT tt.todoId
+          FROM TodoTag tt
+          WHERE tt.tagId IN (${tagIds.map((id) => `'${id}'`).join(",")})
+          GROUP BY tt.todoId
+          HAVING COUNT(DISTINCT tt.tagId) = ${tagIds.length}
+        `,
+      );
 
       return todos.map((todo) => todo.todoId);
     });
@@ -297,6 +272,70 @@ export class PrismaTagRepository extends PrismaBaseRepository<Tag, PrismaTag> im
 
       // Sort by usage frequency
       return statistics.sort((a, b) => b.usageCount - a.usageCount);
+    });
+  }
+
+  // --- TagRepository interface compatibility methods ---
+  async findAll(): Promise<Tag[]> {
+    return this.getAllTags();
+  }
+
+  async findById(id: string): Promise<Tag | null> {
+    return this.getTagById(id);
+  }
+
+  async create(tag: Tag): Promise<Tag> {
+    // createTag expects name and color
+    return this.createTag(tag.name, tag.color ?? undefined);
+  }
+
+  async update(tag: Tag): Promise<Tag> {
+    return this.updateTag(tag.id, tag.name, tag.color ?? undefined);
+  }
+
+  async delete(id: string): Promise<void> {
+    return this.deleteTag(id);
+  }
+
+  async findByName(name: string): Promise<Tag | null> {
+    return this.getTagByName(name);
+  }
+
+  async getTodosByTagId(id: string): Promise<string[]> {
+    return this.getTodoIdsForTag(id);
+  }
+
+  async addTagToTodo(tagId: string, todoId: string): Promise<void> {
+    return this.assignTagToTodo(todoId, tagId);
+  }
+
+  // TagRepositoryインターフェースの引数順(tagId, todoId)に合わせる
+  async removeTagFromTodo(tagId: string, todoId: string): Promise<void> {
+    return this.executePrismaOperation(async () => {
+      // First, check if the relation exists
+      const todoTag = await this.prisma.todoTag.findUnique({
+        where: {
+          todoId_tagId: {
+            todoId,
+            tagId,
+          },
+        },
+      });
+
+      // If the relation doesn't exist, return silently
+      if (!todoTag) {
+        return;
+      }
+
+      // Execute the deletion
+      await this.prisma.todoTag.delete({
+        where: {
+          todoId_tagId: {
+            todoId,
+            tagId,
+          },
+        },
+      });
     });
   }
 }

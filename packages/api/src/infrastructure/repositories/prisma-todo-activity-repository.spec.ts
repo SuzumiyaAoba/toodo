@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
+import { ActivityType, type TodoActivity } from "@toodo/core";
 import { WorkState } from "../../domain/entities/todo";
-import { ActivityType, type TodoActivity } from "../../domain/entities/todo-activity";
 import { TodoActivityNotFoundError } from "../../domain/errors/todo-errors";
 import type { PrismaClient } from "../../generated/prisma";
 import type { DefaultArgs, PrismaClientOptions } from "../../generated/prisma/runtime/library";

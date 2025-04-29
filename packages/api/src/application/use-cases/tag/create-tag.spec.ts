@@ -36,12 +36,35 @@ describe("CreateTagUseCase", () => {
       removeTagFromTodo: mock(() => Promise.resolve()),
       getTagsForTodo: mock(() => Promise.resolve([])),
       getTodoIdsForTag: mock(() => Promise.resolve([])),
-      // 追加されたメソッド
       getTodoIdsWithAllTags: mock(() => Promise.resolve([])),
       getTodoIdsWithAnyTag: mock(() => Promise.resolve([])),
       bulkAssignTagToTodos: mock(() => Promise.resolve(0)),
       bulkRemoveTagFromTodos: mock(() => Promise.resolve(0)),
       getTagStatistics: mock(() => Promise.resolve([])),
+      findAll: mock(() => Promise.resolve([])),
+      findById: mock(() => Promise.resolve(null)),
+      create: mock(() =>
+        Promise.resolve({
+          id: "mock-tag-id",
+          name: "Mock Tag",
+          color: "#000000",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        } as Tag),
+      ),
+      update: mock(() =>
+        Promise.resolve({
+          id: "mock-tag-id",
+          name: "Mock Tag",
+          color: "#000000",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        } as Tag),
+      ),
+      findByName: mock(() => Promise.resolve(null)),
+      getTodosByTagId: mock(() => Promise.resolve([])),
+      addTagToTodo: mock(() => Promise.resolve()),
+      delete: mock(() => Promise.resolve()),
     };
 
     createTagUseCase = new CreateTagUseCase(tagRepository);
@@ -147,6 +170,26 @@ describe("CreateTagUseCase", () => {
       bulkAssignTagToTodos: async () => 0,
       bulkRemoveTagFromTodos: async () => 0,
       getTagStatistics: async () => [],
+      findAll: async () => [],
+      findById: async () => null,
+      create: async () => ({
+        id: "mock-tag-id",
+        name: "Mock Tag",
+        color: "#000000",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }),
+      update: async () => ({
+        id: "mock-tag-id",
+        name: "Mock Tag",
+        color: "#000000",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }),
+      findByName: async () => null,
+      getTodosByTagId: async () => [],
+      addTagToTodo: async () => {},
+      delete: async () => {},
     };
     const useCase = new CreateTagUseCase(realTagRepository);
 
@@ -195,6 +238,26 @@ describe("CreateTagUseCase", () => {
       bulkAssignTagToTodos: async () => 0,
       bulkRemoveTagFromTodos: async () => 0,
       getTagStatistics: async () => [],
+      findAll: async () => [],
+      findById: async () => null,
+      create: async () => ({
+        id: "mock-tag-id",
+        name: "Mock Tag",
+        color: "#000000",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }),
+      update: async () => ({
+        id: "mock-tag-id",
+        name: "Mock Tag",
+        color: "#000000",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }),
+      findByName: async () => null,
+      getTodosByTagId: async () => [],
+      addTagToTodo: async () => {},
+      delete: async () => {},
     };
     const useCase = new CreateTagUseCase(realTagRepository);
 

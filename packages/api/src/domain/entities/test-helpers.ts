@@ -1,5 +1,7 @@
 import { mock } from "bun:test";
+import type { Tag } from "@toodo/core";
 import type { ProjectRepository } from "../repositories/project-repository";
+import type { TagRepository } from "../repositories/tag-repository";
 import type { TodoRepository } from "../repositories/todo-repository";
 import type { Project } from "./project";
 import type { PriorityLevel, Todo, TodoStatus, WorkState } from "./todo";
@@ -134,6 +136,9 @@ export function createMockedTodoRepository(): TodoRepository {
     findOverdue: mock(() => Promise.resolve([])),
     findDueSoon: mock(() => Promise.resolve([])),
     findByDueDateRange: mock(() => Promise.resolve([])),
+    findByState: mock(() => Promise.resolve([])),
+    findUnassignedSubtasks: mock(() => Promise.resolve([])),
+    findSubtasks: mock(() => Promise.resolve([])),
   };
 }
 
@@ -151,5 +156,38 @@ export function createMockedProjectRepository(): ProjectRepository {
     findTodosByProjectId: mock(() => Promise.resolve([])),
     addTodo: mock(() => Promise.resolve()),
     removeTodo: mock(() => Promise.resolve()),
+    getTodosByProject: mock(() => Promise.resolve([])),
   };
+}
+
+/**
+ * Create a mocked TagRepository
+ */
+export function createMockedTagRepository(): TagRepository {
+  const removeTagFromTodo = mock((a: string, b: string) => Promise.resolve());
+  return {
+    createTag: mock(() => Promise.resolve({} as Tag)),
+    getTagById: mock(() => Promise.resolve(null)),
+    getTagByName: mock(() => Promise.resolve(null)),
+    getAllTags: mock(() => Promise.resolve([])),
+    updateTag: mock(() => Promise.resolve({} as Tag)),
+    deleteTag: mock(() => Promise.resolve()),
+    assignTagToTodo: mock(() => Promise.resolve()),
+    removeTagFromTodo,
+    getTagsForTodo: mock(() => Promise.resolve([])),
+    getTodoIdsForTag: mock(() => Promise.resolve([])),
+    getTodoIdsWithAllTags: mock(() => Promise.resolve([])),
+    getTodoIdsWithAnyTag: mock(() => Promise.resolve([])),
+    bulkAssignTagToTodos: mock(() => Promise.resolve(0)),
+    bulkRemoveTagFromTodos: mock(() => Promise.resolve(0)),
+    getTagStatistics: mock(() => Promise.resolve([])),
+    findAll: mock(() => Promise.resolve([])),
+    findById: mock(() => Promise.resolve(null)),
+    create: mock(() => Promise.resolve({} as Tag)),
+    update: mock(() => Promise.resolve({} as Tag)),
+    delete: mock(() => Promise.resolve()),
+    findByName: mock(() => Promise.resolve(null)),
+    getTodosByTagId: mock(() => Promise.resolve([])),
+    addTagToTodo: mock(() => Promise.resolve()),
+  } as unknown as TagRepository;
 }

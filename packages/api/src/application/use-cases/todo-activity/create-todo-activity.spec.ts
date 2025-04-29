@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
+import { ActivityType, type TodoActivity } from "@toodo/core";
 import { createTestTodo } from "../../../domain/entities/test-helpers";
 import { PriorityLevel, Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
-import { ActivityType, type TodoActivity } from "../../../domain/entities/todo-activity";
 import { InvalidStateTransitionError, TodoNotFoundError } from "../../../domain/errors/todo-errors";
 import type { TodoActivityRepository } from "../../../domain/repositories/todo-activity-repository";
 import type { TodoRepository } from "../../../domain/repositories/todo-repository";
@@ -18,9 +18,13 @@ interface MockedTodoRepository extends TodoRepository {
 }
 
 interface MockedTodoActivityRepository extends TodoActivityRepository {
-  findByTodoId: MockedFunction<(todoId: string) => Promise<TodoActivity[]>>;
-  findById: MockedFunction<(id: string) => Promise<TodoActivity | null>>;
-  create: MockedFunction<(activity: Omit<TodoActivity, "id" | "createdAt">) => Promise<TodoActivity>>;
+  findByTodoId: MockedFunction<(todoId: string) => Promise<import("@toodo/core").TodoActivity[]>>;
+  findById: MockedFunction<(id: string) => Promise<import("@toodo/core").TodoActivity | null>>;
+  create: MockedFunction<
+    (
+      activity: Omit<import("@toodo/core").TodoActivity, "id" | "createdAt">,
+    ) => Promise<import("@toodo/core").TodoActivity>
+  >;
   delete: MockedFunction<(id: string) => Promise<void>>;
 }
 
@@ -37,11 +41,13 @@ describe("CreateTodoActivityUseCase", () => {
   } as MockedTodoRepository;
 
   const mockTodoActivityRepository = {
-    findByTodoId: mock<(todoId: string) => Promise<TodoActivity[]>>(() => Promise.resolve([])),
-    findById: mock<(id: string) => Promise<TodoActivity | null>>(() => Promise.resolve(null)),
-    create: mock<(activity: Omit<TodoActivity, "id" | "createdAt">) => Promise<TodoActivity>>(() =>
-      Promise.resolve({} as TodoActivity),
-    ),
+    findByTodoId: mock<(todoId: string) => Promise<import("@toodo/core").TodoActivity[]>>(() => Promise.resolve([])),
+    findById: mock<(id: string) => Promise<import("@toodo/core").TodoActivity | null>>(() => Promise.resolve(null)),
+    create: mock<
+      (
+        activity: Omit<import("@toodo/core").TodoActivity, "id" | "createdAt">,
+      ) => Promise<import("@toodo/core").TodoActivity>
+    >(() => Promise.resolve({} as import("@toodo/core").TodoActivity)),
     delete: mock<(id: string) => Promise<void>>(() => Promise.resolve()),
   } as MockedTodoActivityRepository;
 
@@ -102,7 +108,7 @@ describe("CreateTodoActivityUseCase", () => {
       previousState: WorkState.IDLE,
       note: "Starting work",
       createdAt: now,
-    };
+    } as any;
 
     const updatedTodo = createTestTodo({
       id: todoId,
@@ -174,7 +180,7 @@ describe("CreateTodoActivityUseCase", () => {
         id: "activity-id",
         ...data,
         createdAt: now,
-      }),
+      } as any),
     );
     mockTodoRepository.update.mockImplementation((id, data) =>
       Promise.resolve(
@@ -269,7 +275,7 @@ describe("CreateTodoActivityUseCase", () => {
         id: "activity-id",
         ...data,
         createdAt: now,
-      }),
+      } as any),
     );
     mockTodoRepository.update.mockImplementation((id, data) =>
       Promise.resolve(

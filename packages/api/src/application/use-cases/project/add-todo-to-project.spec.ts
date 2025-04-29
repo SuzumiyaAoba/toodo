@@ -41,6 +41,8 @@ describe("AddTodoToProjectUseCase", () => {
       addTodo: mock((projectId: string, todoId: string) => Promise.resolve()),
       removeTodo: mock((projectId: string, todoId: string) => Promise.resolve()),
       findTodosByProjectId: mock((projectId: string) => Promise.resolve([])),
+      findByName: mock(() => Promise.resolve(null)),
+      getTodosByProject: mock((projectId: string) => Promise.resolve([])),
     } as unknown as ProjectRepository;
 
     mockTodoRepository = {

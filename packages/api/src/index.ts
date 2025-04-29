@@ -38,7 +38,7 @@ import { GetTodoUseCase } from "./application/use-cases/todo/get-todo";
 import { GetTodoListUseCase } from "./application/use-cases/todo/get-todo-list";
 import { GetTodoWorkTimeUseCase } from "./application/use-cases/todo/get-todo-work-time";
 import { UpdateTodoUseCase } from "./application/use-cases/todo/update-todo";
-import { PrismaClient } from "./generated/prisma/client";
+import { prisma } from "./infrastructure/db";
 import { PrismaProjectRepository } from "./infrastructure/repositories/prisma-project-repository";
 import { PrismaTagRepository } from "./infrastructure/repositories/prisma-tag-repository";
 import { PrismaTodoActivityRepository } from "./infrastructure/repositories/prisma-todo-activity-repository";
@@ -49,9 +49,6 @@ import { setupTagRoutes } from "./presentation/routes/tag-routes";
 import { setupTodoDependencyRoutes } from "./presentation/routes/todo-dependency-routes";
 import { setupTodoDueDateRoutes } from "./presentation/routes/todo-due-date-routes";
 import { setupTodoRoutes } from "./presentation/routes/todo-routes";
-
-// Initialize Prisma client
-const prisma = new PrismaClient();
 
 // Initialize repositories
 const todoRepository = new PrismaTodoRepository(prisma);

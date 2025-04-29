@@ -9,7 +9,7 @@ import {
   TodoNotFoundError,
   UnauthorizedActivityDeletionError,
 } from "../../domain/errors/todo-errors";
-import { ErrorCode } from "../errors/api-errors";
+import { ErrorCode } from "../errors/error-codes";
 import { errorHandler } from "./error-handler";
 
 // Helper function to create a mock context
@@ -76,7 +76,12 @@ describe("errorHandler", () => {
     const context = await runMiddleware(error);
 
     expect(context.json).toHaveBeenCalledWith(
-      { error: expect.objectContaining({ code: ErrorCode.INVALID_STATE }) },
+      {
+        error: {
+          code: ErrorCode.BAD_REQUEST,
+          message: "Cannot transition from COMPLETED to IN_PROGRESS",
+        },
+      },
       400,
     );
   });
@@ -110,8 +115,10 @@ describe("errorHandler", () => {
 
     expect(context.json).toHaveBeenCalledWith(
       {
-        error: expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR }),
-        details: expect.any(Array),
+        error: {
+          code: ErrorCode.BAD_REQUEST,
+          message: "Validation error",
+        },
       },
       400,
     );
@@ -122,7 +129,12 @@ describe("errorHandler", () => {
     const context = await runMiddleware(error);
 
     expect(context.json).toHaveBeenCalledWith(
-      { error: expect.objectContaining({ code: ErrorCode.INTERNAL_ERROR }) },
+      {
+        error: {
+          code: ErrorCode.INTERNAL_SERVER_ERROR,
+          message: "An unexpected error occurred",
+        },
+      },
       500,
     );
   });

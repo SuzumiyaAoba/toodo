@@ -1,5 +1,5 @@
+import { ActivityType, type TodoActivity } from "@toodo/core";
 import { type Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
-import { ActivityType, type TodoActivity } from "../../../domain/entities/todo-activity";
 import { InvalidStateTransitionError, TodoNotFoundError } from "../../../domain/errors/todo-errors";
 import type { TodoActivityRepository } from "../../../domain/repositories/todo-activity-repository";
 import type { TodoRepository } from "../../../domain/repositories/todo-repository";
@@ -32,13 +32,36 @@ export class CreateTodoActivityUseCase {
       throw new TodoNotFoundError(todoId);
     }
 
+    // ActivityTypeのstring値をenumに変換
+    let activityType: ActivityType;
+    switch (data.type) {
+      case ActivityType.STARTED:
+      case "started":
+        activityType = ActivityType.STARTED;
+        break;
+      case ActivityType.PAUSED:
+      case "paused":
+        activityType = ActivityType.PAUSED;
+        break;
+      case ActivityType.COMPLETED:
+      case "completed":
+        activityType = ActivityType.COMPLETED;
+        break;
+      case ActivityType.DISCARDED:
+      case "discarded":
+        activityType = ActivityType.DISCARDED;
+        break;
+      default:
+        throw new InvalidStateTransitionError(`Unknown activity type: ${data.type}`);
+    }
+
     // Calculate work time and determine the new state
-    const { workTime, newWorkState } = this.calculateWorkTimeAndState(todo, data.type as ActivityType);
+    const { workTime, newWorkState } = this.calculateWorkTimeAndState(todo, activityType);
 
     // Create the activity record
     const activity = await this.todoActivityRepository.create({
       todoId,
-      type: data.type as ActivityType,
+      type: activityType,
       workTime: workTime ?? undefined,
       previousState: todo.workState,
       note: data.note,
@@ -46,12 +69,12 @@ export class CreateTodoActivityUseCase {
 
     // Update the todo's state and work time
     let totalWorkTime = todo.totalWorkTime;
-    if (workTime && ["paused", "completed"].includes(data.type)) {
+    if (workTime && [ActivityType.PAUSED, ActivityType.COMPLETED].includes(activityType)) {
       totalWorkTime += workTime;
     }
 
     await this.todoRepository.update(todoId, {
-      status: data.type === "completed" ? TodoStatus.COMPLETED : todo.status,
+      status: activityType === ActivityType.COMPLETED ? TodoStatus.COMPLETED : todo.status,
       workState: newWorkState,
       totalWorkTime,
       lastStateChangeAt: new Date(),
