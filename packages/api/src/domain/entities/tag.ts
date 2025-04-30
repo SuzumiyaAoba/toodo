@@ -1,3 +1,4 @@
+import type { Tag as CoreTag } from "@toodo/core";
 import type { Tag as PrismaTag } from "../../generated/prisma";
 
 /**
@@ -8,10 +9,10 @@ export type TagId = string;
 /**
  * Tag entity
  */
-export interface Tag {
+export interface Tag extends CoreTag {
   id: string;
   name: string;
-  color?: string | null;
+  color?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -19,12 +20,10 @@ export interface Tag {
 /**
  * Convert PrismaTag to Tag domain entity
  */
-export function mapToDomainTag(prismaTag: PrismaTag): Tag {
-  return {
-    id: prismaTag.id,
-    name: prismaTag.name,
-    color: prismaTag.color === null ? undefined : prismaTag.color,
-    createdAt: prismaTag.createdAt,
-    updatedAt: prismaTag.updatedAt,
-  };
-}
+export const mapToDomainTag = (prismaTag: PrismaTag): Tag => ({
+  id: prismaTag.id,
+  name: prismaTag.name,
+  color: prismaTag.color ?? undefined,
+  createdAt: prismaTag.createdAt,
+  updatedAt: prismaTag.updatedAt,
+});

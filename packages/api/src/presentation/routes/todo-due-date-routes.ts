@@ -1,67 +1,138 @@
 import { vValidator } from "@hono/valibot-validator";
 import type { Hono } from "hono";
 import type { Env, Schema } from "hono";
-import type * as v from "valibot";
-import type { BulkUpdateDueDateUseCase } from "../../application/use-cases/todo/due-date/bulk-update-due-date";
-import type { FindByDueDateRangeUseCase } from "../../application/use-cases/todo/due-date/find-by-due-date-range";
-import type { FindDueSoonTodosUseCase } from "../../application/use-cases/todo/due-date/find-due-soon-todos";
-import type { FindOverdueTodosUseCase } from "../../application/use-cases/todo/due-date/find-overdue-todos";
-import {
-  BulkDueDateUpdateSchema,
-  DueDateQuerySchema,
-  DueDateRangeQuerySchema,
-  ErrorResponseSchema,
-  TodoListSchema,
-} from "../schemas/todo-schemas";
+import { array, date, object, string } from "valibot";
+import { BulkUpdateDueDateUseCase } from "../../application/use-cases/todo/due-date/bulk-update-due-date";
+import { FindByDueDateRangeUseCase } from "../../application/use-cases/todo/due-date/find-by-due-date-range";
+import { FindDueSoonTodosUseCase } from "../../application/use-cases/todo/due-date/find-due-soon-todos";
+import { FindOverdueTodosUseCase } from "../../application/use-cases/todo/due-date/find-overdue-todos";
+import { TodoNotFoundError } from "../../domain/errors/todo-errors";
+import type { TodoRepository } from "../../domain/repositories/todo-repository";
+
+const updateTodoDueDateSchema = object({
+  dueDate: string(),
+});
+
+const updateTodosDueDateSchema = object({
+  todoIds: array(string()),
+  dueDate: string(),
+});
+
+const dueDateRangeQuerySchema = object({
+  startDate: string(),
+  endDate: string(),
+});
+
+type DueDateRangeQuery = {
+  startDate: string;
+  endDate: string;
+};
+
+type UpdateTodoDueDateBody = {
+  dueDate: string;
+};
+
+type UpdateTodosDueDateBody = {
+  todoIds: string[];
+  dueDate: string;
+};
 
 /**
  * Setup API routes for Todo due date features
  */
 export function setupTodoDueDateRoutes<E extends Env = Env, S extends Schema = Schema>(
   app: Hono<E, S>,
-  findOverdueTodosUseCase: FindOverdueTodosUseCase,
-  findDueSoonTodosUseCase: FindDueSoonTodosUseCase,
-  findByDueDateRangeUseCase: FindByDueDateRangeUseCase,
-  bulkUpdateDueDateUseCase: BulkUpdateDueDateUseCase,
+  todoRepository: TodoRepository,
 ): Hono<E, S> {
   // Get overdue todos
   app.get("/todos/overdue", async (c) => {
-    const todos = await findOverdueTodosUseCase.execute();
-    return c.json(todos);
+    try {
+      const findOverdueTodosUseCase = new FindOverdueTodosUseCase(todoRepository);
+      const todos = await findOverdueTodosUseCase.execute();
+      return c.json(todos);
+    } catch (error) {
+      console.error(error);
+      return c.json({ error: "Failed to get overdue todos" }, 500);
+    }
   });
 
   // Get todos due soon
-  app.get("/todos/due-soon", vValidator("query", DueDateQuerySchema), async (c) => {
-    const query = c.req.valid("query") as v.InferOutput<typeof DueDateQuerySchema>;
-    const days = query.days ?? 2; // Default is 2 days
-    const todos = await findDueSoonTodosUseCase.execute(days);
-    return c.json(todos);
+  app.get("/todos/due-soon", async (c) => {
+    try {
+      const findDueSoonTodosUseCase = new FindDueSoonTodosUseCase(todoRepository);
+      const todos = await findDueSoonTodosUseCase.execute(7);
+      return c.json(todos);
+    } catch (error) {
+      console.error(error);
+      return c.json({ error: "Failed to get todos due soon" }, 500);
+    }
   });
 
   // Get todos by due date range
-  app.get("/todos/by-due-date", vValidator("query", DueDateRangeQuerySchema), async (c) => {
-    const { startDate, endDate } = c.req.valid("query") as v.InferOutput<typeof DueDateRangeQuerySchema>;
+  app.get("/todos/due-date/range", vValidator("query", dueDateRangeQuerySchema), async (c) => {
+    try {
+      const { startDate, endDate } = c.req.valid("query") as DueDateRangeQuery;
+      const startDateTime = new Date(startDate);
+      const endDateTime = new Date(endDate);
 
-    // Error if end date is before start date
-    if (endDate < startDate) {
-      return c.json({ error: "End date must be after start date" }, 400);
+      if (Number.isNaN(startDateTime.getTime()) || Number.isNaN(endDateTime.getTime())) {
+        return c.json({ error: "Invalid date format" }, 400);
+      }
+
+      const findByDueDateRangeUseCase = new FindByDueDateRangeUseCase(todoRepository);
+      const todos = await findByDueDateRangeUseCase.execute(startDateTime, endDateTime);
+
+      return c.json(todos);
+    } catch (error) {
+      console.error(error);
+      return c.json({ error: "Failed to get todos by due date range" }, 500);
     }
-
-    const todos = await findByDueDateRangeUseCase.execute(startDate, endDate);
-    return c.json(todos);
   });
 
-  // Bulk update due dates
-  app.post("/todos/bulk-due-date", vValidator("json", BulkDueDateUpdateSchema), async (c) => {
-    const { todoIds, dueDate } = c.req.valid("json") as v.InferOutput<typeof BulkDueDateUpdateSchema>;
+  // Update todo due date
+  app.put("/todos/:id/due-date", vValidator("json", updateTodoDueDateSchema), async (c) => {
+    try {
+      const todoId = c.req.param("id");
+      const { dueDate } = c.req.valid("json") as UpdateTodoDueDateBody;
 
-    // At least one ID is required
-    if (todoIds.length === 0) {
-      return c.json({ error: "At least one todo ID is required" }, 400);
+      const todo = await todoRepository.findById(todoId);
+      if (!todo) {
+        return c.json({ error: "Todo not found" }, 404);
+      }
+
+      const updatedTodo = await todoRepository.update(todoId, {
+        dueDate: new Date(dueDate),
+      });
+
+      return c.json(updatedTodo);
+    } catch (error) {
+      console.error(error);
+      if (error instanceof TodoNotFoundError) {
+        return c.json({ error: error.message }, 404);
+      }
+      return c.json({ error: "Failed to update todo due date" }, 500);
     }
+  });
 
-    const updatedTodos = await bulkUpdateDueDateUseCase.execute(todoIds, dueDate);
-    return c.json(updatedTodos);
+  // Bulk update todo due dates
+  app.patch("/todos/due-date/bulk", vValidator("json", updateTodosDueDateSchema), async (c) => {
+    try {
+      const { todoIds, dueDate } = c.req.valid("json") as UpdateTodosDueDateBody;
+
+      const bulkUpdateDueDateUseCase = new BulkUpdateDueDateUseCase(todoRepository);
+      const updatedTodos = await bulkUpdateDueDateUseCase.execute(todoIds, new Date(dueDate));
+
+      return c.json(updatedTodos);
+    } catch (error) {
+      console.error(error);
+      if (error instanceof TodoNotFoundError) {
+        return c.json({ error: error.message }, 404);
+      }
+      if (error instanceof Error) {
+        return c.json({ error: error.message }, 400);
+      }
+      return c.json({ error: "Failed to update todo due dates" }, 500);
+    }
   });
 
   return app;

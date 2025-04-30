@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { WorkPeriod, WorkPeriodCreateInput } from "@toodo/core";
+import type { WorkPeriod } from "@toodo/core";
 import type { WorkPeriodRepository } from "../../../domain/repositories/work-period-repository";
 
 export interface CreateWorkPeriodDTO {
@@ -17,10 +17,10 @@ export class CreateWorkPeriodUseCase {
    * @param dto 作業期間作成用のデータ
    * @returns 作成された作業期間
    */
-  async execute(dto: CreateWorkPeriodDTO): Promise<WorkPeriod> {
+  async execute(input: CreateWorkPeriodDTO): Promise<WorkPeriod> {
     // 重複チェック
-    const { startTime, endTime, date = new Date() } = dto;
-    const overlapping = await this.workPeriodRepository.findOverlapping(startTime, endTime, date);
+    const { startTime, endTime, date } = input;
+    const overlapping = await this.workPeriodRepository.findOverlapping(startTime, endTime, date ?? new Date());
 
     // 重複がある場合はエラー
     if (overlapping.length > 0) {
@@ -34,10 +34,10 @@ export class CreateWorkPeriodUseCase {
 
     // 作業期間を作成
     const workPeriod = await this.workPeriodRepository.create({
-      name: dto.name,
-      date: dto.date ?? new Date(),
-      startTime: dto.startTime,
-      endTime: dto.endTime,
+      name: input.name,
+      date: input.date,
+      startTime: input.startTime,
+      endTime: input.endTime,
     });
 
     return workPeriod;

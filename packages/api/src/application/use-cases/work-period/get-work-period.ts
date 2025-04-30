@@ -1,15 +1,10 @@
 import type { WorkPeriod } from "@toodo/core";
 import type { WorkPeriodRepository } from "../../../domain/repositories/work-period-repository";
 
-export interface GetWorkPeriodsDTO {
-  startDate?: Date;
-  endDate?: Date;
-}
-
-export class GetWorkPeriodsUseCase {
+export class GetWorkPeriodUseCase {
   constructor(private readonly workPeriodRepository: WorkPeriodRepository) {}
 
-  async execute(): Promise<WorkPeriod[]> {
-    return this.workPeriodRepository.findAll();
+  async execute(id: string): Promise<WorkPeriod | null> {
+    return this.workPeriodRepository.findById(id);
   }
 }

@@ -1,4 +1,5 @@
 import type { ErrorHandler } from "hono";
+import { HTTPException } from "hono/http-exception";
 import { ProjectNameExistsError, ProjectNotFoundError } from "../../domain/errors/project-errors";
 import { TagNameExistsError, TagNotFoundError } from "../../domain/errors/tag-errors";
 import {
@@ -12,7 +13,7 @@ import { ErrorCode, type ErrorResponse } from "../errors/error-codes";
 /**
  * Honoのエラーハンドラー
  */
-export const errorHandler: ErrorHandler = (err, c) => {
+export const errorHandler: ErrorHandler = (err: unknown, c) => {
   console.error(err);
 
   const errorResponse: ErrorResponse = {
@@ -54,12 +55,23 @@ export const errorHandler: ErrorHandler = (err, c) => {
   }
 
   // Validation Errors
-  if (err.name === "ValiError") {
+  if (err instanceof Error && err.name === "ValiError") {
     errorResponse.code = ErrorCode.BAD_REQUEST;
     errorResponse.message = "Validation error";
     return c.json({ error: errorResponse }, 400);
   }
 
+  // HTTP Exceptions
+  if (err instanceof HTTPException) {
+    errorResponse.code = ErrorCode.BAD_REQUEST;
+    errorResponse.message = err.message;
+    return c.json({ error: errorResponse }, err.status);
+  }
+
   // Default error response
+  if (err instanceof Error) {
+    errorResponse.message = err.message;
+  }
+
   return c.json({ error: errorResponse }, 500);
 };

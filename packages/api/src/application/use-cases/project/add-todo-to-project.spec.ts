@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, mock } from "bun:test";
-import { Project } from "../../../domain/entities/project";
+import { Project } from "@toodo/core";
 import { createMockedTodoRepository } from "../../../domain/entities/test-helpers";
 import { PriorityLevel, Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
 import {
@@ -58,7 +58,7 @@ describe("AddTodoToProjectUseCase", () => {
     // Arrange
     const projectId = "project-1";
     const todoId = "todo-1";
-    const existingProject = new Project(projectId, "Test Project");
+    const existingProject = { id: projectId, name: "Test Project" } as Project;
     const existingTodo = createMockTodo(todoId, "Test Todo");
     const updatedTodo = existingTodo.assignToProject(projectId);
 
@@ -106,7 +106,7 @@ describe("AddTodoToProjectUseCase", () => {
     // Arrange
     const projectId = "project-1";
     const todoId = "non-existent-todo";
-    const existingProject = new Project(projectId, "Test Project");
+    const existingProject = { id: projectId, name: "Test Project" } as Project;
 
     mockProjectRepository.findById = mock(async () => existingProject);
     mockTodoRepository.findById = mock(async () => null);

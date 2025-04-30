@@ -5,9 +5,10 @@ import {
   TodoNotFoundError,
   UnauthorizedActivityDeletionError,
 } from "../../domain/errors/todo-errors";
+import { WorkPeriodNotFoundError } from "../../domain/errors/work-period-errors";
 import { PrismaClientKnownRequestError } from "../../generated/prisma/runtime/library";
 
-type EntityType = "Todo" | "TodoActivity" | "Tag" | "Project";
+type EntityType = "Todo" | "TodoActivity" | "Tag" | "Project" | "WorkPeriod";
 
 /**
  * Converts Prisma errors to domain-specific errors
@@ -30,6 +31,8 @@ export function handlePrismaError(error: unknown, entityType: EntityType, entity
           throw new TagNotFoundError(entityId || "unknown");
         case "Project":
           throw new ProjectNotFoundError(entityId || "unknown");
+        case "WorkPeriod":
+          throw new WorkPeriodNotFoundError(entityId || "unknown");
       }
     }
 

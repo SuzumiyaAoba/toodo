@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
-import { PriorityLevel, Todo, TodoStatus, WorkState } from "@toodo/core/dist/domain/entities/todo";
-import { ActivityType } from "@toodo/core/dist/domain/entities/todo-activity";
-import type { TodoActivity } from "@toodo/core/dist/domain/entities/todo-activity";
-import type { TodoRepository } from "@toodo/core/dist/domain/repositories/todo-repository";
+import { PriorityLevel, Todo, TodoStatus, WorkState } from "@toodo/core";
+import { ActivityType } from "@toodo/core";
+import type { TodoActivity } from "@toodo/core";
+import type { TodoRepository } from "@toodo/core";
 import { createTestTodo } from "../../../domain/entities/test-helpers";
 import {
   TodoActivityNotFoundError,

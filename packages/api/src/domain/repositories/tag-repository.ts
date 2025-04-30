@@ -8,7 +8,7 @@ export interface TagRepository {
   /**
    * Create a new tag
    */
-  createTag(name: string, color?: string | null): Promise<Tag>;
+  createTag(name: string, color?: string): Promise<Tag>;
 
   /**
    * Get a tag by ID
@@ -28,7 +28,7 @@ export interface TagRepository {
   /**
    * Update a tag
    */
-  updateTag(id: string, name?: string, color?: string | null): Promise<Tag>;
+  updateTag(id: string, name?: string, color?: string): Promise<Tag>;
 
   /**
    * Delete a tag

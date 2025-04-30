@@ -5,7 +5,8 @@
     "format": "biome check --write"
   },
   "dependencies": {
-    "lint-staged": "^15.5.0"
+    "lint-staged": "^15.5.0",
+    "valibot": "^1.0.0"
   },
   "devDependencies": {
     "@types/bun": "^1.2.10",

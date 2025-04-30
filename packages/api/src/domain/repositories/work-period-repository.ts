@@ -1,4 +1,5 @@
 import type { WorkPeriod, WorkPeriodCreateInput } from "@toodo/core";
+import type { TodoActivity } from "@toodo/core";
 
 export interface WorkPeriodStatistics {
   totalWorkPeriodTime: number; // 稼働時間の合計（ミリ秒）
@@ -56,6 +57,26 @@ export interface WorkPeriodRepository {
    * @param id Work period id
    */
   delete(id: string): Promise<void>;
+
+  /**
+   * Add activity to work period
+   * @param workPeriodId Work period id
+   * @param activityId Activity id
+   */
+  addActivity(workPeriodId: string, activityId: string): Promise<void>;
+
+  /**
+   * Remove activity from work period
+   * @param workPeriodId Work period id
+   * @param activityId Activity id
+   */
+  removeActivity(workPeriodId: string, activityId: string): Promise<void>;
+
+  /**
+   * Get activities in work period
+   * @param workPeriodId Work period id
+   */
+  getActivities(workPeriodId: string): Promise<TodoActivity[]>;
 
   /**
    * Get statistics for work periods

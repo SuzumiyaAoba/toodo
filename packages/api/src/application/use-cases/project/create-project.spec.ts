@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, mock } from "bun:test";
-import { Project } from "../../../domain/entities/project";
+import { Project, type ProjectStatus } from "@toodo/core";
 import { ProjectNameExistsError } from "../../../domain/errors/project-errors";
 import type { ProjectRepository } from "../../../domain/repositories/project-repository";
 import { CreateProject } from "./create-project";
@@ -36,7 +36,6 @@ describe("CreateProject", () => {
     const createdProject = await useCase.execute(projectData);
 
     expect(createdProject.name).toBe(projectData.name);
-    // toEqualではなく、型を考慮した条件チェックに変更
     if (projectData.description) {
       expect(createdProject.description).toBe(projectData.description);
     }
@@ -49,7 +48,7 @@ describe("CreateProject", () => {
   });
 
   it("should throw an error if a project with the same name already exists", async () => {
-    const existingProject = new Project("project-1", "Test Project");
+    const existingProject = Project.create("project-1", "Test Project");
     mockProjectRepository.findByName = mock(async () => existingProject);
     mockProjectRepository.create = mock(async (project: Project) => project);
 
@@ -68,7 +67,7 @@ describe("CreateProject", () => {
 
     const projectData: CreateProjectInput = {
       name: "Test Project",
-      status: "archived",
+      status: "archived" as ProjectStatus,
     };
 
     const useCase = new CreateProject(mockProjectRepository);

@@ -25,7 +25,7 @@ describe("UpdateProject", () => {
 
   it("should update a project's name", async () => {
     const projectId = "project-1";
-    const existingProject = new Project(projectId, "Original Project", "active", "Original Description", "#FF5733");
+    const existingProject = new Project(projectId, "Original Project", "Original Description", "#FF5733", "active");
     mockProjectRepository.findById = mock(async () => existingProject);
     mockProjectRepository.findByName = mock(async () => null);
     mockProjectRepository.update = mock(async (project) => project);
@@ -50,7 +50,7 @@ describe("UpdateProject", () => {
 
   it("should update a project's description", async () => {
     const projectId = "project-1";
-    const existingProject = new Project(projectId, "Test Project", "active", "Original Description", "#FF5733");
+    const existingProject = new Project(projectId, "Test Project", "Original Description", "#FF5733", "active");
     mockProjectRepository.findById = mock(async () => existingProject);
     mockProjectRepository.update = mock(async (project) => project);
 
@@ -69,7 +69,7 @@ describe("UpdateProject", () => {
 
   it("should update a project's color", async () => {
     const projectId = "project-1";
-    const existingProject = new Project(projectId, "Test Project", "active", "Test Description", "#FF5733");
+    const existingProject = new Project(projectId, "Test Project", "Test Description", "#FF5733", "active");
     mockProjectRepository.findById = mock(async () => existingProject);
     mockProjectRepository.update = mock(async (project) => project);
 
@@ -88,7 +88,7 @@ describe("UpdateProject", () => {
 
   it("should update a project's status", async () => {
     const projectId = "project-1";
-    const existingProject = new Project(projectId, "Test Project", "active", "Test Description", "#FF5733");
+    const existingProject = new Project(projectId, "Test Project", "Test Description", "#FF5733", "active");
     mockProjectRepository.findById = mock(async () => existingProject);
     mockProjectRepository.update = mock(async (project) => project);
 
@@ -122,8 +122,8 @@ describe("UpdateProject", () => {
 
   it("should throw an error if new name already exists for another project", async () => {
     const projectId = "project-1";
-    const existingProject = new Project(projectId, "Original Project", "active");
-    const conflictingProject = new Project("project-2", "Updated Project", "active");
+    const existingProject = new Project(projectId, "Original Project", "Original Description", "#FF5733", "active");
+    const conflictingProject = new Project("project-2", "Updated Project", "Original Description", "#FF5733", "active");
 
     mockProjectRepository.findById = mock(async () => existingProject);
     mockProjectRepository.findByName = mock(async () => conflictingProject);
@@ -142,7 +142,7 @@ describe("UpdateProject", () => {
 
   it("should not check for duplicate name if name isn't being updated", async () => {
     const projectId = "project-1";
-    const existingProject = new Project(projectId, "Test Project", "active");
+    const existingProject = new Project(projectId, "Test Project", "Original Description", "#FF5733", "active");
 
     mockProjectRepository.findById = mock(async () => existingProject);
     mockProjectRepository.update = mock(async (project) => project);
@@ -161,7 +161,7 @@ describe("UpdateProject", () => {
 
   it("should allow updating to the same name", async () => {
     const projectId = "project-1";
-    const existingProject = new Project(projectId, "Test Project", "active");
+    const existingProject = new Project(projectId, "Test Project", "Original Description", "#FF5733", "active");
 
     mockProjectRepository.findById = mock(async () => existingProject);
     mockProjectRepository.update = mock(async (project) => project);

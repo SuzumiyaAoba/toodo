@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@prisma/client";
-import { type WorkPeriod, type WorkPeriodCreateInput, mapToDomainWorkPeriod } from "@toodo/core";
+import { type TodoActivity, type WorkPeriod, type WorkPeriodCreateInput, mapToDomainWorkPeriod } from "@toodo/core";
 import type {
   WorkPeriodRepository,
   WorkPeriodStatistics,
@@ -72,6 +72,27 @@ export class WorkPeriodRepositoryImpl implements WorkPeriodRepository {
     await this.prisma.workPeriod.delete({
       where: { id },
     });
+  }
+
+  async addActivity(workPeriodId: string, activityId: string): Promise<void> {
+    await this.prisma.todoActivity.update({
+      where: { id: activityId },
+      data: { workPeriodId },
+    });
+  }
+
+  async removeActivity(workPeriodId: string, activityId: string): Promise<void> {
+    await this.prisma.todoActivity.update({
+      where: { id: activityId },
+      data: { workPeriodId: null },
+    });
+  }
+
+  async getActivities(workPeriodId: string): Promise<TodoActivity[]> {
+    const activities = await this.prisma.todoActivity.findMany({
+      where: { workPeriodId },
+    });
+    return activities;
   }
 
   async getStatistics(options?: WorkPeriodStatisticsOptions): Promise<WorkPeriodStatistics> {

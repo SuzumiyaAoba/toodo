@@ -20,7 +20,7 @@ describe("GetProject", () => {
 
   it("should get a project by id", async () => {
     const projectId = "project-1";
-    const expectedProject = new Project(projectId, "Test Project", "active", "Test Description", "#FF5733");
+    const expectedProject = new Project(projectId, "Test Project", "Test Description", "#FF5733", "active");
     mockProjectRepository.findById = mock(async () => expectedProject);
 
     const useCase = new GetProject(mockProjectRepository);

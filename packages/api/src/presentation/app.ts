@@ -1,5 +1,5 @@
 import { serveStatic } from "@hono/node-server/serve-static";
-import { apiReference } from "@scalar/hono-api-reference";
+import { Scalar } from "@scalar/hono-api-reference";
 import { Hono } from "hono";
 import { CreateTodoActivityUseCase } from "../application/use-cases/todo-activity/create-todo-activity";
 import { DeleteTodoActivityUseCase } from "../application/use-cases/todo-activity/delete-todo-activity";
@@ -21,9 +21,12 @@ import { WorkPeriodRepository } from "../infrastructure/repositories/work-period
 import { corsMiddleware } from "./middlewares/cors-middleware";
 import { errorHandler } from "./middlewares/error-handler";
 import { setupProjectRoutes } from "./routes/project-routes";
+import { subtaskRoutes } from "./routes/subtask-routes";
+import { setupTagBulkRoutes } from "./routes/tag-bulk-routes";
 import { setupTagRoutes } from "./routes/tag-routes";
 import { setupTodoActivityRoutes } from "./routes/todo-activity-routes";
 import { setupTodoDependencyRoutes } from "./routes/todo-dependency-routes";
+import { setupTodoDueDateRoutes } from "./routes/todo-due-date-routes";
 import { setupTodoRoutes } from "./routes/todo-routes";
 import { setupWorkPeriodRoutes } from "./routes/work-period-routes";
 
@@ -39,13 +42,13 @@ export function createApp() {
   const projectRepository = new PrismaProjectRepository(prisma);
   const tagRepository = new PrismaTagRepository(prisma);
   const todoActivityRepository = new PrismaTodoActivityRepository(prisma);
-  const todoDependencyRepository = new TodoDependencyRepository();
-  const workPeriodRepository = new WorkPeriodRepository();
+  const todoDependencyRepository = new TodoDependencyRepository(prisma);
+  const workPeriodRepository = new WorkPeriodRepository(prisma);
 
   // UseCaseのインスタンスを作成
   const createTodoUseCase = new CreateTodoUseCase(todoRepository, todoActivityRepository);
   const getTodoListUseCase = new GetTodoListUseCase(todoRepository);
-  const getTodoUseCase = new GetTodoUseCase(todoRepository);
+  const getTodoUseCase = new GetTodoUseCase(todoRepository, tagRepository);
   const updateTodoUseCase = new UpdateTodoUseCase(todoRepository);
   const deleteTodoUseCase = new DeleteTodoUseCase(todoRepository, todoActivityRepository);
   const getTodoWorkTimeUseCase = new GetTodoWorkTimeUseCase(todoRepository);
@@ -62,7 +65,7 @@ export function createApp() {
   // API Documentation
   app.get(
     "/api/docs/*",
-    apiReference({
+    Scalar({
       url: "/doc",
       theme: "default",
     }),
@@ -88,9 +91,12 @@ export function createApp() {
   );
   setupProjectRoutes(api, projectRepository, todoRepository);
   setupTagRoutes(api, tagRepository, todoRepository);
+  setupTagBulkRoutes(api, tagRepository, todoRepository);
   setupTodoActivityRoutes(api, todoActivityRepository, todoRepository);
   setupTodoDependencyRoutes(api, todoRepository);
   setupWorkPeriodRoutes(api, workPeriodRepository, todoRepository, todoActivityRepository);
+  setupTodoDueDateRoutes(api, todoRepository);
+  api.route("/todos", subtaskRoutes);
 
   app.route("", api);
 

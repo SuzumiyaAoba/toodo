@@ -4,7 +4,7 @@
  */
 export class TodoNotFoundError extends Error {
   constructor(id: string) {
-    super(`Todo with id ${id} not found`);
+    super(`Todo with ID '${id}' not found`);
     this.name = "TodoNotFoundError";
   }
 }

@@ -66,7 +66,7 @@ export class UpdateTagUseCase {
     return this.tagRepository.updateTag(
       validated.id,
       validated.name ?? undefined,
-      "color" in input ? validated.color : undefined,
+      validated.color === null ? undefined : validated.color,
     );
   }
 }

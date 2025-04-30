@@ -15,25 +15,25 @@ export const validate = <TInput, TOutput>(
     let data: unknown;
 
     // リクエストの種類に応じてデータを取得
-    if (target === "json") {
-      data = await c.req.json();
-    } else if (target === "query") {
-      data = c.req.query();
-    } else if (target === "param") {
-      data = c.req.param();
-    } else {
-      return c.json({ error: "Invalid validation target" }, 400);
-    }
-
     try {
+      if (target === "json") {
+        data = await c.req.json();
+      } else if (target === "query") {
+        data = c.req.query();
+      } else if (target === "param") {
+        data = c.req.param();
+      } else {
+        return c.json({ error: "Invalid validation target" }, 400);
+      }
+
       // スキーマによるバリデーション
       const validatedData = v.parse(schema, data);
 
       // バリデーション済みデータをリクエストオブジェクトに保存
       // @ts-ignore - 型拡張による一時的な回避策
-      c.req.valid = (key?: string) => {
-        if (key && key !== target) {
-          throw new Error(`Invalid valid key: ${key}, expected: ${target}`);
+      c.req.valid = (requestedTarget?: string) => {
+        if (requestedTarget && requestedTarget !== target) {
+          return undefined;
         }
         return validatedData;
       };
@@ -49,6 +49,10 @@ export const validate = <TInput, TOutput>(
         }));
 
         return c.json({ error: "Validation Error", issues: formattedIssues }, 400);
+      }
+
+      if (error instanceof SyntaxError && target === "json") {
+        return c.json({ error: "Invalid JSON format" }, 400);
       }
 
       return c.json({ error: "Validation Failed" }, 400);

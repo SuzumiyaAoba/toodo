@@ -1,5 +1,5 @@
+import { Project, type ProjectStatus } from "@toodo/core";
 import { v4 as uuidv4 } from "uuid";
-import { Project, type ProjectStatus } from "../../../domain/entities/project";
 import { ProjectNameExistsError } from "../../../domain/errors/project-errors";
 import type { ProjectRepository } from "../../../domain/repositories/project-repository";
 
@@ -22,7 +22,7 @@ export class CreateProject {
 
     // Create a new project with a generated ID
     const projectId = uuidv4();
-    const project = new Project(projectId, input.name, input.status, input.description, input.color);
+    const project = Project.create(projectId, input.name, input.description, input.color, input.status);
 
     // Save the project
     return this.projectRepository.create(project);

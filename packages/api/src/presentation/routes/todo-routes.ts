@@ -1,8 +1,10 @@
 import type { ConversionConfig } from "@valibot/to-json-schema";
 import type { Hono } from "hono";
 import type { Env, Schema } from "hono";
+import type { ErrorHandler } from "hono";
 import { describeRoute } from "hono-openapi";
 import { resolver, validator as vValidator } from "hono-openapi/valibot";
+import { HTTPException } from "hono/http-exception";
 import type * as v from "valibot";
 import type { CreateTodoActivityUseCase } from "../../application/use-cases/todo-activity/create-todo-activity";
 import type { DeleteTodoActivityUseCase } from "../../application/use-cases/todo-activity/delete-todo-activity";
@@ -20,6 +22,7 @@ import {
   TodoNotFoundError,
   UnauthorizedActivityDeletionError,
 } from "../../domain/errors/todo-errors";
+import { errorHandler } from "../middlewares/error-handler";
 import {
   CreateTodoActivitySchema,
   CreateTodoSchema,
@@ -58,6 +61,9 @@ export function setupTodoRoutes<E extends Env = Env, S extends Schema = Schema>(
   getTodoActivityListUseCase: GetTodoActivityListUseCase,
   deleteTodoActivityUseCase: DeleteTodoActivityUseCase,
 ): Hono<E, S> {
+  // Error handling middleware
+  app.onError(errorHandler);
+
   // Todo routes
   app.post(
     "/todos",
@@ -98,10 +104,10 @@ export function setupTodoRoutes<E extends Env = Env, S extends Schema = Schema>(
     async (c) => {
       const data = c.req.valid("json") as v.InferOutput<typeof CreateTodoSchema>;
 
-      // Convert priority string to PriorityLevel type
       const todoData = {
         ...data,
         priority: data.priority ? (data.priority as PriorityLevel) : undefined,
+        dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
       };
 
       const todo = await createTodoUseCase.execute(todoData);
@@ -114,7 +120,26 @@ export function setupTodoRoutes<E extends Env = Env, S extends Schema = Schema>(
     describeRoute({
       tags: ["Todos"],
       summary: "Get all todos",
-      description: "Retrieve a list of all todo items",
+      description: "Retrieve a list of all todo items with optional filtering",
+      request: {
+        query: {
+          schema: {
+            type: "object",
+            properties: {
+              status: {
+                type: "string",
+                enum: ["pending", "in_progress", "completed"],
+                description: "Filter todos by status",
+              },
+              priority: {
+                type: "string",
+                enum: ["low", "medium", "high"],
+                description: "Filter todos by priority",
+              },
+            },
+          },
+        },
+      },
       responses: {
         200: {
           description: "List of todos",
@@ -127,8 +152,22 @@ export function setupTodoRoutes<E extends Env = Env, S extends Schema = Schema>(
       },
     }),
     async (c) => {
+      const status = c.req.query("status");
+      const priority = c.req.query("priority");
+
       const todos = await getTodoListUseCase.execute();
-      return c.json(todos);
+
+      let filteredTodos = todos;
+
+      if (status) {
+        filteredTodos = filteredTodos.filter((todo) => todo.status === status);
+      }
+
+      if (priority) {
+        filteredTodos = filteredTodos.filter((todo) => todo.priority === priority);
+      }
+
+      return c.json(filteredTodos);
     },
   );
 
@@ -163,15 +202,8 @@ export function setupTodoRoutes<E extends Env = Env, S extends Schema = Schema>(
     vValidator("param", IdParamSchema),
     async (c) => {
       const { id } = c.req.valid("param") as v.InferOutput<typeof IdParamSchema>;
-      try {
-        const todo = await getTodoUseCase.execute(id);
-        return c.json(todo);
-      } catch (error) {
-        if (error instanceof TodoNotFoundError) {
-          return c.json({ error: error.message }, 404);
-        }
-        throw error;
-      }
+      const todo = await getTodoUseCase.execute(id);
+      return c.json(todo);
     },
   );
 
@@ -201,14 +233,6 @@ export function setupTodoRoutes<E extends Env = Env, S extends Schema = Schema>(
             },
           },
         },
-        400: {
-          description: "Invalid request data",
-          content: {
-            "application/json": {
-              schema: resolver(ErrorResponseSchema, valibotConfig),
-            },
-          },
-        },
         404: {
           description: "Todo not found",
           content: {
@@ -225,21 +249,8 @@ export function setupTodoRoutes<E extends Env = Env, S extends Schema = Schema>(
       const { id } = c.req.valid("param") as v.InferOutput<typeof IdParamSchema>;
       const data = c.req.valid("json") as v.InferOutput<typeof UpdateTodoSchema>;
 
-      // Convert priority string to PriorityLevel type
-      const todoData = {
-        ...data,
-        priority: data.priority ? (data.priority as PriorityLevel) : undefined,
-      };
-
-      try {
-        const todo = await updateTodoUseCase.execute(id, todoData);
-        return c.json(todo);
-      } catch (error) {
-        if (error instanceof TodoNotFoundError) {
-          return c.json({ error: error.message }, 404);
-        }
-        throw error;
-      }
+      const todo = await updateTodoUseCase.execute(id, data);
+      return c.json(todo);
     },
   );
 
@@ -269,32 +280,23 @@ export function setupTodoRoutes<E extends Env = Env, S extends Schema = Schema>(
     vValidator("param", IdParamSchema),
     async (c) => {
       const { id } = c.req.valid("param") as v.InferOutput<typeof IdParamSchema>;
-
-      try {
-        await deleteTodoUseCase.execute(id);
-        c.status(204);
-        return c.body(null);
-      } catch (error) {
-        if (error instanceof TodoNotFoundError) {
-          return c.json({ error: error.message }, 404);
-        }
-        throw error;
-      }
+      await deleteTodoUseCase.execute(id);
+      return c.body(null, 204);
     },
   );
 
   app.get(
     "/todos/:id/work-time",
     describeRoute({
-      tags: ["Todos", "Work Time"],
-      summary: "Get work time information",
-      description: "Retrieve work time information for a todo item",
+      tags: ["Todos"],
+      summary: "Get todo work time",
+      description: "Get the total work time for a todo item",
       request: {
         params: resolver(IdParamSchema, valibotConfig),
       },
       responses: {
         200: {
-          description: "Work time information",
+          description: "Work time details",
           content: {
             "application/json": {
               schema: resolver(WorkTimeResponseSchema, valibotConfig),
@@ -314,16 +316,8 @@ export function setupTodoRoutes<E extends Env = Env, S extends Schema = Schema>(
     vValidator("param", IdParamSchema),
     async (c) => {
       const { id } = c.req.valid("param") as v.InferOutput<typeof IdParamSchema>;
-
-      try {
-        const workTimeInfo = await getTodoWorkTimeUseCase.execute(id);
-        return c.json(workTimeInfo);
-      } catch (error) {
-        if (error instanceof TodoNotFoundError) {
-          return c.json({ error: error.message }, 404);
-        }
-        throw error;
-      }
+      const workTime = await getTodoWorkTimeUseCase.execute(id);
+      return c.json(workTime);
     },
   );
 
@@ -331,8 +325,8 @@ export function setupTodoRoutes<E extends Env = Env, S extends Schema = Schema>(
   app.post(
     "/todos/:id/activities",
     describeRoute({
-      tags: ["Todos", "Activities"],
-      summary: "Create a new activity",
+      tags: ["TodoActivities"],
+      summary: "Create a new todo activity",
       description: "Create a new activity for a todo item",
       request: {
         params: resolver(IdParamSchema, valibotConfig),
@@ -354,14 +348,6 @@ export function setupTodoRoutes<E extends Env = Env, S extends Schema = Schema>(
             },
           },
         },
-        400: {
-          description: "Invalid state transition or request data",
-          content: {
-            "application/json": {
-              schema: resolver(ErrorResponseSchema, valibotConfig),
-            },
-          },
-        },
         404: {
           description: "Todo not found",
           content: {
@@ -378,27 +364,17 @@ export function setupTodoRoutes<E extends Env = Env, S extends Schema = Schema>(
       const { id } = c.req.valid("param") as v.InferOutput<typeof IdParamSchema>;
       const data = c.req.valid("json") as v.InferOutput<typeof CreateTodoActivitySchema>;
 
-      try {
-        const activity = await createTodoActivityUseCase.execute(id, data);
-        return c.json(activity, 201);
-      } catch (error) {
-        if (error instanceof TodoNotFoundError) {
-          return c.json({ error: error.message }, 404);
-        }
-        if (error instanceof InvalidStateTransitionError) {
-          return c.json({ error: error.message }, 400);
-        }
-        throw error;
-      }
+      const activity = await createTodoActivityUseCase.execute(id, data);
+      return c.json(activity, 201);
     },
   );
 
   app.get(
     "/todos/:id/activities",
     describeRoute({
-      tags: ["Todos", "Activities"],
-      summary: "Get activities for a todo",
-      description: "Retrieve a list of activities for a todo item",
+      tags: ["TodoActivities"],
+      summary: "Get todo activities",
+      description: "Get all activities for a todo item",
       request: {
         params: resolver(IdParamSchema, valibotConfig),
       },
@@ -424,39 +400,23 @@ export function setupTodoRoutes<E extends Env = Env, S extends Schema = Schema>(
     vValidator("param", IdParamSchema),
     async (c) => {
       const { id } = c.req.valid("param") as v.InferOutput<typeof IdParamSchema>;
-
-      try {
-        const activities = await getTodoActivityListUseCase.execute(id);
-        return c.json(activities);
-      } catch (error) {
-        if (error instanceof TodoNotFoundError) {
-          return c.json({ error: error.message }, 404);
-        }
-        throw error;
-      }
+      const activities = await getTodoActivityListUseCase.execute(id);
+      return c.json(activities);
     },
   );
 
   app.delete(
-    "/todos/:id/activities/:activityId",
+    "/todos/:todoId/activities/:activityId",
     describeRoute({
-      tags: ["Todos", "Activities"],
-      summary: "Delete an activity",
-      description: "Delete an activity for a todo item",
+      tags: ["TodoActivities"],
+      summary: "Delete a todo activity",
+      description: "Delete an activity from a todo item",
       request: {
         params: resolver(TodoActivityIdParamSchema, valibotConfig),
       },
       responses: {
         204: {
           description: "Activity deleted successfully",
-        },
-        403: {
-          description: "Unauthorized deletion",
-          content: {
-            "application/json": {
-              schema: resolver(ErrorResponseSchema, valibotConfig),
-            },
-          },
         },
         404: {
           description: "Todo or activity not found",
@@ -470,21 +430,12 @@ export function setupTodoRoutes<E extends Env = Env, S extends Schema = Schema>(
     }),
     vValidator("param", TodoActivityIdParamSchema),
     async (c) => {
-      const { id, activityId } = c.req.valid("param") as v.InferOutput<typeof TodoActivityIdParamSchema>;
-
-      try {
-        await deleteTodoActivityUseCase.execute(id, activityId);
-        c.status(204);
-        return c.body(null);
-      } catch (error) {
-        if (error instanceof TodoNotFoundError || error instanceof TodoActivityNotFoundError) {
-          return c.json({ error: error.message }, 404);
-        }
-        if (error instanceof UnauthorizedActivityDeletionError) {
-          return c.json({ error: error.message }, 403);
-        }
-        throw error;
-      }
+      const params = c.req.valid("param") as {
+        todoId: string;
+        activityId: string;
+      };
+      await deleteTodoActivityUseCase.execute(params.todoId, params.activityId);
+      return c.body(null, 204);
     },
   );
 

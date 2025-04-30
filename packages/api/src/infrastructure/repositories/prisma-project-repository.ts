@@ -124,9 +124,9 @@ export class PrismaProjectRepository implements ProjectRepository {
     return new Project(
       data.id,
       data.name,
-      data.status as "active" | "archived",
       data.description || undefined,
       data.color || undefined,
+      data.status as "active" | "archived",
       data.createdAt,
       data.updatedAt,
     );

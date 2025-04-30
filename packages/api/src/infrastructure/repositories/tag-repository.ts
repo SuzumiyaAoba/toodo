@@ -2,42 +2,61 @@ import type { Tag } from "@toodo/core";
 import type { TagRepository as TagRepositoryInterface } from "../../domain/repositories/tag-repository";
 import type { PrismaClient } from "../../generated/prisma";
 
+const mapPrismaTagToDomainTag = (prismaTag: {
+  id: string;
+  name: string;
+  color: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}): Tag => ({
+  id: prismaTag.id,
+  name: prismaTag.name,
+  color: prismaTag.color ?? undefined,
+  createdAt: prismaTag.createdAt,
+  updatedAt: prismaTag.updatedAt,
+});
+
 export class TagRepository implements TagRepositoryInterface {
   constructor(private readonly prisma: PrismaClient = {} as PrismaClient) {}
 
-  async createTag(name: string, color?: string | null): Promise<Tag> {
-    return this.prisma.tag.create({
+  async createTag(name: string, color?: string): Promise<Tag> {
+    const prismaTag = await this.prisma.tag.create({
       data: {
         name,
         color: color ?? null,
       },
     });
+    return mapPrismaTagToDomainTag(prismaTag);
   }
 
   async getTagById(id: string): Promise<Tag | null> {
-    return this.prisma.tag.findUnique({
+    const prismaTag = await this.prisma.tag.findUnique({
       where: { id },
     });
+    return prismaTag ? mapPrismaTagToDomainTag(prismaTag) : null;
   }
 
   async getTagByName(name: string): Promise<Tag | null> {
-    return this.prisma.tag.findUnique({
+    const prismaTag = await this.prisma.tag.findUnique({
       where: { name },
     });
+    return prismaTag ? mapPrismaTagToDomainTag(prismaTag) : null;
   }
 
   async getAllTags(): Promise<Tag[]> {
-    return this.prisma.tag.findMany();
+    const prismaTags = await this.prisma.tag.findMany();
+    return prismaTags.map(mapPrismaTagToDomainTag);
   }
 
-  async updateTag(id: string, name?: string, color?: string | null): Promise<Tag> {
-    return this.prisma.tag.update({
+  async updateTag(id: string, name?: string, color?: string): Promise<Tag> {
+    const prismaTag = await this.prisma.tag.update({
       where: { id },
       data: {
         name,
-        color,
+        color: color ?? null,
       },
     });
+    return mapPrismaTagToDomainTag(prismaTag);
   }
 
   async deleteTag(id: string): Promise<void> {
@@ -81,7 +100,7 @@ export class TagRepository implements TagRepositoryInterface {
         },
       },
     });
-    return todoTags.map((todoTag) => todoTag.tag);
+    return todoTags.map((todoTag) => mapPrismaTagToDomainTag(todoTag.tag));
   }
 
   async getTodoIdsForTag(tagId: string): Promise<string[]> {

@@ -75,7 +75,7 @@ describe("PrismaTagRepository", () => {
       expect(prisma.tag.create).toHaveBeenCalledWith({
         data: {
           name: "Personal",
-          color: undefined,
+          color: null,
         },
       });
     });

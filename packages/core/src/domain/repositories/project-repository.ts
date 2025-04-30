@@ -1,4 +1,4 @@
-import type { Project, ProjectId } from "../entities/project.js";
+import type { Project, ProjectId } from "../entities/project";
 
 export interface ProjectRepository {
   create(project: Project): Promise<Project>;

@@ -1,5 +1,7 @@
-import type { ProjectId } from "./project.js";
-// ... existing code ...
+import type { ProjectId } from "./project";
+
+/** Represents a unique identifier for a Todo item */
+export type TodoId = string;
 
 export enum TodoStatus {
   PENDING = "pending",
@@ -19,8 +21,6 @@ export enum PriorityLevel {
   MEDIUM = "medium",
   HIGH = "high",
 }
-
-export type TodoId = string;
 
 export interface TodoCreateInput {
   title: string;

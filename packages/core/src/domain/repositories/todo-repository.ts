@@ -1,6 +1,6 @@
-import type { ProjectId } from "../entities/project.js";
-import type { TagId } from "../entities/tag.js";
-import type { Todo, TodoId } from "../entities/todo.js";
+import type { ProjectId } from "../entities/project";
+import type { TagId } from "../entities/tag";
+import type { Todo, TodoId } from "../entities/todo";
 
 export interface TodoRepository {
   findAll(): Promise<Todo[]>;

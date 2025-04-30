@@ -1,4 +1,4 @@
-import type { TodoActivity } from "@toodo/core/src/domain/entities/todo-activity";
+import type { TodoActivity } from "@toodo/core/domain/entities/todo-activity";
 import { TodoNotFoundError } from "../../../domain/errors/todo-errors";
 import type { TodoActivityRepository } from "../../../domain/repositories/todo-activity-repository";
 import type { TodoRepository } from "../../../domain/repositories/todo-repository";

@@ -336,7 +336,9 @@ export class PrismaTodoRepository extends PrismaBaseRepository<Todo, PrismaTodo>
   async findByParent(parentId: TodoId): Promise<Todo[]> {
     return this.executePrismaOperation(async () => {
       // Check if parent task exists
-      const parent = await this.prisma.todo.findUnique({ where: { id: parentId } });
+      const parent = await this.prisma.todo.findUnique({
+        where: { id: parentId },
+      });
       if (!parent) {
         throw new TodoNotFoundError(parentId);
       }
@@ -358,7 +360,9 @@ export class PrismaTodoRepository extends PrismaBaseRepository<Todo, PrismaTodo>
   async findChildrenTree(parentId: TodoId, maxDepth = 10): Promise<Todo[]> {
     return this.executePrismaOperation(async () => {
       // Check if parent task exists
-      const parent = await this.prisma.todo.findUnique({ where: { id: parentId } });
+      const parent = await this.prisma.todo.findUnique({
+        where: { id: parentId },
+      });
       if (!parent) {
         throw new TodoNotFoundError(parentId);
       }
@@ -406,7 +410,9 @@ export class PrismaTodoRepository extends PrismaBaseRepository<Todo, PrismaTodo>
 
       // Check if parent task exists when specified
       if (parentId !== null) {
-        const parent = await this.prisma.todo.findUnique({ where: { id: parentId } });
+        const parent = await this.prisma.todo.findUnique({
+          where: { id: parentId },
+        });
         if (!parent) {
           throw new TodoNotFoundError(parentId);
         }
@@ -441,8 +447,12 @@ export class PrismaTodoRepository extends PrismaBaseRepository<Todo, PrismaTodo>
   async addSubtask(parentId: TodoId, subtaskId: TodoId): Promise<void> {
     return this.executePrismaOperation(async () => {
       // Check if both tasks exist
-      const parent = await this.prisma.todo.findUnique({ where: { id: parentId } });
-      const subtask = await this.prisma.todo.findUnique({ where: { id: subtaskId } });
+      const parent = await this.prisma.todo.findUnique({
+        where: { id: parentId },
+      });
+      const subtask = await this.prisma.todo.findUnique({
+        where: { id: subtaskId },
+      });
 
       if (!parent) {
         throw new TodoNotFoundError(parentId);
@@ -473,8 +483,12 @@ export class PrismaTodoRepository extends PrismaBaseRepository<Todo, PrismaTodo>
   async removeSubtask(parentId: TodoId, subtaskId: TodoId): Promise<void> {
     return this.executePrismaOperation(async () => {
       // Check if both tasks exist
-      const parent = await this.prisma.todo.findUnique({ where: { id: parentId } });
-      const subtask = await this.prisma.todo.findUnique({ where: { id: subtaskId } });
+      const parent = await this.prisma.todo.findUnique({
+        where: { id: parentId },
+      });
+      const subtask = await this.prisma.todo.findUnique({
+        where: { id: subtaskId },
+      });
 
       if (!parent) {
         throw new TodoNotFoundError(parentId);
@@ -676,23 +690,26 @@ export class PrismaTodoRepository extends PrismaBaseRepository<Todo, PrismaTodo>
         include: {
           dependsOn: true,
           dependents: true,
+          subtasks: true,
+        },
+        orderBy: {
+          dueDate: "asc",
         },
       });
       return this.mapToDomainArray(todos);
     });
   }
 
-  async findDueSoon(days = 2, currentDate: Date = new Date()): Promise<Todo[]> {
+  async findDueSoon(days = 7, currentDate: Date = new Date()): Promise<Todo[]> {
     return this.executePrismaOperation(async () => {
-      // Calculate date from now to specified days in future
-      const futureDate = new Date(currentDate);
-      futureDate.setDate(futureDate.getDate() + days);
+      const endDate = new Date(currentDate);
+      endDate.setDate(currentDate.getDate() + days);
 
       const todos = await this.prisma.todo.findMany({
         where: {
           dueDate: {
             gte: currentDate,
-            lte: futureDate,
+            lte: endDate,
           },
           status: {
             not: TodoStatus.COMPLETED,
@@ -701,6 +718,10 @@ export class PrismaTodoRepository extends PrismaBaseRepository<Todo, PrismaTodo>
         include: {
           dependsOn: true,
           dependents: true,
+          subtasks: true,
+        },
+        orderBy: {
+          dueDate: "asc",
         },
       });
       return this.mapToDomainArray(todos);
@@ -708,6 +729,10 @@ export class PrismaTodoRepository extends PrismaBaseRepository<Todo, PrismaTodo>
   }
 
   async findByDueDateRange(startDate: Date, endDate: Date): Promise<Todo[]> {
+    if (startDate > endDate) {
+      throw new Error("Start date must be before or equal to end date");
+    }
+
     return this.executePrismaOperation(async () => {
       const todos = await this.prisma.todo.findMany({
         where: {
@@ -719,6 +744,10 @@ export class PrismaTodoRepository extends PrismaBaseRepository<Todo, PrismaTodo>
         include: {
           dependsOn: true,
           dependents: true,
+          subtasks: true,
+        },
+        orderBy: {
+          dueDate: "asc",
         },
       });
       return this.mapToDomainArray(todos);

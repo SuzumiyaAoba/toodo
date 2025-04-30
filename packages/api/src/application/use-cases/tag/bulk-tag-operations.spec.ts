@@ -40,7 +40,6 @@ describe("BulkTagOperations", () => {
     bulkAssignTagToTodos: mock(() => Promise.resolve(2)),
     bulkRemoveTagFromTodos: mock(() => Promise.resolve(2)),
     getTagStatistics: mock(() => Promise.resolve([])),
-    // TagRepositoryインターフェースに合わせて追加のメソッドを実装
     findAll: mock(() => Promise.resolve([])),
     findById: mock((id: string) => {
       if (id === validTagId) {
@@ -53,7 +52,7 @@ describe("BulkTagOperations", () => {
     delete: mock(() => Promise.resolve()),
     findByName: mock(() => Promise.resolve(null)),
     getTodosByTagId: mock(() => Promise.resolve([])),
-    addTagToTodo: mock(() => Promise.resolve()),
+    addTagToTodo: mock((tagId: string, todoId: string) => Promise.resolve()),
   });
 
   const createMockTodoRepository = () => ({
@@ -85,17 +84,12 @@ describe("BulkTagOperations", () => {
       const useCase = new BulkAssignTagUseCase(mockTagRepository, mockTodoRepository);
 
       const result = await useCase.execute({
-        tagId: validTagId,
+        tagIds: [validTagId],
         todoIds: validTodoIds,
       });
 
-      expect(result.success).toBe(true);
-      expect(result.assignedCount).toBe(2);
-      expect(result.tag).toEqual({
-        id: validTagId,
-        name: "Work",
-        color: "#FF5733",
-      });
+      expect(result.successCount).toBe(2);
+      expect(result.failedCount).toBe(0);
       expect(mockTagRepository.bulkAssignTagToTodos).toHaveBeenCalledWith(validTagId, validTodoIds);
     });
 
@@ -109,12 +103,12 @@ describe("BulkTagOperations", () => {
       const useCase = new BulkAssignTagUseCase(mockTagRepository, mockTodoRepository);
 
       const result = await useCase.execute({
-        tagId: validTagId,
+        tagIds: [validTagId],
         todoIds: [],
       });
 
-      expect(result.success).toBe(true);
-      expect(result.assignedCount).toBe(0);
+      expect(result.successCount).toBe(0);
+      expect(result.failedCount).toBe(0);
       expect(mockTagRepository.bulkAssignTagToTodos).not.toHaveBeenCalled();
     });
 
@@ -125,7 +119,7 @@ describe("BulkTagOperations", () => {
 
       await expect(
         useCase.execute({
-          tagId: nonExistentTagId,
+          tagIds: [nonExistentTagId],
           todoIds: validTodoIds,
         }),
       ).rejects.toThrow(`Tag with ID '${nonExistentTagId}' not found`);
@@ -138,7 +132,7 @@ describe("BulkTagOperations", () => {
 
       await expect(
         useCase.execute({
-          tagId: validTagId,
+          tagIds: [validTagId],
           todoIds: [...validTodoIds, nonExistentTodoId],
         }),
       ).rejects.toThrow(`Todo with ID '${nonExistentTodoId}' not found`);
@@ -152,17 +146,12 @@ describe("BulkTagOperations", () => {
       const useCase = new BulkRemoveTagUseCase(mockTagRepository, mockTodoRepository);
 
       const result = await useCase.execute({
-        tagId: validTagId,
+        tagIds: [validTagId],
         todoIds: validTodoIds,
       });
 
-      expect(result.success).toBe(true);
-      expect(result.removedCount).toBe(2);
-      expect(result.tag).toEqual({
-        id: validTagId,
-        name: "Work",
-        color: "#FF5733",
-      });
+      expect(result.successCount).toBe(2);
+      expect(result.failedCount).toBe(0);
       expect(mockTagRepository.bulkRemoveTagFromTodos).toHaveBeenCalledWith(validTagId, validTodoIds);
     });
 
@@ -176,12 +165,12 @@ describe("BulkTagOperations", () => {
       const useCase = new BulkRemoveTagUseCase(mockTagRepository, mockTodoRepository);
 
       const result = await useCase.execute({
-        tagId: validTagId,
+        tagIds: [validTagId],
         todoIds: [],
       });
 
-      expect(result.success).toBe(true);
-      expect(result.removedCount).toBe(0);
+      expect(result.successCount).toBe(0);
+      expect(result.failedCount).toBe(0);
       expect(mockTagRepository.bulkRemoveTagFromTodos).not.toHaveBeenCalled();
     });
 
@@ -192,7 +181,7 @@ describe("BulkTagOperations", () => {
 
       await expect(
         useCase.execute({
-          tagId: nonExistentTagId,
+          tagIds: [nonExistentTagId],
           todoIds: validTodoIds,
         }),
       ).rejects.toThrow(`Tag with ID '${nonExistentTagId}' not found`);
@@ -205,7 +194,7 @@ describe("BulkTagOperations", () => {
 
       await expect(
         useCase.execute({
-          tagId: validTagId,
+          tagIds: [validTagId],
           todoIds: [...validTodoIds, nonExistentTodoId],
         }),
       ).rejects.toThrow(`Todo with ID '${nonExistentTodoId}' not found`);

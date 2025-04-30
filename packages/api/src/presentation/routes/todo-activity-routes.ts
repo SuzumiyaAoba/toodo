@@ -3,7 +3,10 @@ import type { Hono } from "hono";
 import { z } from "zod";
 import { AssignActivityToWorkPeriodUseCase } from "../../application/use-cases/todo-activity/assign-activity-to-work-period";
 import { CreateTodoActivityUseCase } from "../../application/use-cases/todo-activity/create-todo-activity";
+import { DeleteTodoActivityUseCase } from "../../application/use-cases/todo-activity/delete-todo-activity";
+import { GetTodoActivityListUseCase } from "../../application/use-cases/todo-activity/get-todo-activity-list";
 import { UnassignActivityFromWorkPeriodUseCase } from "../../application/use-cases/todo-activity/unassign-activity-from-work-period";
+import { TodoNotFoundError } from "../../domain/errors/todo-errors";
 import type { TodoActivityRepository } from "../../domain/repositories/todo-activity-repository";
 import type { TodoRepository } from "../../domain/repositories/todo-repository";
 import { prisma } from "../../infrastructure/db";
@@ -11,37 +14,67 @@ import { WorkPeriodRepository } from "../../infrastructure/repositories/work-per
 import { errorHandler } from "../middlewares/error-handler";
 import { CreateTodoActivitySchema, TodoActivityListSchema } from "../schemas/todo-schemas";
 
+const todoActivitySchema = z.object({
+  type: z.string(),
+  note: z.string().optional(),
+});
+
 /**
  * TodoActivityルートの設定
  */
-export function setupTodoActivityRoutes(
+export const setupTodoActivityRoutes = (
   app: Hono,
   todoActivityRepository: TodoActivityRepository,
   todoRepository: TodoRepository,
-): Hono {
+) => {
   // アクティビティ作成
-  app.post("/todos/:todoId/activities", async (c) => {
+  app.post("/todos/:todoId/activities", zValidator("json", todoActivitySchema), async (c) => {
     try {
       const todoId = c.req.param("todoId");
       const data = await c.req.json();
 
-      // 実装はダミー
-      return c.json({ id: "dummy-id", todoId, ...data }, 201);
+      const useCase = new CreateTodoActivityUseCase(todoRepository, todoActivityRepository);
+      const activity = await useCase.execute(todoId, data);
+      return c.json(activity, 201);
     } catch (error) {
       console.error(error);
+      if (error instanceof TodoNotFoundError) {
+        return c.json({ error: "Todo not found" }, 404);
+      }
       return c.json({ error: "Failed to create activity" }, 500);
     }
   });
 
-  // アクティビティ取得
+  // アクティビティ一覧取得
   app.get("/todos/:todoId/activities", async (c) => {
     try {
       const todoId = c.req.param("todoId");
-      // TODO: 実装する
-      return c.json({ activities: [] });
+      const useCase = new GetTodoActivityListUseCase(todoRepository, todoActivityRepository);
+      const activities = await useCase.execute(todoId);
+      return c.json(activities);
     } catch (error) {
       console.error(error);
+      if (error instanceof TodoNotFoundError) {
+        return c.json({ error: "Todo not found" }, 404);
+      }
       return c.json({ error: "Failed to get activities" }, 500);
+    }
+  });
+
+  // アクティビティ削除
+  app.delete("/todos/:todoId/activities/:activityId", async (c) => {
+    try {
+      const todoId = c.req.param("todoId");
+      const activityId = c.req.param("activityId");
+      const useCase = new DeleteTodoActivityUseCase(todoRepository, todoActivityRepository);
+      await useCase.execute(todoId, activityId);
+      return c.json({ message: "Activity deleted successfully" });
+    } catch (error) {
+      console.error(error);
+      if (error instanceof TodoNotFoundError) {
+        return c.json({ error: "Todo not found" }, 404);
+      }
+      return c.json({ error: "Failed to delete activity" }, 500);
     }
   });
 
@@ -87,4 +120,4 @@ export function setupTodoActivityRoutes(
   });
 
   return app;
-}
+};

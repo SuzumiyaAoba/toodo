@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
+import type { TodoActivity } from "@toodo/core";
+import { ActivityType } from "@toodo/core";
 import { PriorityLevel, type Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
-import { ActivityType, type TodoActivity } from "../../../domain/entities/todo";
 import type { TodoActivityRepository } from "../../../domain/repositories/todo-activity-repository";
 import type { TodoRepository } from "../../../domain/repositories/todo-repository";
 import { DeleteTodoUseCase } from "./delete-todo";

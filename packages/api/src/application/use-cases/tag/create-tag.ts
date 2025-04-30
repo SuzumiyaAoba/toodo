@@ -50,6 +50,6 @@ export class CreateTagUseCase {
     }
 
     // Create tag
-    return this.tagRepository.createTag(validated.name, validated.color);
+    return this.tagRepository.createTag(validated.name, validated.color ?? undefined);
   }
 }

@@ -1,57 +1,32 @@
-export * from "./todo.js";
-export * from "./todo-activity.js";
-export * from "./tag.js";
-export * from "./project.js";
-export * from "./work-period.js";
+export * from "./todo";
+export * from "./todo-activity";
+export * from "./tag";
+export * from "./project";
+export * from "./work-period";
 
-export interface Project {
-  id: string;
-  name: string;
-  description?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+export type TodoId = string;
+export type ProjectId = string;
+export type TagId = string;
+export type TodoActivityId = string;
+export type WorkPeriodId = string;
 
 export interface Tag {
-  id: string;
+  id: TagId;
   name: string;
   color?: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export interface Todo {
-  id: string;
-  title: string;
-  description?: string;
-  status: string;
-  priority?: string;
-  dueDate?: Date;
-  completedAt?: Date;
-  parentId?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface TodoActivity {
-  id: string;
-  todoId: string;
-  type: string;
-  note?: string;
-  workTime?: number;
-  workPeriodId?: string;
-  createdAt: Date;
-}
-
 export interface TodoDependency {
   id: string;
-  todoId: string;
-  dependencyId: string;
+  todoId: TodoId;
+  dependencyId: TodoId;
   createdAt: Date;
 }
 
 export interface WorkPeriod {
-  id: string;
+  id: WorkPeriodId;
   name: string;
   date: Date;
   startTime: Date;

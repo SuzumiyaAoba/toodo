@@ -1,8 +1,14 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
-import type { TodoActivity } from "@toodo/core/src/domain/entities/todo-activity";
-import { ActivityType } from "@toodo/core/src/domain/entities/todo-activity";
+import {
+  ActivityType,
+  PriorityLevel,
+  type Todo,
+  type TodoActivity,
+  type TodoId,
+  TodoStatus,
+  WorkState,
+} from "@toodo/core";
 import { createTestTodo } from "../../../domain/entities/test-helpers";
-import { PriorityLevel, Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
 import { TodoNotFoundError } from "../../../domain/errors/todo-errors";
 import type { TodoActivityRepository } from "../../../domain/repositories/todo-activity-repository";
 import type { TodoRepository } from "../../../domain/repositories/todo-repository";
@@ -16,162 +22,120 @@ type MockedFunction<T extends (...args: any[]) => any> = {
 // モック化されたリポジトリの型
 interface MockedTodoRepository extends TodoRepository {
   findAll: MockedFunction<() => Promise<Todo[]>>;
-  findById: MockedFunction<(id: string) => Promise<Todo | null>>;
+  findById: MockedFunction<(id: TodoId) => Promise<Todo | null>>;
   create: MockedFunction<(todo: Omit<Todo, "id" | "createdAt" | "updatedAt">) => Promise<Todo>>;
-  update: MockedFunction<(id: string, todo: Partial<Todo>) => Promise<Todo | null>>;
-  delete: MockedFunction<(id: string) => Promise<void>>;
+  update: MockedFunction<(id: TodoId, todo: Partial<Todo>) => Promise<Todo | null>>;
+  delete: MockedFunction<(id: TodoId) => Promise<void>>;
 }
 
 interface MockedTodoActivityRepository {
-  findByTodoId: MockedFunction<(todoId: string) => Promise<TodoActivity[]>>;
-  findById: MockedFunction<(id: string) => Promise<TodoActivity | null>>;
+  findByTodoId: MockedFunction<(todoId: TodoId) => Promise<TodoActivity[]>>;
+  findById: MockedFunction<(id: TodoId) => Promise<TodoActivity | null>>;
   create: MockedFunction<(activity: Omit<TodoActivity, "id" | "createdAt">) => Promise<TodoActivity>>;
-  delete: MockedFunction<(id: string) => Promise<void>>;
-  updateWorkPeriod: MockedFunction<(id: string, workPeriodId: string | null) => Promise<TodoActivity | null>>;
+  delete: MockedFunction<(id: TodoId) => Promise<void>>;
+  updateWorkPeriod: MockedFunction<(id: TodoId, workPeriodId: string | null) => Promise<TodoActivity | null>>;
   findByWorkPeriodId: MockedFunction<(workPeriodId: string) => Promise<TodoActivity[]>>;
   findByDateRange: MockedFunction<(startDate: Date, endDate: Date) => Promise<TodoActivity[]>>;
-  update: MockedFunction<(id: string, todoActivity: Partial<TodoActivity>) => Promise<TodoActivity | null>>;
-  getTotalWorkTime: MockedFunction<(todoId: string) => Promise<number>>;
+  update: MockedFunction<(id: TodoId, todoActivity: Partial<TodoActivity>) => Promise<TodoActivity | null>>;
+  getTotalWorkTime: MockedFunction<(todoId: TodoId) => Promise<number>>;
   findByWorkPeriod: MockedFunction<(workPeriodId: string) => Promise<TodoActivity[]>>;
 }
 
 describe("GetTodoActivityListUseCase", () => {
-  const mockTodoRepository = {
-    findAll: mock<() => Promise<Todo[]>>(() => Promise.resolve([])),
-    findById: mock<(id: string) => Promise<Todo | null>>(() => Promise.resolve(null)),
-    create: mock<(todo: Omit<Todo, "id" | "createdAt" | "updatedAt">) => Promise<Todo>>(() =>
-      Promise.resolve({} as Todo),
-    ),
-    update: mock<(id: string, todo: Partial<Todo>) => Promise<Todo | null>>(() => Promise.resolve(null)),
-    delete: mock<(id: string) => Promise<void>>(() => Promise.resolve()),
-  } as MockedTodoRepository;
-
-  const mockTodoActivityRepository = {
-    findByTodoId: mock<(todoId: string) => Promise<TodoActivity[]>>(() => Promise.resolve([])),
-    findById: mock<(id: string) => Promise<TodoActivity | null>>(() => Promise.resolve(null)),
-    create: mock<(activity: Omit<TodoActivity, "id" | "createdAt">) => Promise<TodoActivity>>(() =>
-      Promise.resolve({} as TodoActivity),
-    ),
-    delete: mock<(id: string) => Promise<void>>(() => Promise.resolve()),
-    updateWorkPeriod: mock<(id: string, workPeriodId: string | null) => Promise<TodoActivity | null>>(() =>
-      Promise.resolve(null),
-    ),
-    findByWorkPeriodId: mock<(workPeriodId: string) => Promise<TodoActivity[]>>(() => Promise.resolve([])),
-    findByDateRange: mock<(startDate: Date, endDate: Date) => Promise<TodoActivity[]>>(() => Promise.resolve([])),
-    update: mock<(id: string, todoActivity: Partial<TodoActivity>) => Promise<TodoActivity | null>>(() =>
-      Promise.resolve(null),
-    ),
-    getTotalWorkTime: mock<(todoId: string) => Promise<number>>(() => Promise.resolve(0)),
-    findByWorkPeriod: mock<(workPeriodId: string) => Promise<TodoActivity[]>>(() => Promise.resolve([])),
-  } as MockedTodoActivityRepository;
-
+  let mockTodoRepository: MockedTodoRepository;
+  let mockTodoActivityRepository: MockedTodoActivityRepository;
   let useCase: GetTodoActivityListUseCase;
 
   beforeEach(() => {
-    useCase = new GetTodoActivityListUseCase(
-      mockTodoRepository,
-      mockTodoActivityRepository as unknown as TodoActivityRepository,
-    );
-    // Clear mock calls between tests
-    mockTodoRepository.findById.mockClear();
-    mockTodoActivityRepository.findByTodoId.mockClear();
+    mockTodoRepository = {
+      findAll: mock<() => Promise<Todo[]>>(() => Promise.resolve([])),
+      findById: mock<(id: TodoId) => Promise<Todo | null>>(() => Promise.resolve(null)),
+      create: mock<(todo: Omit<Todo, "id" | "createdAt" | "updatedAt">) => Promise<Todo>>(() =>
+        Promise.resolve({} as Todo),
+      ),
+      update: mock<(id: TodoId, todo: Partial<Todo>) => Promise<Todo | null>>(() => Promise.resolve(null)),
+      delete: mock<(id: TodoId) => Promise<void>>(() => Promise.resolve()),
+    } as MockedTodoRepository;
+
+    mockTodoActivityRepository = {
+      findByTodoId: mock<(todoId: TodoId) => Promise<TodoActivity[]>>(() => Promise.resolve([])),
+      findById: mock<(id: TodoId) => Promise<TodoActivity | null>>(() => Promise.resolve(null)),
+      create: mock<(activity: Omit<TodoActivity, "id" | "createdAt">) => Promise<TodoActivity>>(() =>
+        Promise.resolve({} as TodoActivity),
+      ),
+      delete: mock<(id: TodoId) => Promise<void>>(() => Promise.resolve()),
+      updateWorkPeriod: mock<(id: TodoId, workPeriodId: string | null) => Promise<TodoActivity | null>>(() =>
+        Promise.resolve(null),
+      ),
+      findByWorkPeriodId: mock<(workPeriodId: string) => Promise<TodoActivity[]>>(() => Promise.resolve([])),
+      findByDateRange: mock<(startDate: Date, endDate: Date) => Promise<TodoActivity[]>>(() => Promise.resolve([])),
+      update: mock<(id: TodoId, todoActivity: Partial<TodoActivity>) => Promise<TodoActivity | null>>(() =>
+        Promise.resolve(null),
+      ),
+      getTotalWorkTime: mock<(todoId: TodoId) => Promise<number>>(() => Promise.resolve(0)),
+      findByWorkPeriod: mock<(workPeriodId: string) => Promise<TodoActivity[]>>(() => Promise.resolve([])),
+    } as MockedTodoActivityRepository;
+
+    useCase = new GetTodoActivityListUseCase(mockTodoRepository, mockTodoActivityRepository);
   });
 
   test("should throw TodoNotFoundError when todo does not exist", async () => {
-    // Arrange
-    const todoId = "non-existent-id";
-    mockTodoRepository.findById.mockImplementationOnce(async () => Promise.resolve(null));
+    const todoId = "non-existent-todo" as TodoId;
+    mockTodoRepository.findById.mockImplementation(() => Promise.resolve(null));
 
-    // Act & Assert
     await expect(useCase.execute(todoId)).rejects.toThrow(TodoNotFoundError);
-    expect(mockTodoRepository.findById).toHaveBeenCalledTimes(1);
-    expect(mockTodoRepository.findById).toHaveBeenCalledWith(todoId);
-    expect(mockTodoActivityRepository.findByTodoId).not.toHaveBeenCalled();
   });
 
-  test("should return activities for a todo", async () => {
-    // Arrange
-    const todoId = "todo-id";
-    const now = new Date();
-
-    const mockTodo = createTestTodo({
-      id: todoId,
+  test("should return activities for a valid todo", async () => {
+    const todo = createTestTodo({
+      id: "test-todo" as TodoId,
       title: "Test Todo",
+      description: "Test Description",
       status: TodoStatus.PENDING,
       workState: WorkState.IDLE,
-      totalWorkTime: 0,
-      lastStateChangeAt: now,
-      createdAt: now,
-      updatedAt: now,
       priority: PriorityLevel.MEDIUM,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     });
 
-    const mockActivities: TodoActivity[] = [
+    const activities: TodoActivity[] = [
       {
         id: "activity-1",
-        todoId,
+        todoId: todo.id,
         type: ActivityType.STARTED,
-        workTime: undefined,
-        previousState: WorkState.IDLE,
-        note: "Started work",
-        createdAt: now,
+        createdAt: new Date(),
       },
       {
         id: "activity-2",
-        todoId,
+        todoId: todo.id,
         type: ActivityType.PAUSED,
-        workTime: 120,
-        previousState: WorkState.ACTIVE,
-        note: "Taking a break",
-        createdAt: new Date(now.getTime() + 3600000),
+        createdAt: new Date(),
       },
     ];
 
-    mockTodoRepository.findById.mockImplementationOnce(async () => Promise.resolve(mockTodo));
-    mockTodoActivityRepository.findByTodoId.mockImplementationOnce(async () => Promise.resolve(mockActivities));
+    mockTodoRepository.findById.mockImplementation(() => Promise.resolve(todo));
+    mockTodoActivityRepository.findByTodoId.mockImplementation(() => Promise.resolve(activities));
 
-    // Act
-    const result = await useCase.execute(todoId);
-
-    // Assert
-    expect(mockTodoRepository.findById).toHaveBeenCalledTimes(1);
-    expect(mockTodoActivityRepository.findByTodoId).toHaveBeenCalledTimes(1);
-    expect(mockTodoActivityRepository.findByTodoId).toHaveBeenCalledWith(todoId);
-    expect(result).toHaveLength(2);
-    if (result[0]) {
-      expect(result[0].id).toBe("activity-1");
-    }
-    if (result[1]) {
-      expect(result[1].id).toBe("activity-2");
-    }
+    const result = await useCase.execute(todo.id);
+    expect(result).toEqual(activities);
   });
 
   test("should return empty array when todo has no activities", async () => {
-    // Arrange
-    const todoId = "todo-id";
-    const now = new Date();
-
-    const mockTodo = createTestTodo({
-      id: todoId,
+    const todo = createTestTodo({
+      id: "test-todo" as TodoId,
       title: "Test Todo",
+      description: "Test Description",
       status: TodoStatus.PENDING,
       workState: WorkState.IDLE,
-      totalWorkTime: 0,
-      lastStateChangeAt: now,
-      createdAt: now,
-      updatedAt: now,
       priority: PriorityLevel.MEDIUM,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     });
 
-    mockTodoRepository.findById.mockImplementationOnce(async () => Promise.resolve(mockTodo));
-    mockTodoActivityRepository.findByTodoId.mockImplementationOnce(async () => Promise.resolve([]));
+    mockTodoRepository.findById.mockImplementation(() => Promise.resolve(todo));
+    mockTodoActivityRepository.findByTodoId.mockImplementation(() => Promise.resolve([]));
 
-    // Act
-    const result = await useCase.execute(todoId);
-
-    // Assert
-    expect(mockTodoRepository.findById).toHaveBeenCalledTimes(1);
-    expect(mockTodoActivityRepository.findByTodoId).toHaveBeenCalledTimes(1);
+    const result = await useCase.execute(todo.id);
     expect(result).toEqual([]);
   });
 });

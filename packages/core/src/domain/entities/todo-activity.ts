@@ -1,5 +1,7 @@
-import type { WorkState } from "./todo.js";
-import type { WorkPeriodId } from "./work-period.js";
+import type { WorkState } from "./todo";
+import type { WorkPeriodId } from "./work-period";
+
+export type TodoActivityId = string;
 
 export enum ActivityType {
   STARTED = "started",
@@ -9,7 +11,7 @@ export enum ActivityType {
 }
 
 export interface TodoActivity {
-  id: string;
+  id: TodoActivityId;
   todoId: string;
   type: ActivityType;
   workTime?: number;

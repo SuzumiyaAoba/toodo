@@ -1,7 +1,7 @@
 import type { PrismaClient } from "../../generated/prisma";
 import { handlePrismaError } from "../utils/error-handler";
 
-type EntityType = "Todo" | "TodoActivity" | "Tag";
+type EntityType = "Todo" | "TodoActivity" | "Tag" | "WorkPeriod";
 
 /**
  * Base repository class for Prisma repositories

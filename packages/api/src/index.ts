@@ -1,8 +1,11 @@
 import { serve } from "@hono/node-server";
+import { swaggerUI } from "@hono/swagger-ui";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import { showRoutes } from "hono/dev";
 import { HTTPException } from "hono/http-exception";
 import { logger } from "hono/logger";
+import { prettyJSON } from "hono/pretty-json";
 import { secureHeaders } from "hono/secure-headers";
 import { AddTodoToProjectUseCase } from "./application/use-cases/project/add-todo-to-project";
 import { CreateProject } from "./application/use-cases/project/create-project";
@@ -25,7 +28,6 @@ import { DeleteTodoActivityUseCase } from "./application/use-cases/todo-activity
 import { GetTodoActivityListUseCase } from "./application/use-cases/todo-activity/get-todo-activity-list";
 import { AddTodoDependencyUseCase } from "./application/use-cases/todo-dependency/add-todo-dependency";
 import { GetTodoDependenciesUseCase } from "./application/use-cases/todo-dependency/get-todo-dependencies";
-import { GetTodoDependencyTreeUseCase } from "./application/use-cases/todo-dependency/get-todo-dependency-tree";
 import { GetTodoDependentsUseCase } from "./application/use-cases/todo-dependency/get-todo-dependents";
 import { RemoveTodoDependencyUseCase } from "./application/use-cases/todo-dependency/remove-todo-dependency";
 import { CreateTodoUseCase } from "./application/use-cases/todo/create-todo";
@@ -38,139 +40,112 @@ import { GetTodoUseCase } from "./application/use-cases/todo/get-todo";
 import { GetTodoListUseCase } from "./application/use-cases/todo/get-todo-list";
 import { GetTodoWorkTimeUseCase } from "./application/use-cases/todo/get-todo-work-time";
 import { UpdateTodoUseCase } from "./application/use-cases/todo/update-todo";
+import { PrismaClient } from "./generated/prisma";
 import { prisma } from "./infrastructure/db";
 import { PrismaProjectRepository } from "./infrastructure/repositories/prisma-project-repository";
 import { PrismaTagRepository } from "./infrastructure/repositories/prisma-tag-repository";
 import { PrismaTodoActivityRepository } from "./infrastructure/repositories/prisma-todo-activity-repository";
 import { PrismaTodoRepository } from "./infrastructure/repositories/prisma-todo-repository";
+import { WorkPeriodRepository } from "./infrastructure/repositories/work-period-repository";
 import { errorHandler } from "./presentation/middlewares/error-handler";
 import { setupProjectRoutes } from "./presentation/routes/project-routes";
+import { subtaskRoutes } from "./presentation/routes/subtask-routes";
+import { setupTagBulkRoutes } from "./presentation/routes/tag-bulk-routes";
 import { setupTagRoutes } from "./presentation/routes/tag-routes";
+import { setupTodoActivityRoutes } from "./presentation/routes/todo-activity-routes";
 import { setupTodoDependencyRoutes } from "./presentation/routes/todo-dependency-routes";
 import { setupTodoDueDateRoutes } from "./presentation/routes/todo-due-date-routes";
 import { setupTodoRoutes } from "./presentation/routes/todo-routes";
+import { setupWorkPeriodRoutes } from "./presentation/routes/work-period-routes";
 
-// Initialize repositories
-const todoRepository = new PrismaTodoRepository(prisma);
-const todoActivityRepository = new PrismaTodoActivityRepository(prisma);
-const tagRepository = new PrismaTagRepository(prisma);
-const projectRepository = new PrismaProjectRepository(prisma);
+const app = new Hono();
+const apiV1 = new Hono();
 
-// Initialize Tag use cases
-const createTagUseCase = new CreateTagUseCase(tagRepository);
-const getAllTagsUseCase = new GetAllTagsUseCase(tagRepository);
-const getTagByIdUseCase = new GetTagByIdUseCase(tagRepository);
-const updateTagUseCase = new UpdateTagUseCase(tagRepository);
-const deleteTagUseCase = new DeleteTagUseCase(tagRepository);
-const assignTagToTodoUseCase = new AssignTagToTodoUseCase(tagRepository, todoRepository);
-const getTaggedTodosUseCase = new GetTodosByMultipleTagsUseCase(tagRepository, todoRepository);
-const bulkAssignTagUseCase = new BulkAssignTagUseCase(tagRepository, todoRepository);
-const bulkRemoveTagUseCase = new BulkRemoveTagUseCase(tagRepository, todoRepository);
+// グローバルミドルウェアの設定
+app.use("*", logger());
+app.use("*", prettyJSON());
+app.use(
+  "*",
+  cors({
+    origin: ["http://localhost:3000"],
+    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+  }),
+);
+app.use("*", secureHeaders());
 
-// Initialize Todo use cases
+// エラーハンドラーの設定
+app.onError(errorHandler);
+apiV1.onError(errorHandler);
+
+const prismaClient = new PrismaClient();
+const tagRepository = new PrismaTagRepository(prismaClient);
+const todoRepository = new PrismaTodoRepository(prismaClient);
+const projectRepository = new PrismaProjectRepository(prismaClient);
+const todoActivityRepository = new PrismaTodoActivityRepository(prismaClient);
+const workPeriodRepository = new WorkPeriodRepository(prismaClient);
+
+// Todo use cases
 const createTodoUseCase = new CreateTodoUseCase(todoRepository, todoActivityRepository);
 const getTodoListUseCase = new GetTodoListUseCase(todoRepository);
-const getTodoUseCase = new GetTodoUseCase(todoRepository);
+const getTodoUseCase = new GetTodoUseCase(todoRepository, tagRepository);
 const updateTodoUseCase = new UpdateTodoUseCase(todoRepository);
 const deleteTodoUseCase = new DeleteTodoUseCase(todoRepository, todoActivityRepository);
 const getTodoWorkTimeUseCase = new GetTodoWorkTimeUseCase(todoRepository);
 
+// TodoActivity use cases
 const createTodoActivityUseCase = new CreateTodoActivityUseCase(todoRepository, todoActivityRepository);
 const getTodoActivityListUseCase = new GetTodoActivityListUseCase(todoRepository, todoActivityRepository);
 const deleteTodoActivityUseCase = new DeleteTodoActivityUseCase(todoRepository, todoActivityRepository);
 
-// Initialize Todo Dependency use cases
-const addTodoDependencyUseCase = new AddTodoDependencyUseCase(todoRepository);
-const removeTodoDependencyUseCase = new RemoveTodoDependencyUseCase(todoRepository);
-const getTodoDependenciesUseCase = new GetTodoDependenciesUseCase(todoRepository);
-const getTodoDependentsUseCase = new GetTodoDependentsUseCase(todoRepository);
-const getTodoDependencyTreeUseCase = new GetTodoDependencyTreeUseCase(todoRepository);
-
-// Initialize Due Date use cases
-const findOverdueTodosUseCase = new FindOverdueTodosUseCase(todoRepository);
-const findDueSoonTodosUseCase = new FindDueSoonTodosUseCase(todoRepository);
-const findByDueDateRangeUseCase = new FindByDueDateRangeUseCase(todoRepository);
-const bulkUpdateDueDateUseCase = new BulkUpdateDueDateUseCase(todoRepository);
-
-// Initialize Project use cases
-const createProjectUseCase = new CreateProject(projectRepository);
-const getAllProjectsUseCase = new GetAllProjects(projectRepository);
-const getProjectUseCase = new GetProject(projectRepository);
-const updateProjectUseCase = new UpdateProject(projectRepository);
-const deleteProjectUseCase = new DeleteProject(projectRepository);
-const getProjectTodosUseCase = new GetTodosByProject(projectRepository, todoRepository);
-const assignTodoToProjectUseCase = new AddTodoToProjectUseCase(projectRepository, todoRepository);
-const removeTodoFromProjectUseCase = new RemoveTodoFromProjectUseCase(projectRepository, todoRepository);
-
-// Create Hono app
-const app = new Hono();
-
-// Add middlewares
-app.use("*", logger());
-app.use("*", cors());
-app.use("*", secureHeaders());
-app.onError((err, c) => {
-  // Check for HTTPException
-  if (err instanceof HTTPException) {
-    return err.getResponse();
-  }
-  return errorHandler(err, c);
-});
-
-// Add routes
-const apiBase = "/api/v1";
-
-// Setup Todo routes
-app.route(
-  apiBase,
-  setupTodoRoutes(
-    new Hono(),
-    createTodoUseCase,
-    getTodoListUseCase,
-    getTodoUseCase,
-    updateTodoUseCase,
-    deleteTodoUseCase,
-    getTodoWorkTimeUseCase,
-    createTodoActivityUseCase,
-    getTodoActivityListUseCase,
-    deleteTodoActivityUseCase,
-  ),
+// ベースとなるTodoルートの設定
+setupTodoRoutes(
+  apiV1,
+  createTodoUseCase,
+  getTodoListUseCase,
+  getTodoUseCase,
+  updateTodoUseCase,
+  deleteTodoUseCase,
+  getTodoWorkTimeUseCase,
+  createTodoActivityUseCase,
+  getTodoActivityListUseCase,
+  deleteTodoActivityUseCase,
 );
 
-// Setup Tag routes
-app.route(apiBase, setupTagRoutes(new Hono(), tagRepository, todoRepository));
+// Todo関連の拡張ルートの設定
+setupTodoActivityRoutes(apiV1, todoActivityRepository, todoRepository);
+setupTodoDependencyRoutes(apiV1, todoRepository);
+setupTodoDueDateRoutes(apiV1, todoRepository);
+apiV1.route("/todos", subtaskRoutes);
 
-// Setup Todo Dependency routes
-app.route(apiBase, setupTodoDependencyRoutes(new Hono(), todoRepository));
+// タグ関連のルートの設定
+setupTagRoutes(apiV1, tagRepository, todoRepository);
+setupTagBulkRoutes(apiV1, tagRepository, todoRepository);
 
-// Setup Todo Due Date routes
-app.route(
-  apiBase,
-  setupTodoDueDateRoutes(
-    new Hono(),
-    findOverdueTodosUseCase,
-    findDueSoonTodosUseCase,
-    findByDueDateRangeUseCase,
-    bulkUpdateDueDateUseCase,
-  ),
+// プロジェクト関連のルートの設定
+setupProjectRoutes(apiV1, projectRepository, todoRepository);
+
+// 作業期間関連のルートの設定
+setupWorkPeriodRoutes(apiV1, workPeriodRepository, todoRepository, todoActivityRepository);
+
+// APIルートのマウント
+app.route("/api/v1", apiV1);
+
+// Swagger UIの設定
+app.get(
+  "/swagger",
+  swaggerUI({
+    url: "/api/docs",
+  }),
 );
 
-// Setup Project routes
-app.route(apiBase, setupProjectRoutes(new Hono(), projectRepository, todoRepository));
+showRoutes(app);
 
-// Add health check endpoint
-app.get("/health", (c) => c.text("OK"));
-
-// Export app for testing
 export default app;
 
-// Start the server only in non-test environment
-if (process.env.NODE_ENV !== "test") {
-  const port = process.env.PORT || 3000;
-  console.log(`Server is running on port ${port}`);
+const port = process.env.PORT || 3000;
+console.log(`Server is running on port ${port}`);
 
-  serve({
-    fetch: app.fetch,
-    port: Number(port),
-  });
-}
+serve({
+  fetch: app.fetch,
+  port: Number(port),
+});

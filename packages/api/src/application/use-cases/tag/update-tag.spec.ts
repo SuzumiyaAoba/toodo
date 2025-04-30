@@ -153,15 +153,15 @@ describe("UpdateTagUseCase", () => {
     expect(tagRepository.updateTag).toHaveBeenCalledWith(input.id, undefined, input.color);
   });
 
-  it("should set color to null if specified", async () => {
+  it("should set color to undefined if specified", async () => {
     const input = {
       id: "123e4567-e89b-12d3-a456-426614174000",
-      color: null,
+      color: undefined,
     };
 
     const expectedTag = {
       ...mockTag,
-      color: null,
+      color: undefined,
       updatedAt: new Date(),
     };
 
@@ -171,8 +171,7 @@ describe("UpdateTagUseCase", () => {
     const result = await updateTagUseCase.execute(input);
 
     expect(result).toEqual(expectedTag);
-    // nullがundefinedに変換されずにそのまま渡されることを確認
-    expect(tagRepository.updateTag).toHaveBeenCalledWith(input.id, undefined, null);
+    expect(tagRepository.updateTag).toHaveBeenCalledWith(input.id, undefined, undefined);
   });
 
   it("should throw TagNotFoundError if tag does not exist", async () => {

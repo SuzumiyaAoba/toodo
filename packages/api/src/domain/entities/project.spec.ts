@@ -27,9 +27,9 @@ describe("Project", () => {
     const project = new Project(
       projectId,
       projectName,
-      projectStatus,
       projectDescription,
       projectColor,
+      projectStatus,
       createdAt,
       updatedAt,
     );
@@ -47,9 +47,9 @@ describe("Project", () => {
     const project = Project.create(
       projectId,
       projectName,
-      projectStatus,
       projectDescription,
       projectColor,
+      projectStatus,
       createdAt,
       updatedAt,
     );
@@ -67,9 +67,9 @@ describe("Project", () => {
     const project = new Project(
       projectId,
       projectName,
-      projectStatus,
       projectDescription,
       projectColor,
+      projectStatus,
       createdAt,
       updatedAt,
     );
@@ -89,9 +89,9 @@ describe("Project", () => {
     const project = new Project(
       projectId,
       projectName,
-      projectStatus,
       projectDescription,
       projectColor,
+      projectStatus,
       createdAt,
       updatedAt,
     );
@@ -111,9 +111,9 @@ describe("Project", () => {
     const project = new Project(
       projectId,
       projectName,
-      projectStatus,
       projectDescription,
       projectColor,
+      projectStatus,
       createdAt,
       updatedAt,
     );
@@ -133,9 +133,9 @@ describe("Project", () => {
     const project = new Project(
       projectId,
       projectName,
-      "active",
       projectDescription,
       projectColor,
+      "active",
       createdAt,
       updatedAt,
     );
@@ -155,9 +155,9 @@ describe("Project", () => {
     const project = new Project(
       projectId,
       projectName,
-      "active",
       projectDescription,
       projectColor,
+      "active",
       createdAt,
       updatedAt,
     );
@@ -170,9 +170,9 @@ describe("Project", () => {
     const project = new Project(
       projectId,
       projectName,
-      "archived",
       projectDescription,
       projectColor,
+      "archived",
       createdAt,
       updatedAt,
     );

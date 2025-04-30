@@ -4,13 +4,9 @@ import * as v from "valibot";
 const ISO8601_DATE_REGEX = /^\d{4}-?\d\d-?\d\d(?:T\d\d(?::?\d\d(?::?\d\d(?:\.\d+)?)?)?(?:Z|[+-]\d\d:?\d\d)?)?$/;
 
 /**
- * Schema for converting ISO8601 dates to Date objects
+ * Schema for ISO8601 date strings
  */
-export const DateSchema = v.pipe(
-  v.string(),
-  v.regex(ISO8601_DATE_REGEX),
-  v.transform((date) => new Date(date)),
-);
+export const DateSchema = v.pipe(v.string(), v.regex(ISO8601_DATE_REGEX));
 
 /**
  * Common schema parts that are reused across different schemas
@@ -38,7 +34,7 @@ export const BaseEntitySchema = v.object({
 });
 
 /**
- * Schema for Todo entity responses
+ * Schema for Todo responses
  */
 export const TodoSchema = v.object({
   id: CommonSchemas.uuid(),
@@ -46,15 +42,11 @@ export const TodoSchema = v.object({
   description: CommonSchemas.description(),
   status: CommonSchemas.todoStatus(),
   workState: CommonSchemas.workState(),
-  totalWorkTime: v.number(),
-  lastStateChangeAt: DateSchema,
+  priority: CommonSchemas.priorityLevel(),
   dueDate: CommonSchemas.dueDate(),
-  createdAt: DateSchema,
-  updatedAt: DateSchema,
-  priority: CommonSchemas.priorityLevel(), // Using common schema
-  projectId: v.optional(CommonSchemas.uuid()),
-  dependencies: v.optional(v.array(CommonSchemas.uuid())), // List of IDs of dependent Todos
-  dependents: v.optional(v.array(CommonSchemas.uuid())), // List of IDs of Todos dependent on this Todo
+  createdAt: v.string(),
+  updatedAt: v.string(),
+  subtasks: v.optional(v.array(v.string())),
 });
 
 /**
@@ -118,7 +110,7 @@ export const TodoActivitySchema = v.object({
   workTime: v.optional(v.number()),
   previousState: v.optional(CommonSchemas.workState()),
   note: CommonSchemas.note(),
-  createdAt: DateSchema,
+  createdAt: v.string(),
 });
 
 /**

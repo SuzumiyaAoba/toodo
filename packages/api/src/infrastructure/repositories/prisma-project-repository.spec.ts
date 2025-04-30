@@ -13,7 +13,7 @@ describe("PrismaProjectRepository", () => {
 
     // Create a test project
     const projectId = uuidv4();
-    testProject = new Project(projectId, "Test Project", "active", "Test Description", "#FF5733");
+    testProject = new Project(projectId, "Test Project", "Test Description", "#FF5733", "active");
   });
 
   afterEach(async () => {
@@ -73,7 +73,7 @@ describe("PrismaProjectRepository", () => {
   it("should find all projects", async () => {
     await repository.create(testProject);
 
-    const project2 = new Project(uuidv4(), "Test Project 2", "archived", "Test Description 2", "#33FF57");
+    const project2 = new Project(uuidv4(), "Test Project 2", "Test Description 2", "#33FF57", "archived");
     await repository.create(project2);
 
     const projects = await repository.findAll();

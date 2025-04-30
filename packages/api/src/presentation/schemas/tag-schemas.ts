@@ -1,141 +1,149 @@
-import * as v from "valibot";
+import {
+  array,
+  boolean,
+  literal,
+  maxLength,
+  minLength,
+  nullable,
+  number,
+  object,
+  optional,
+  pipe,
+  regex,
+  string,
+  union,
+  uuid,
+} from "valibot";
+import type { InferOutput } from "valibot";
 
 /**
- * Schema for tag response
+ * Schema for Tag responses
  */
-export const TagSchema = v.object({
-  id: v.pipe(v.string(), v.uuid()),
-  name: v.pipe(v.string(), v.minLength(1), v.maxLength(50)),
-  color: v.optional(v.nullable(v.pipe(v.string(), v.regex(/^#[0-9A-Fa-f]{6}$/)))),
-  createdAt: v.string(),
-  updatedAt: v.string(),
+export const TagSchema = object({
+  id: string(),
+  name: string(),
+  color: optional(string()),
+  createdAt: string(),
+  updatedAt: string(),
 });
 
 /**
- * Type for tag response
+ * Schema for Tag query parameters
  */
-export type TagResponse = v.InferOutput<typeof TagSchema>;
+export const MultipleTagQuerySchema = object({
+  tagIds: array(string()),
+  mode: union([literal("all"), literal("any")]),
+});
+
+/**
+ * Schema for bulk tag operations
+ */
+export const BulkTagOperationSchema = object({
+  tagIds: array(string()),
+  todoIds: array(string()),
+});
+
+/**
+ * Type for Tag response
+ */
+export type TagResponse = InferOutput<typeof TagSchema>;
 
 /**
  * Schema for creating a tag
  */
-export const CreateTagSchema = v.object({
-  name: v.pipe(v.string(), v.minLength(1), v.maxLength(50)),
-  color: v.optional(v.nullable(v.pipe(v.string(), v.regex(/^#[0-9A-Fa-f]{6}$/)))),
+export const CreateTagSchema = object({
+  name: pipe(string(), minLength(1), maxLength(50)),
+  color: optional(nullable(pipe(string(), regex(/^#[0-9A-Fa-f]{6}$/)))),
 });
 
 /**
  * Type for creating a tag
  */
-export type CreateTagRequest = v.InferOutput<typeof CreateTagSchema>;
+export type CreateTagRequest = InferOutput<typeof CreateTagSchema>;
 
 /**
  * Schema for updating a tag
  */
-export const UpdateTagSchema = v.object({
-  name: v.optional(v.pipe(v.string(), v.minLength(1), v.maxLength(50))),
-  color: v.optional(v.nullable(v.pipe(v.string(), v.regex(/^#[0-9A-Fa-f]{6}$/)))),
+export const UpdateTagSchema = object({
+  name: optional(pipe(string(), minLength(1), maxLength(50))),
+  color: optional(nullable(pipe(string(), regex(/^#[0-9A-Fa-f]{6}$/)))),
 });
 
 /**
  * Type for updating a tag
  */
-export type UpdateTagRequest = v.InferOutput<typeof UpdateTagSchema>;
+export type UpdateTagRequest = InferOutput<typeof UpdateTagSchema>;
 
 /**
  * Schema for tag list response
  */
-export const TagListSchema = v.array(TagSchema);
+export const TagListSchema = array(TagSchema);
 
 /**
  * Type for tag list response
  */
-export type TagListResponse = v.InferOutput<typeof TagListSchema>;
+export type TagListResponse = InferOutput<typeof TagListSchema>;
 
 /**
  * Schema for tag ID in URL
  */
-export const TagIdParamSchema = v.object({
-  tagId: v.pipe(v.string(), v.uuid()),
+export const TagIdParamSchema = object({
+  tagId: pipe(string(), uuid()),
 });
 
 /**
  * Type for tag ID in URL
  */
-export type TagIdParam = v.InferOutput<typeof TagIdParamSchema>;
-
-/**
- * Schema for multiple tag IDs query parameter
- */
-export const MultipleTagQuerySchema = v.object({
-  tagIds: v.pipe(
-    v.string(),
-    v.transform((ids) => ids.split(",")),
-    v.array(v.pipe(v.string(), v.uuid())),
-  ),
-  mode: v.optional(v.picklist(["all", "any"]), "all"),
-});
+export type TagIdParam = InferOutput<typeof TagIdParamSchema>;
 
 /**
  * Type for multiple tag IDs query
  */
-export type MultipleTagQuery = v.InferOutput<typeof MultipleTagQuerySchema>;
+export type MultipleTagQuery = InferOutput<typeof MultipleTagQuerySchema>;
 
 /**
- * Schema for bulk tag operations
+ * Type for bulk tag operation response
  */
-export const BulkTagOperationSchema = v.object({
-  todoIds: v.array(v.pipe(v.string(), v.uuid())),
-});
-
-/**
- * Type for bulk tag operations
- */
-export type BulkTagOperation = v.InferOutput<typeof BulkTagOperationSchema>;
-
-/**
- * Schema for bulk tag operation response
- */
-export const BulkTagOperationResponseSchema = v.object({
-  success: v.boolean(),
-  message: v.string(),
-  tag: v.object({
-    id: v.pipe(v.string(), v.uuid()),
-    name: v.string(),
-    color: v.optional(v.nullable(v.string())),
+export const BulkTagOperationResponseSchema = object({
+  success: boolean(),
+  message: string(),
+  tag: object({
+    id: pipe(string(), uuid()),
+    name: string(),
+    color: optional(nullable(string())),
   }),
-  assignedCount: v.optional(v.number()),
-  removedCount: v.optional(v.number()),
+  assignedCount: optional(number()),
+  removedCount: optional(number()),
 });
 
 /**
  * Type for bulk tag operation response
  */
-export type BulkTagOperationResponse = v.InferOutput<typeof BulkTagOperationResponseSchema>;
+export type BulkTagOperationResponse = InferOutput<typeof BulkTagOperationResponseSchema>;
 
 /**
  * Schema for tag usage statistics
  */
-export const TagStatisticsSchema = v.object({
-  id: v.pipe(v.string(), v.uuid()),
-  name: v.string(),
-  color: v.optional(v.nullable(v.string())),
-  usageCount: v.number(),
-  pendingTodoCount: v.number(),
-  completedTodoCount: v.number(),
+export const TagStatisticsSchema = object({
+  id: pipe(string(), uuid()),
+  name: string(),
+  color: optional(nullable(string())),
+  usageCount: number(),
+  pendingTodoCount: number(),
+  completedTodoCount: number(),
 });
 
 /**
  * Type for tag usage statistics
  */
-export type TagStatistics = v.InferOutput<typeof TagStatisticsSchema>;
+export type TagStatistics = InferOutput<typeof TagStatisticsSchema>;
 
 /**
  * Schema for tag usage statistics list
  */
-export const TagStatisticsListSchema = v.array(TagStatisticsSchema);
+export const TagStatisticsListSchema = array(TagStatisticsSchema);
 
 /**
  * Type for tag usage statistics list
  */
-export type TagStatisticsList = v.InferOutput<typeof TagStatisticsListSchema>;
+export type TagStatisticsList = InferOutput<typeof TagStatisticsListSchema>;

@@ -1,5 +1,9 @@
-import type { ActivityType, TodoActivity, WorkState } from "@toodo/core";
+import { ActivityType } from "@toodo/core";
+import type { TodoActivity, WorkState } from "@toodo/core";
 import type { TodoActivity as PrismaTodoActivity } from "../../generated/prisma";
+
+export { ActivityType };
+export type { TodoActivity, WorkState };
 
 export const mapToDomainTodoActivity = (prismaTodoActivity: PrismaTodoActivity): TodoActivity => ({
   id: prismaTodoActivity.id,
