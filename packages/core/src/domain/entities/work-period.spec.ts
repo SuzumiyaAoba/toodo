@@ -11,7 +11,7 @@ describe("WorkPeriod", () => {
 
   test("should create a new WorkPeriod instance", () => {
     const workPeriod = new WorkPeriod(workPeriodId, name, startTime, endTime, date);
-    
+
     expect(workPeriod.id).toBe(workPeriodId);
     expect(workPeriod.name).toBe(name);
     expect(workPeriod.startTime).toBe(startTime);
@@ -29,7 +29,7 @@ describe("WorkPeriod", () => {
     const workPeriod = new WorkPeriod(workPeriodId, name, startTime, endTime, date);
     const newName = "Updated Work Period";
     const updatedWorkPeriod = workPeriod.updateName(newName);
-    
+
     expect(updatedWorkPeriod.id).toBe(workPeriodId);
     expect(updatedWorkPeriod.name).toBe(newName);
     expect(updatedWorkPeriod.startTime).toBe(startTime);
@@ -41,7 +41,7 @@ describe("WorkPeriod", () => {
   test("should not update name if it's the same", () => {
     const workPeriod = new WorkPeriod(workPeriodId, name, startTime, endTime, date);
     const updatedWorkPeriod = workPeriod.updateName(name);
-    
+
     expect(updatedWorkPeriod).toBe(workPeriod); // Should return the same instance
   });
 
@@ -50,7 +50,7 @@ describe("WorkPeriod", () => {
     const newStartTime = new Date(startTime.getTime() - 1800000); // 30 minutes earlier
     const newEndTime = new Date(endTime.getTime() + 1800000); // 30 minutes later
     const updatedWorkPeriod = workPeriod.updatePeriod(newStartTime, newEndTime);
-    
+
     expect(updatedWorkPeriod.id).toBe(workPeriodId);
     expect(updatedWorkPeriod.name).toBe(name);
     expect(updatedWorkPeriod.startTime).toBe(newStartTime);
@@ -61,7 +61,7 @@ describe("WorkPeriod", () => {
 
   test("should throw an error when updating period with invalid times", () => {
     const workPeriod = new WorkPeriod(workPeriodId, name, startTime, endTime, date);
-    
+
     expect(() => {
       workPeriod.updatePeriod(endTime, startTime);
     }).toThrow("Start time must be before end time");
@@ -70,7 +70,7 @@ describe("WorkPeriod", () => {
   test("should not update period if times are the same", () => {
     const workPeriod = new WorkPeriod(workPeriodId, name, startTime, endTime, date);
     const updatedWorkPeriod = workPeriod.updatePeriod(startTime, endTime);
-    
+
     expect(updatedWorkPeriod).toBe(workPeriod); // Should return the same instance
   });
 
@@ -78,7 +78,7 @@ describe("WorkPeriod", () => {
     const workPeriod = new WorkPeriod(workPeriodId, name, startTime, endTime, date);
     const newDate = new Date(date.getTime() + 86400000); // Tomorrow
     const updatedWorkPeriod = workPeriod.updateDate(newDate);
-    
+
     expect(updatedWorkPeriod.id).toBe(workPeriodId);
     expect(updatedWorkPeriod.name).toBe(name);
     expect(updatedWorkPeriod.startTime).toBe(startTime);
@@ -90,76 +90,76 @@ describe("WorkPeriod", () => {
   test("should not update date if it's the same", () => {
     const workPeriod = new WorkPeriod(workPeriodId, name, startTime, endTime, date);
     const updatedWorkPeriod = workPeriod.updateDate(date);
-    
+
     expect(updatedWorkPeriod).toBe(workPeriod); // Should return the same instance
   });
 
   test("should calculate duration in milliseconds", () => {
     const workPeriod = new WorkPeriod(workPeriodId, name, startTime, endTime, date);
     const expectedDuration = endTime.getTime() - startTime.getTime();
-    
+
     expect(workPeriod.getDurationMs()).toBe(expectedDuration);
   });
 
   test("should detect overlapping periods - case 1: this starts before other", () => {
     const workPeriod1 = new WorkPeriod(
-      "wp1", 
-      "Period 1", 
-      new Date("2023-01-01T10:00:00Z"), 
+      "wp1",
+      "Period 1",
+      new Date("2023-01-01T10:00:00Z"),
       new Date("2023-01-01T12:00:00Z"),
-      new Date("2023-01-01")
+      new Date("2023-01-01"),
     );
-    
+
     const workPeriod2 = new WorkPeriod(
-      "wp2", 
-      "Period 2", 
-      new Date("2023-01-01T11:00:00Z"), 
+      "wp2",
+      "Period 2",
+      new Date("2023-01-01T11:00:00Z"),
       new Date("2023-01-01T13:00:00Z"),
-      new Date("2023-01-01")
+      new Date("2023-01-01"),
     );
-    
+
     expect(workPeriod1.overlaps(workPeriod2)).toBe(true);
     expect(workPeriod2.overlaps(workPeriod1)).toBe(true);
   });
 
   test("should detect overlapping periods - case 2: this is contained within other", () => {
     const workPeriod1 = new WorkPeriod(
-      "wp1", 
-      "Period 1", 
-      new Date("2023-01-01T10:00:00Z"), 
+      "wp1",
+      "Period 1",
+      new Date("2023-01-01T10:00:00Z"),
       new Date("2023-01-01T14:00:00Z"),
-      new Date("2023-01-01")
+      new Date("2023-01-01"),
     );
-    
+
     const workPeriod2 = new WorkPeriod(
-      "wp2", 
-      "Period 2", 
-      new Date("2023-01-01T11:00:00Z"), 
+      "wp2",
+      "Period 2",
+      new Date("2023-01-01T11:00:00Z"),
       new Date("2023-01-01T13:00:00Z"),
-      new Date("2023-01-01")
+      new Date("2023-01-01"),
     );
-    
+
     expect(workPeriod1.overlaps(workPeriod2)).toBe(true);
     expect(workPeriod2.overlaps(workPeriod1)).toBe(true);
   });
 
   test("should detect non-overlapping periods", () => {
     const workPeriod1 = new WorkPeriod(
-      "wp1", 
-      "Period 1", 
-      new Date("2023-01-01T10:00:00Z"), 
+      "wp1",
+      "Period 1",
+      new Date("2023-01-01T10:00:00Z"),
       new Date("2023-01-01T12:00:00Z"),
-      new Date("2023-01-01")
+      new Date("2023-01-01"),
     );
-    
+
     const workPeriod2 = new WorkPeriod(
-      "wp2", 
-      "Period 2", 
+      "wp2",
+      "Period 2",
       new Date("2023-01-01T12:00:00Z"), // Starts exactly when period1 ends
       new Date("2023-01-01T14:00:00Z"),
-      new Date("2023-01-01")
+      new Date("2023-01-01"),
     );
-    
+
     expect(workPeriod1.overlaps(workPeriod2)).toBe(false);
     expect(workPeriod2.overlaps(workPeriod1)).toBe(false);
   });
@@ -167,46 +167,22 @@ describe("WorkPeriod", () => {
   test("should detect same date", () => {
     const date1 = new Date("2023-01-01");
     const date2 = new Date("2023-01-01T23:59:59Z"); // Same day, different time
-    
-    const workPeriod1 = new WorkPeriod(
-      "wp1", 
-      "Period 1", 
-      startTime, 
-      endTime,
-      date1
-    );
-    
-    const workPeriod2 = new WorkPeriod(
-      "wp2", 
-      "Period 2", 
-      startTime, 
-      endTime,
-      date2
-    );
-    
+
+    const workPeriod1 = new WorkPeriod("wp1", "Period 1", startTime, endTime, date1);
+
+    const workPeriod2 = new WorkPeriod("wp2", "Period 2", startTime, endTime, date2);
+
     expect(workPeriod1.isSameDate(workPeriod2)).toBe(true);
   });
 
   test("should detect different dates", () => {
     const date1 = new Date("2023-01-01");
     const date2 = new Date("2023-01-02"); // Next day
-    
-    const workPeriod1 = new WorkPeriod(
-      "wp1", 
-      "Period 1", 
-      startTime, 
-      endTime,
-      date1
-    );
-    
-    const workPeriod2 = new WorkPeriod(
-      "wp2", 
-      "Period 2", 
-      startTime, 
-      endTime,
-      date2
-    );
-    
+
+    const workPeriod1 = new WorkPeriod("wp1", "Period 1", startTime, endTime, date1);
+
+    const workPeriod2 = new WorkPeriod("wp2", "Period 2", startTime, endTime, date2);
+
     expect(workPeriod1.isSameDate(workPeriod2)).toBe(false);
   });
 
@@ -216,9 +192,9 @@ describe("WorkPeriod", () => {
       name,
       startTime,
       endTime,
-      date
+      date,
     });
-    
+
     expect(workPeriod.id).toBe(workPeriodId);
     expect(workPeriod.name).toBe(name);
     expect(workPeriod.startTime).toBe(startTime);
@@ -231,9 +207,9 @@ describe("WorkPeriod", () => {
       id: workPeriodId,
       name,
       startTime,
-      endTime
+      endTime,
     });
-    
+
     expect(workPeriod.id).toBe(workPeriodId);
     expect(workPeriod.name).toBe(name);
     expect(workPeriod.startTime).toBe(startTime);
