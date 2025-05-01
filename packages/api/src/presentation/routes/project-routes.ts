@@ -21,7 +21,6 @@ import {
   type CreateProjectRequest,
   ProjectSchema,
   type UpdateProjectRequest,
-  UpdateProjectSchema,
   addTodoToProjectRequestSchema,
   createProjectRequestSchema,
   updateProjectRequestSchema,
@@ -382,12 +381,7 @@ export function setupProjectRoutes<E extends Env = Env, S extends Schema = Schem
           description: "Project not found",
           content: {
             "application/json": {
-              schema: {
-                type: "object",
-                properties: {
-                  error: { type: "string" },
-                },
-              },
+              schema: resolver(ErrorResponseSchema, valibotConfig),
             },
           },
         },
@@ -399,13 +393,16 @@ export function setupProjectRoutes<E extends Env = Env, S extends Schema = Schem
       const useCase = new GetTodosByProject(projectRepository, todoRepository);
 
       try {
-        const { project, todos } = await useCase.execute(id);
-        return c.json(todos);
+        const result = await useCase.execute(id);
+        return c.json({
+          project: result.project,
+          todos: result.todos,
+        });
       } catch (error) {
         if (error instanceof ProjectNotFoundError) {
           return c.json({ error: error.message }, 404);
         }
-        return c.json({ error: "An unexpected error occurred" }, 500);
+        return c.json({ error: "Failed to get todos by project" }, 500);
       }
     },
   );

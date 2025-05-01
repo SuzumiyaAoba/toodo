@@ -139,6 +139,15 @@ export function createMockedTodoRepository(): TodoRepository {
     findByState: mock(() => Promise.resolve([])),
     findUnassignedSubtasks: mock(() => Promise.resolve([])),
     findSubtasks: mock(() => Promise.resolve([])),
+    getSubtasks: mock(() => Promise.resolve([])),
+    getParent: mock(() => Promise.resolve(null)),
+    updateDueDate: mock(() => Promise.resolve({} as Todo)),
+    bulkUpdateDueDate: mock(() => Promise.resolve(0)),
+    hasDependency: mock(() => Promise.resolve(false)),
+    getDependencyTree: mock(() => Promise.resolve([])),
+    findOverdueTodos: mock(() => Promise.resolve([])),
+    findTodosDueSoon: mock(() => Promise.resolve([])),
+    findTodosByDueDateRange: mock(() => Promise.resolve([])),
   };
 }
 

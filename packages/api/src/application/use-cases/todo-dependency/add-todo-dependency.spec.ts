@@ -24,6 +24,7 @@ describe("AddTodoDependencyUseCase", () => {
       findById: mock(() => Promise.resolve(null)),
       wouldCreateDependencyCycle: mock(() => Promise.resolve(false)),
       addDependency: mock(() => Promise.resolve()),
+      hasDependency: mock(() => Promise.resolve(false)),
     };
 
     useCase = new AddTodoDependencyUseCase(mockTodoRepository);
@@ -97,7 +98,6 @@ describe("AddTodoDependencyUseCase", () => {
       PriorityLevel.MEDIUM,
     );
 
-    // 依存関係があるTodoオブジェクトを作成
     const todo = new Todo(
       "todo-id",
       "Test Todo",
@@ -110,19 +110,17 @@ describe("AddTodoDependencyUseCase", () => {
       PriorityLevel.MEDIUM,
     );
 
-    // モック関数として hasDependencyOn をオーバーライド
-    const originalHasDependencyOn = todo.hasDependencyOn;
-    const mockHasDependency = mock((id: string) => id === "dependency-id");
-    todo.hasDependencyOn = mockHasDependency;
-
     mockTodoRepository.findById = mock((id: string) => {
       if (id === "todo-id") return Promise.resolve(todo);
       if (id === "dependency-id") return Promise.resolve(dependencyTodo);
       return Promise.resolve(null);
     });
 
+    mockTodoRepository.hasDependency = mock(() => Promise.resolve(true));
+
     // Act & Assert
     await expect(useCase.execute("todo-id", "dependency-id")).rejects.toThrow(DependencyExistsError);
+    expect(mockTodoRepository.hasDependency).toHaveBeenCalledWith("todo-id", "dependency-id");
   });
 
   it("should throw DependencyCycleError when adding would create a cycle", async () => {

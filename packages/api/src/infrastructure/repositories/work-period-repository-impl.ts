@@ -1,5 +1,6 @@
 import type { PrismaClient } from "@prisma/client";
-import { type TodoActivity, type WorkPeriod, type WorkPeriodCreateInput, mapToDomainWorkPeriod } from "@toodo/core";
+import { type TodoActivity, type WorkPeriod, mapToDomainWorkPeriod } from "@toodo/core";
+import { WorkPeriodNotFoundError } from "../../domain/errors/work-period-errors";
 import type {
   WorkPeriodRepository,
   WorkPeriodStatistics,
@@ -48,24 +49,43 @@ export class WorkPeriodRepositoryImpl implements WorkPeriodRepository {
     return mapToDomainWorkPeriod(created);
   }
 
-  async update(
-    id: string,
-    workPeriod: Partial<Omit<WorkPeriod, "id" | "createdAt" | "updatedAt">>,
-  ): Promise<WorkPeriod> {
-    const updated = await this.prisma.workPeriod.update({
+  async update(id: string, workPeriod: Partial<import("@toodo/core").WorkPeriodCreateInput>): Promise<WorkPeriod> {
+    // 既存のレコードが存在するか確認
+    const existing = await this.prisma.workPeriod.findUnique({
       where: { id },
-      data: {
-        ...(workPeriod.name !== undefined && { name: workPeriod.name }),
-        ...(workPeriod.date !== undefined && { date: workPeriod.date }),
-        ...(workPeriod.startTime !== undefined && {
-          startTime: workPeriod.startTime,
-        }),
-        ...(workPeriod.endTime !== undefined && {
-          endTime: workPeriod.endTime,
-        }),
-      },
     });
-    return mapToDomainWorkPeriod(updated);
+
+    if (!existing) {
+      throw new WorkPeriodNotFoundError(id);
+    }
+
+    // 更新データの準備
+    const data = {
+      ...(workPeriod.name !== undefined && { name: workPeriod.name }),
+      ...(workPeriod.date !== undefined && {
+        date: workPeriod.date instanceof Date ? workPeriod.date : new Date(workPeriod.date),
+      }),
+      ...(workPeriod.startTime !== undefined && {
+        startTime: workPeriod.startTime instanceof Date ? workPeriod.startTime : new Date(workPeriod.startTime),
+      }),
+      ...(workPeriod.endTime !== undefined && {
+        endTime: workPeriod.endTime instanceof Date ? workPeriod.endTime : new Date(workPeriod.endTime),
+      }),
+    };
+
+    try {
+      const updated = await this.prisma.workPeriod.update({
+        where: { id },
+        data,
+      });
+
+      return mapToDomainWorkPeriod(updated);
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Failed to update work period: ${error.message}`);
+      }
+      throw new Error("Failed to update work period: Unknown error");
+    }
   }
 
   async delete(id: string): Promise<void> {

@@ -1,30 +1,54 @@
 import type { PrismaClient } from "@prisma/client";
-import type { ActivityType, TodoActivity, WorkPeriod, WorkPeriodCreateInput } from "@toodo/core";
-import { mapToDomainWorkPeriod } from "@toodo/core";
+import { WorkPeriod } from "@toodo/core";
+import type { WorkPeriodCreateInput } from "@toodo/core";
+import type { TodoActivity } from "@toodo/core";
 import { mapToDomainTodoActivity } from "../../domain/entities/todo-activity";
+import { WorkPeriodNotFoundError } from "../../domain/errors/work-period-errors";
+import type { WorkPeriodRepository as WorkPeriodRepositoryInterface } from "../../domain/repositories/work-period-repository";
 import type {
-  WorkPeriodRepository as WorkPeriodRepositoryInterface,
   WorkPeriodStatistics,
   WorkPeriodStatisticsOptions,
 } from "../../domain/repositories/work-period-repository";
-import type { WorkPeriod as PrismaWorkPeriod } from "../../generated/prisma";
 import { handlePrismaError } from "../utils/error-handler";
+
+function mapToDomainWorkPeriod(prismaWorkPeriod: any): WorkPeriod {
+  return new WorkPeriod(
+    prismaWorkPeriod.id,
+    prismaWorkPeriod.name,
+    new Date(prismaWorkPeriod.startTime),
+    new Date(prismaWorkPeriod.endTime),
+    prismaWorkPeriod.date ? new Date(prismaWorkPeriod.date) : undefined,
+    new Date(prismaWorkPeriod.createdAt),
+    new Date(prismaWorkPeriod.updatedAt),
+    prismaWorkPeriod.activities?.map((activity: any) => ({
+      id: activity.id,
+      type: activity.type,
+      note: activity.note,
+      todoId: activity.todoId,
+      workPeriodId: activity.workPeriodId,
+      createdAt: new Date(activity.createdAt),
+      updatedAt: new Date(activity.updatedAt),
+    })) || [],
+  );
+}
 
 export class WorkPeriodRepository implements WorkPeriodRepositoryInterface {
   constructor(private readonly prisma: PrismaClient) {}
 
-  protected async executePrismaOperation<T>(operation: () => Promise<T>, entityId?: string): Promise<T> {
+  private async executePrismaOperation<T>(operation: () => Promise<T>, id?: string): Promise<T> {
     try {
       return await operation();
     } catch (error) {
-      handlePrismaError(error, "WorkPeriod", entityId);
+      throw handlePrismaError(error, "WorkPeriod", id);
     }
   }
 
   async findAll(): Promise<WorkPeriod[]> {
     return this.executePrismaOperation(async () => {
       const workPeriods = await this.prisma.workPeriod.findMany({
-        orderBy: { date: "desc" },
+        include: {
+          activities: true,
+        },
       });
       return workPeriods.map(mapToDomainWorkPeriod);
     });
@@ -34,6 +58,9 @@ export class WorkPeriodRepository implements WorkPeriodRepositoryInterface {
     return this.executePrismaOperation(async () => {
       const workPeriod = await this.prisma.workPeriod.findUnique({
         where: { id },
+        include: {
+          activities: true,
+        },
       });
       return workPeriod ? mapToDomainWorkPeriod(workPeriod) : null;
     }, id);
@@ -59,9 +86,12 @@ export class WorkPeriodRepository implements WorkPeriodRepositoryInterface {
       const created = await this.prisma.workPeriod.create({
         data: {
           name: workPeriod.name,
-          date: workPeriod.date ?? new Date(),
+          date: workPeriod.date,
           startTime: workPeriod.startTime,
           endTime: workPeriod.endTime,
+        },
+        include: {
+          activities: true,
         },
       });
       return mapToDomainWorkPeriod(created);
@@ -70,21 +100,64 @@ export class WorkPeriodRepository implements WorkPeriodRepositoryInterface {
 
   async update(id: string, workPeriod: Partial<WorkPeriodCreateInput>): Promise<WorkPeriod> {
     return this.executePrismaOperation(async () => {
+      const existing = await this.prisma.workPeriod.findUnique({
+        where: { id },
+        include: {
+          activities: true,
+        },
+      });
+
+      if (!existing) {
+        throw new WorkPeriodNotFoundError(id);
+      }
+
+      console.log("Input workPeriod:", workPeriod);
+      console.log("Existing workPeriod:", existing);
+
+      let updatedWorkPeriod = mapToDomainWorkPeriod(existing);
+
+      if (workPeriod.name !== undefined) {
+        updatedWorkPeriod = updatedWorkPeriod.updateName(workPeriod.name);
+      }
+
+      if (workPeriod.date !== undefined) {
+        updatedWorkPeriod = updatedWorkPeriod.updateDate(workPeriod.date);
+      }
+
+      if (workPeriod.startTime !== undefined && workPeriod.endTime !== undefined) {
+        updatedWorkPeriod = updatedWorkPeriod.updatePeriod(workPeriod.startTime, workPeriod.endTime);
+      } else if (workPeriod.startTime !== undefined) {
+        updatedWorkPeriod = updatedWorkPeriod.updatePeriod(workPeriod.startTime, updatedWorkPeriod.endTime);
+      } else if (workPeriod.endTime !== undefined) {
+        updatedWorkPeriod = updatedWorkPeriod.updatePeriod(updatedWorkPeriod.startTime, workPeriod.endTime);
+      }
+
+      console.log("Updated workPeriod:", {
+        name: updatedWorkPeriod.name,
+        date: updatedWorkPeriod.date,
+        startTime: updatedWorkPeriod.startTime,
+        endTime: updatedWorkPeriod.endTime,
+        updatedAt: updatedWorkPeriod.updatedAt,
+      });
+
       const updated = await this.prisma.workPeriod.update({
         where: { id },
         data: {
-          ...(workPeriod.name !== undefined && { name: workPeriod.name }),
-          ...(workPeriod.date !== undefined && { date: workPeriod.date }),
-          ...(workPeriod.startTime !== undefined && {
-            startTime: workPeriod.startTime,
-          }),
-          ...(workPeriod.endTime !== undefined && {
-            endTime: workPeriod.endTime,
-          }),
+          name: updatedWorkPeriod.name,
+          date: updatedWorkPeriod.date,
+          startTime: updatedWorkPeriod.startTime,
+          endTime: updatedWorkPeriod.endTime,
+          updatedAt: updatedWorkPeriod.updatedAt,
+        },
+        include: {
+          activities: true,
         },
       });
+
+      console.log("Prisma update result:", updated);
+
       return mapToDomainWorkPeriod(updated);
-    }, id);
+    });
   }
 
   async delete(id: string): Promise<void> {

@@ -7,7 +7,12 @@
   },
   "linter": {
     "enabled": true,
-    "ignore": ["*.spec.ts"]
+    "ignore": ["*.spec.ts"],
+    "rules": {
+      "correctness": {
+        "noUnusedImports": "error"
+      }
+    }
   },
   "files": {
     "ignore": [".github/**", "docs/**", "prisma", "src/generated/**", "**/dist/**"]

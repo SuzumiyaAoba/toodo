@@ -3,21 +3,34 @@ import type { Hono } from "hono";
 import app from ".";
 import { PrismaClient } from "./generated/prisma";
 
+interface Todo {
+  id: string;
+  title: string;
+  description: string;
+  status: string;
+  workState: string;
+  totalWorkTime: number;
+}
+
+interface TodoActivity {
+  todoId: string;
+  type: string;
+  note: string;
+}
+
+interface WorkTime {
+  id: string;
+  totalWorkTime: number;
+  formattedTime: string;
+}
+
 describe("Toodo API", () => {
-  let server: { url: string };
   let prisma: PrismaClient;
   let createdTodoId: string;
-  const apiPath = "/api/v1"; // APIのベースパス
+  const apiPath = "/api/v1";
 
   // Setup
   beforeAll(async () => {
-    // Start the server
-    server = { url: "http://localhost:3333" };
-    Bun.serve({
-      port: 3333,
-      fetch: (app as unknown as Hono).fetch,
-    });
-
     // Initialize Prisma client
     prisma = new PrismaClient();
 
@@ -36,7 +49,7 @@ describe("Toodo API", () => {
 
   // Tests
   test("should create a new todo", async () => {
-    const response = await fetch(`${server.url}${apiPath}/todos`, {
+    const res = await app.request(`${apiPath}/todos`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -47,15 +60,8 @@ describe("Toodo API", () => {
       }),
     });
 
-    expect(response.status).toBe(201);
-    const data = (await response.json()) as {
-      id: string;
-      title: string;
-      description: string;
-      status: string;
-      workState: string;
-      totalWorkTime: number;
-    };
+    expect(res.status).toBe(201);
+    const data = (await res.json()) as Todo;
     expect(data.title).toBe("Test Todo");
     expect(data.description).toBe("This is a test todo");
     expect(data.status).toBe("pending");
@@ -67,23 +73,23 @@ describe("Toodo API", () => {
   });
 
   test("should get the list of todos", async () => {
-    const response = await fetch(`${server.url}${apiPath}/todos`);
-    expect(response.status).toBe(200);
-    const data = (await response.json()) as Array<Record<string, any>>;
+    const res = await app.request(`${apiPath}/todos`);
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as Todo[];
     expect(Array.isArray(data)).toBe(true);
     expect(data.length).toBeGreaterThan(0);
   });
 
   test("should get a specific todo", async () => {
-    const response = await fetch(`${server.url}${apiPath}/todos/${createdTodoId}`);
-    expect(response.status).toBe(200);
-    const data = (await response.json()) as { id: string; title: string };
-    expect(data.id).toBe(createdTodoId);
-    expect(data.title).toBe("Test Todo");
+    const res = await app.request(`${apiPath}/todos/${createdTodoId}`);
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as { todo: Todo; tags: unknown[] };
+    expect(data.todo.id).toBe(createdTodoId);
+    expect(data.todo.title).toBe("Test Todo");
   });
 
   test("should update a todo", async () => {
-    const response = await fetch(`${server.url}${apiPath}/todos/${createdTodoId}`, {
+    const res = await app.request(`${apiPath}/todos/${createdTodoId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -93,17 +99,14 @@ describe("Toodo API", () => {
       }),
     });
 
-    expect(response.status).toBe(200);
-    const data = (await response.json()) as {
-      title: string;
-      description: string;
-    };
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as Todo;
     expect(data.title).toBe("Updated Todo");
     expect(data.description).toBe("This is a test todo");
   });
 
   test("should add an activity to a todo", async () => {
-    const response = await fetch(`${server.url}${apiPath}/todos/${createdTodoId}/activities`, {
+    const res = await app.request(`${apiPath}/todos/${createdTodoId}/activities`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -114,48 +117,40 @@ describe("Toodo API", () => {
       }),
     });
 
-    expect(response.status).toBe(201);
-    const data = (await response.json()) as {
-      todoId: string;
-      type: string;
-      note: string;
-    };
+    expect(res.status).toBe(201);
+    const data = (await res.json()) as TodoActivity;
     expect(data.todoId).toBe(createdTodoId);
     expect(data.type).toBe("started");
     expect(data.note).toBe("Starting work on this task");
   });
 
   test("should get activities for a todo", async () => {
-    const response = await fetch(`${server.url}${apiPath}/todos/${createdTodoId}/activities`);
-    expect(response.status).toBe(200);
-    const data = (await response.json()) as Array<{ todoId: string }>;
+    const res = await app.request(`${apiPath}/todos/${createdTodoId}/activities`);
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as TodoActivity[];
     expect(Array.isArray(data)).toBe(true);
     expect(data.length).toBeGreaterThan(0);
     expect(data[0]?.todoId).toBe(createdTodoId);
   });
 
   test("should get work time for a todo", async () => {
-    const response = await fetch(`${server.url}${apiPath}/todos/${createdTodoId}/work-time`);
-    expect(response.status).toBe(200);
-    const data = (await response.json()) as {
-      id: string;
-      totalWorkTime: number;
-      formattedTime: string;
-    };
+    const res = await app.request(`${apiPath}/todos/${createdTodoId}/work-time`);
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as WorkTime;
     expect(data.id).toBe(createdTodoId);
     expect(typeof data.totalWorkTime).toBe("number");
     expect(typeof data.formattedTime).toBe("string");
   });
 
   test("should delete a todo", async () => {
-    const response = await fetch(`${server.url}${apiPath}/todos/${createdTodoId}`, {
+    const res = await app.request(`${apiPath}/todos/${createdTodoId}`, {
       method: "DELETE",
     });
 
-    expect(response.status).toBe(204);
+    expect(res.status).toBe(204);
 
     // Verify that the todo is deleted
-    const getResponse = await fetch(`${server.url}${apiPath}/todos/${createdTodoId}`);
-    expect(getResponse.status).toBe(404);
+    const getRes = await app.request(`${apiPath}/todos/${createdTodoId}`);
+    expect(getRes.status).toBe(404);
   });
 });

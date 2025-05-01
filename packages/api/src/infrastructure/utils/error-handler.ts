@@ -1,10 +1,6 @@
 import { ProjectNameExistsError, ProjectNotFoundError } from "../../domain/errors/project-errors";
 import { TagNameExistsError, TagNotFoundError } from "../../domain/errors/tag-errors";
-import {
-  TodoActivityNotFoundError,
-  TodoNotFoundError,
-  UnauthorizedActivityDeletionError,
-} from "../../domain/errors/todo-errors";
+import { TodoActivityNotFoundError, TodoNotFoundError } from "../../domain/errors/todo-errors";
 import { WorkPeriodNotFoundError } from "../../domain/errors/work-period-errors";
 import { PrismaClientKnownRequestError } from "../../generated/prisma/runtime/library";
 

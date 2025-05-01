@@ -4,12 +4,15 @@ import { Hono } from "hono";
 import { CreateTodoActivityUseCase } from "../application/use-cases/todo-activity/create-todo-activity";
 import { DeleteTodoActivityUseCase } from "../application/use-cases/todo-activity/delete-todo-activity";
 import { GetTodoActivityListUseCase } from "../application/use-cases/todo-activity/get-todo-activity-list";
+import { AddSubtaskUseCase } from "../application/use-cases/todo/add-subtask";
 // UseCase imports
 import { CreateTodoUseCase } from "../application/use-cases/todo/create-todo";
 import { DeleteTodoUseCase } from "../application/use-cases/todo/delete-todo";
+import { GetSubtasksUseCase } from "../application/use-cases/todo/get-subtasks";
 import { GetTodoUseCase } from "../application/use-cases/todo/get-todo";
 import { GetTodoListUseCase } from "../application/use-cases/todo/get-todo-list";
 import { GetTodoWorkTimeUseCase } from "../application/use-cases/todo/get-todo-work-time";
+import { RemoveSubtaskUseCase } from "../application/use-cases/todo/remove-subtask";
 import { UpdateTodoUseCase } from "../application/use-cases/todo/update-todo";
 import { PrismaClient } from "../generated/prisma";
 import { PrismaProjectRepository } from "../infrastructure/repositories/prisma-project-repository";
@@ -21,7 +24,6 @@ import { WorkPeriodRepository } from "../infrastructure/repositories/work-period
 import { corsMiddleware } from "./middlewares/cors-middleware";
 import { errorHandler } from "./middlewares/error-handler";
 import { setupProjectRoutes } from "./routes/project-routes";
-import { subtaskRoutes } from "./routes/subtask-routes";
 import { setupTagBulkRoutes } from "./routes/tag-bulk-routes";
 import { setupTagRoutes } from "./routes/tag-routes";
 import { setupTodoActivityRoutes } from "./routes/todo-activity-routes";
@@ -55,6 +57,9 @@ export function createApp() {
   const createTodoActivityUseCase = new CreateTodoActivityUseCase(todoRepository, todoActivityRepository);
   const getTodoActivityListUseCase = new GetTodoActivityListUseCase(todoRepository, todoActivityRepository);
   const deleteTodoActivityUseCase = new DeleteTodoActivityUseCase(todoRepository, todoActivityRepository);
+  const addSubtaskUseCase = new AddSubtaskUseCase(todoRepository);
+  const getSubtasksUseCase = new GetSubtasksUseCase(todoRepository);
+  const removeSubtaskUseCase = new RemoveSubtaskUseCase(todoRepository);
 
   // エラーハンドリングミドルウェアの設定
   app.onError(errorHandler);
@@ -88,6 +93,9 @@ export function createApp() {
     createTodoActivityUseCase,
     getTodoActivityListUseCase,
     deleteTodoActivityUseCase,
+    addSubtaskUseCase,
+    getSubtasksUseCase,
+    removeSubtaskUseCase,
   );
   setupProjectRoutes(api, projectRepository, todoRepository);
   setupTagRoutes(api, tagRepository, todoRepository);
@@ -96,7 +104,6 @@ export function createApp() {
   setupTodoDependencyRoutes(api, todoRepository);
   setupWorkPeriodRoutes(api, workPeriodRepository, todoRepository, todoActivityRepository);
   setupTodoDueDateRoutes(api, todoRepository);
-  api.route("/todos", subtaskRoutes);
 
   app.route("", api);
 

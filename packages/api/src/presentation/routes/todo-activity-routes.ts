@@ -11,8 +11,6 @@ import type { TodoActivityRepository } from "../../domain/repositories/todo-acti
 import type { TodoRepository } from "../../domain/repositories/todo-repository";
 import { prisma } from "../../infrastructure/db";
 import { WorkPeriodRepository } from "../../infrastructure/repositories/work-period-repository";
-import { errorHandler } from "../middlewares/error-handler";
-import { CreateTodoActivitySchema, TodoActivityListSchema } from "../schemas/todo-schemas";
 
 const todoActivitySchema = z.object({
   type: z.string(),

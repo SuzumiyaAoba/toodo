@@ -1,5 +1,4 @@
 import type { Tag } from "@toodo/core";
-import type { Todo } from "../entities/todo";
 
 /**
  * Interface for tag repository

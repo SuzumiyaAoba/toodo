@@ -47,4 +47,15 @@ export interface TodoRepository {
   findAllCompleted(): Promise<Todo[]>;
   findByProjectId(projectId: string): Promise<Todo[]>;
   findByTagId(tagId: string): Promise<Todo[]>;
+
+  // New methods
+  getSubtasks(todoId: string): Promise<Todo[]>;
+  getParent(todoId: string): Promise<Todo | null>;
+  updateDueDate(todoId: string, dueDate: Date | undefined): Promise<Todo>;
+  bulkUpdateDueDate(todoIds: string[], dueDate: Date | undefined): Promise<number>;
+  hasDependency(todoId: string, dependencyId: string): Promise<boolean>;
+  getDependencyTree(todoId: string, maxDepth?: number): Promise<Todo[]>;
+  findOverdueTodos(): Promise<Todo[]>;
+  findTodosDueSoon(): Promise<Todo[]>;
+  findTodosByDueDateRange(startDate: Date, endDate: Date): Promise<Todo[]>;
 }

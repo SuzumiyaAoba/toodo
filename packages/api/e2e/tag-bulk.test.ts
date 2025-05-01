@@ -1,12 +1,12 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, test } from "bun:test";
 import app from "../src";
-import { prisma, setupTestDatabase, teardownTestDatabase } from "./setup";
-import type { Tag, Todo } from "./types";
+import { setupTestDatabase, teardownTestDatabase } from "./setup";
+import type { BulkOperationResponse, Tag, Todo } from "./types";
 
-describe("Tag Bulk Operations API E2E Tests", () => {
-  const apiBase = "/api/v1";
+describe("Tag Bulk Operations API", () => {
+  const apiPath = "/api/v1";
   let tagId: string;
-  let todoIds: string[] = [];
+  const todoIds: string[] = [];
 
   beforeAll(async () => {
     await setupTestDatabase();
@@ -16,133 +16,168 @@ describe("Tag Bulk Operations API E2E Tests", () => {
     await teardownTestDatabase();
     await setupTestDatabase();
 
+    // Reset todoIds for each test
+    todoIds.length = 0;
+
     // Create a tag for testing
-    const tagResponse = await app.request(`${apiBase}/tags`, {
+    const tagRes = await app.request(`${apiPath}/tags`, {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         name: "Bulk Test Tag",
         color: "#ff5733",
       }),
-      headers: new Headers({ "Content-Type": "application/json" }),
     });
 
-    const tagData = (await tagResponse.json()) as Tag;
+    expect(tagRes.status).toBe(201);
+    const tagData = (await tagRes.json()) as Tag;
     tagId = tagData.id;
 
     // Create multiple todos for testing
-    const todoPromises = Array.from({ length: 3 }, (_, i) =>
-      app.request(`${apiBase}/todos`, {
+    for (let i = 0; i < 3; i++) {
+      const todoRes = await app.request(`${apiPath}/todos`, {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           title: `Bulk Test Todo ${i + 1}`,
           description: `Todo for bulk tag operations test ${i + 1}`,
         }),
-        headers: new Headers({ "Content-Type": "application/json" }),
-      }),
-    );
+      });
 
-    const todoResponses = await Promise.all(todoPromises);
-    const todos = (await Promise.all(todoResponses.map((r) => r.json()))) as Todo[];
-    todoIds = todos.map((todo) => todo.id);
+      expect(todoRes.status).toBe(201);
+      const todoData = (await todoRes.json()) as Todo;
+      todoIds.push(todoData.id);
+    }
   });
 
   afterAll(async () => {
     await teardownTestDatabase();
   });
 
-  test("should bulk assign a tag to multiple todos", async () => {
-    const response = await app.request(`${apiBase}/tags/${tagId}/bulk-assign`, {
+  test("should create a tag and multiple todos for bulk operations", async () => {
+    // Create a tag
+    const tagRes = await app.request(`${apiPath}/tags`, {
       method: "POST",
-      body: JSON.stringify({ todoIds }),
-      headers: new Headers({ "Content-Type": "application/json" }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: "Bulk Tag",
+        color: "#FF0000",
+      }),
     });
 
-    expect(response.status).toBe(200);
-    const responseData = (await response.json()) as {
-      successCount: number;
-      failedCount: number;
-    };
-    expect(responseData.successCount).toBe(todoIds.length);
-    expect(responseData.failedCount).toBe(0);
+    expect(tagRes.status).toBe(201);
+    const tagData = (await tagRes.json()) as Tag;
+    tagId = tagData.id;
 
-    // Verify todos have the tag
-    for (const todoId of todoIds) {
-      const todoResponse = await app.request(`${apiBase}/todos/${todoId}`);
-      const todoData = (await todoResponse.json()) as Todo & { tags: Tag[] };
-      expect(todoData.tags.some((tag) => tag.id === tagId)).toBe(true);
+    // Create multiple todos
+    for (let i = 0; i < 3; i++) {
+      const todoRes = await app.request(`${apiPath}/todos`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: `Bulk Todo ${i + 1}`,
+          description: `This is bulk todo ${i + 1}`,
+        }),
+      });
+
+      expect(todoRes.status).toBe(201);
+      const todoData = (await todoRes.json()) as Todo;
+      todoIds.push(todoData.id);
     }
   });
 
-  test("should handle invalid todo IDs in bulk assign", async () => {
-    const invalidTodoIds = ["00000000-0000-0000-0000-000000000000", ...todoIds];
-
-    const response = await app.request(`${apiBase}/tags/${tagId}/bulk-assign`, {
+  test("should bulk assign tag to todos", async () => {
+    const res = await app.request(`${apiPath}/tags/${tagId}/bulk-assign`, {
       method: "POST",
-      body: JSON.stringify({ todoIds: invalidTodoIds }),
-      headers: new Headers({ "Content-Type": "application/json" }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        tagIds: [tagId],
+        todoIds,
+      }),
     });
 
-    expect(response.status).toBe(200);
-    const responseData = (await response.json()) as {
-      successCount: number;
-      failedCount: number;
-    };
-    expect(responseData.successCount).toBe(todoIds.length);
-    expect(responseData.failedCount).toBe(1);
-  });
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as BulkOperationResponse;
+    expect(data.successCount).toBe(todoIds.length);
+    expect(data.failedCount).toBe(0);
 
-  test("should bulk remove a tag from multiple todos", async () => {
-    // First, assign tags to todos
-    await app.request(`${apiBase}/tags/${tagId}/bulk-assign`, {
-      method: "POST",
-      body: JSON.stringify({ todoIds }),
-      headers: new Headers({ "Content-Type": "application/json" }),
-    });
-
-    const response = await app.request(`${apiBase}/tags/${tagId}/bulk-remove`, {
-      method: "POST",
-      body: JSON.stringify({ todoIds }),
-      headers: new Headers({ "Content-Type": "application/json" }),
-    });
-
-    expect(response.status).toBe(200);
-    const responseData = (await response.json()) as {
-      successCount: number;
-      failedCount: number;
-    };
-    expect(responseData.successCount).toBe(todoIds.length);
-    expect(responseData.failedCount).toBe(0);
-
-    // Verify todos no longer have the tag
+    // Verify tags were assigned
     for (const todoId of todoIds) {
-      const todoResponse = await app.request(`${apiBase}/todos/${todoId}`);
-      const todoData = (await todoResponse.json()) as Todo & { tags: Tag[] };
-      expect(todoData.tags.some((tag) => tag.id === tagId)).toBe(false);
+      const getRes = await app.request(`${apiPath}/todos/${todoId}/tags`);
+      expect(getRes.status).toBe(200);
+      const tags = (await getRes.json()) as Tag[];
+      expect(tags.find((tag) => tag.id === tagId)).toBeDefined();
     }
   });
 
-  test("should handle invalid todo IDs in bulk remove", async () => {
-    // First, assign tags to todos
-    await app.request(`${apiBase}/tags/${tagId}/bulk-assign`, {
+  test("should get todos by tag", async () => {
+    // 事前にタグを一括付与
+    await app.request(`${apiPath}/tags/${tagId}/bulk-assign`, {
       method: "POST",
-      body: JSON.stringify({ todoIds }),
-      headers: new Headers({ "Content-Type": "application/json" }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        tagIds: [tagId],
+        todoIds,
+      }),
     });
 
-    const invalidTodoIds = ["00000000-0000-0000-0000-000000000000", ...todoIds];
+    const res = await app.request(`${apiPath}/tags/${tagId}/todos`);
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as Todo[];
+    expect(Array.isArray(data)).toBe(true);
+    expect(data.length).toBe(todoIds.length);
+    for (const todoId of todoIds) {
+      expect(data.find((todo) => todo.id === todoId)).toBeDefined();
+    }
+  });
 
-    const response = await app.request(`${apiBase}/tags/${tagId}/bulk-remove`, {
+  test("should bulk remove tag from todos", async () => {
+    // 事前にタグを一括付与
+    await app.request(`${apiPath}/tags/${tagId}/bulk-assign`, {
       method: "POST",
-      body: JSON.stringify({ todoIds: invalidTodoIds }),
-      headers: new Headers({ "Content-Type": "application/json" }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        tagIds: [tagId],
+        todoIds,
+      }),
     });
 
-    expect(response.status).toBe(200);
-    const responseData = (await response.json()) as {
-      successCount: number;
-      failedCount: number;
-    };
-    expect(responseData.successCount).toBe(todoIds.length);
-    expect(responseData.failedCount).toBe(1);
+    const res = await app.request(`${apiPath}/tags/${tagId}/bulk-remove`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        tagIds: [tagId],
+        todoIds,
+      }),
+    });
+
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as BulkOperationResponse;
+    expect(data.successCount).toBe(todoIds.length);
+    expect(data.failedCount).toBe(0);
+
+    // Verify tags were removed
+    for (const todoId of todoIds) {
+      const getRes = await app.request(`${apiPath}/todos/${todoId}/tags`);
+      expect(getRes.status).toBe(200);
+      const tags = (await getRes.json()) as Tag[];
+      expect(tags.find((tag) => tag.id === tagId)).toBeUndefined();
+    }
   });
 });

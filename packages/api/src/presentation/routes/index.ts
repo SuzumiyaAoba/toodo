@@ -6,9 +6,8 @@ import { PrismaProjectRepository } from "../../infrastructure/repositories/prism
 import { PrismaTagRepository } from "../../infrastructure/repositories/prisma-tag-repository";
 import { PrismaTodoActivityRepository } from "../../infrastructure/repositories/prisma-todo-activity-repository";
 import { PrismaTodoRepository } from "../../infrastructure/repositories/prisma-todo-repository";
-import { WorkPeriodRepository } from "../../infrastructure/repositories/work-period-repository";
+import { WorkPeriodRepositoryImpl } from "../../infrastructure/repositories/work-period-repository-impl";
 import { setupProjectRoutes } from "./project-routes";
-import { subtaskRoutes } from "./subtask-routes";
 import { setupTagRoutes } from "./tag-routes";
 import { setupTodoDependencyRoutes } from "./todo-dependency-routes";
 import { setupTodoDueDateRoutes } from "./todo-due-date-routes";
@@ -23,15 +22,18 @@ import type { AddTodoDependencyUseCase } from "../../application/use-cases/todo-
 import type { GetTodoDependenciesUseCase } from "../../application/use-cases/todo-dependency/get-todo-dependencies";
 import type { GetTodoDependentsUseCase } from "../../application/use-cases/todo-dependency/get-todo-dependents";
 import type { RemoveTodoDependencyUseCase } from "../../application/use-cases/todo-dependency/remove-todo-dependency";
+import type { AddSubtaskUseCase } from "../../application/use-cases/todo/add-subtask";
 import type { CreateTodoUseCase } from "../../application/use-cases/todo/create-todo";
 import type { DeleteTodoUseCase } from "../../application/use-cases/todo/delete-todo";
 import type { BulkUpdateDueDateUseCase } from "../../application/use-cases/todo/due-date/bulk-update-due-date";
 import type { FindByDueDateRangeUseCase } from "../../application/use-cases/todo/due-date/find-by-due-date-range";
 import type { FindDueSoonTodosUseCase } from "../../application/use-cases/todo/due-date/find-due-soon-todos";
 import type { FindOverdueTodosUseCase } from "../../application/use-cases/todo/due-date/find-overdue-todos";
+import type { GetSubtasksUseCase } from "../../application/use-cases/todo/get-subtasks";
 import type { GetTodoUseCase } from "../../application/use-cases/todo/get-todo";
 import type { GetTodoListUseCase } from "../../application/use-cases/todo/get-todo-list";
 import type { GetTodoWorkTimeUseCase } from "../../application/use-cases/todo/get-todo-work-time";
+import type { RemoveSubtaskUseCase } from "../../application/use-cases/todo/remove-subtask";
 import type { UpdateTodoUseCase } from "../../application/use-cases/todo/update-todo";
 
 /**
@@ -69,6 +71,10 @@ export function setupRoutes<E extends Env = Env, S extends Schema = Schema>(
   findDueSoonTodosUseCase: FindDueSoonTodosUseCase,
   findByDueDateRangeUseCase: FindByDueDateRangeUseCase,
   bulkUpdateDueDateUseCase: BulkUpdateDueDateUseCase,
+  // Subtask use cases
+  addSubtaskUseCase: AddSubtaskUseCase,
+  getSubtasksUseCase: GetSubtasksUseCase,
+  removeSubtaskUseCase: RemoveSubtaskUseCase,
   // PrismaClient for repositories
   prisma: PrismaClient,
 ): Hono<E, S> {
@@ -76,7 +82,7 @@ export function setupRoutes<E extends Env = Env, S extends Schema = Schema>(
   const todoRepository = new PrismaTodoRepository(prisma);
   const tagRepository = new PrismaTagRepository(prisma);
   const projectRepository = new PrismaProjectRepository(prisma);
-  const workPeriodRepository = new WorkPeriodRepository(prisma);
+  const workPeriodRepository = new WorkPeriodRepositoryImpl(prisma);
   const todoActivityRepository = new PrismaTodoActivityRepository(prisma);
 
   // Set up routes
@@ -92,6 +98,9 @@ export function setupRoutes<E extends Env = Env, S extends Schema = Schema>(
     createTodoActivityUseCase,
     getTodoActivityListUseCase,
     deleteTodoActivityUseCase,
+    addSubtaskUseCase,
+    getSubtasksUseCase,
+    removeSubtaskUseCase,
   );
 
   // 2. Todo dependency routes
@@ -106,10 +115,7 @@ export function setupRoutes<E extends Env = Env, S extends Schema = Schema>(
   // 5. Due date related routes
   setupTodoDueDateRoutes<E, S>(app, todoRepository);
 
-  // 6. Subtask related routes
-  app.route("/todos", subtaskRoutes);
-
-  // 7. Work period related routes
+  // 6. Work period related routes
   setupWorkPeriodRoutes(app, workPeriodRepository, todoRepository, todoActivityRepository);
 
   return app;

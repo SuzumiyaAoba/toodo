@@ -54,6 +54,15 @@ interface MockedTodoRepository extends TodoRepository {
   findByState: MockedFunction<(state: string) => Promise<Todo[]>>;
   findUnassignedSubtasks: MockedFunction<() => Promise<Todo[]>>;
   findSubtasks: MockedFunction<(parentId: string) => Promise<Todo[]>>;
+  getSubtasks: MockedFunction<(todoId: string) => Promise<Todo[]>>;
+  getParent: MockedFunction<(todoId: string) => Promise<Todo | null>>;
+  updateDueDate: MockedFunction<(todoId: string, dueDate: Date | undefined) => Promise<Todo>>;
+  bulkUpdateDueDate: MockedFunction<(todoIds: string[], dueDate: Date | undefined) => Promise<number>>;
+  hasDependency: MockedFunction<(todoId: string, dependencyId: string) => Promise<boolean>>;
+  getDependencyTree: MockedFunction<(todoId: string, maxDepth?: number) => Promise<Todo[]>>;
+  findOverdueTodos: MockedFunction<() => Promise<Todo[]>>;
+  findTodosDueSoon: MockedFunction<() => Promise<Todo[]>>;
+  findTodosByDueDateRange: MockedFunction<(startDate: Date, endDate: Date) => Promise<Todo[]>>;
 }
 
 interface MockedTodoActivityRepository extends TodoActivityRepository {
@@ -78,6 +87,19 @@ describe("DeleteTodoActivityUseCase", () => {
     ),
     update: mock<(id: string, todo: Partial<Todo>) => Promise<Todo | null>>(() => Promise.resolve(null)),
     delete: mock<(id: string) => Promise<void>>(() => Promise.resolve()),
+    getSubtasks: mock<(todoId: string) => Promise<Todo[]>>(() => Promise.resolve([])),
+    getParent: mock<(todoId: string) => Promise<Todo | null>>(() => Promise.resolve(null)),
+    updateDueDate: mock<(todoId: string, dueDate: Date | undefined) => Promise<Todo>>(() =>
+      Promise.resolve({} as Todo),
+    ),
+    bulkUpdateDueDate: mock<(todoIds: string[], dueDate: Date | undefined) => Promise<number>>(() =>
+      Promise.resolve(0),
+    ),
+    hasDependency: mock<(todoId: string, dependencyId: string) => Promise<boolean>>(() => Promise.resolve(false)),
+    getDependencyTree: mock<(todoId: string, maxDepth?: number) => Promise<Todo[]>>(() => Promise.resolve([])),
+    findOverdueTodos: mock<() => Promise<Todo[]>>(() => Promise.resolve([])),
+    findTodosDueSoon: mock<() => Promise<Todo[]>>(() => Promise.resolve([])),
+    findTodosByDueDateRange: mock<(startDate: Date, endDate: Date) => Promise<Todo[]>>(() => Promise.resolve([])),
   } as MockedTodoRepository;
 
   const mockTodoActivityRepository = {

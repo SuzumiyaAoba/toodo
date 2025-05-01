@@ -1,15 +1,16 @@
 import * as v from "valibot";
-import type { Todo } from "../../../domain/entities/todo";
 import { TodoNotFoundError } from "../../../domain/errors/todo-errors";
+import { DependencyCycleError } from "../../../domain/errors/todo-errors";
+import { SelfDependencyError } from "../../../domain/errors/todo-errors";
 import type { TodoRepository } from "../../../domain/repositories/todo-repository";
 
 /**
  * サブタスクを追加するためのInput
  */
-export type AddSubtaskInput = {
+export interface AddSubtaskUseCaseInput {
   parentId: string;
   subtaskId: string;
-};
+}
 
 /**
  * サブタスクを追加するためのInputスキーマ
@@ -23,25 +24,33 @@ export const AddSubtaskInputSchema = v.object({
  * サブタスクを追加するユースケース
  */
 export class AddSubtaskUseCase {
-  constructor(private todoRepository: TodoRepository) {}
+  constructor(private readonly todoRepository: TodoRepository) {}
 
   /**
    * サブタスクを追加する
    */
-  async execute({ parentId, subtaskId }: AddSubtaskInput): Promise<void> {
-    // 親タスクが存在するか確認
-    const parentTodo = await this.todoRepository.findById(parentId);
-    if (!parentTodo) {
+  async execute({ parentId, subtaskId }: AddSubtaskUseCaseInput): Promise<void> {
+    const parent = await this.todoRepository.findById(parentId);
+    const subtask = await this.todoRepository.findById(subtaskId);
+
+    if (!parent) {
       throw new TodoNotFoundError(parentId);
     }
 
-    // サブタスクが存在するか確認
-    const subtaskTodo = await this.todoRepository.findById(subtaskId);
-    if (!subtaskTodo) {
+    if (!subtask) {
       throw new TodoNotFoundError(subtaskId);
     }
 
-    // サブタスクを追加
+    if (parentId === subtaskId) {
+      throw new SelfDependencyError(parentId);
+    }
+
+    const wouldCreateCycle = await this.todoRepository.checkForHierarchyCycle(parentId, subtaskId);
+
+    if (wouldCreateCycle) {
+      throw new DependencyCycleError(parentId, subtaskId);
+    }
+
     await this.todoRepository.addSubtask(parentId, subtaskId);
   }
 }

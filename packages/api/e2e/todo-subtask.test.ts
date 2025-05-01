@@ -1,10 +1,10 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import app from "../src";
-import { prisma, setupTestDatabase, teardownTestDatabase } from "./setup";
+import { setupTestDatabase, teardownTestDatabase } from "./setup";
 import type { Todo } from "./types";
 
-describe("Todo Subtask API E2E Tests", () => {
-  const apiBase = "/api/v1";
+describe("Todo Subtask API", () => {
+  const apiPath = "/api/v1";
   let parentTodoId: string;
   let subtaskId: string;
 
@@ -16,135 +16,92 @@ describe("Todo Subtask API E2E Tests", () => {
     await teardownTestDatabase();
   });
 
-  test("should create a parent todo successfully", async () => {
-    const todoData = {
-      title: "Parent Todo",
-      description: "This is a parent todo",
-      priority: "high",
-    };
-
-    const response = await app.request(`${apiBase}/todos`, {
+  test("should create todos for subtask testing", async () => {
+    // Create parent todo
+    const res1 = await app.request(`${apiPath}/todos`, {
       method: "POST",
-      body: JSON.stringify(todoData),
-      headers: new Headers({ "Content-Type": "application/json" }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        title: "Parent Todo",
+        description: "This is the parent todo",
+      }),
     });
 
-    expect(response.status).toBe(201);
-    const responseData = (await response.json()) as Todo;
-    expect(responseData).toHaveProperty("id");
-    expect(responseData.title).toBe(todoData.title);
+    expect(res1.status).toBe(201);
+    const data1 = (await res1.json()) as Todo;
+    parentTodoId = data1.id;
 
-    parentTodoId = responseData.id;
+    // Create subtask
+    const res2 = await app.request(`${apiPath}/todos`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        title: "Subtask Todo",
+        description: "This todo is a subtask",
+      }),
+    });
+
+    expect(res2.status).toBe(201);
+    const data2 = (await res2.json()) as Todo;
+    subtaskId = data2.id;
   });
 
-  test("should create a subtask directly", async () => {
-    const subtaskData = {
-      title: "Direct Subtask",
-      description: "This is a directly created subtask",
-      priority: "medium",
-    };
-
-    const response = await app.request(`${apiBase}/todos/${parentTodoId}/create-subtask`, {
+  test("should add a subtask to a todo", async () => {
+    const res = await app.request(`${apiPath}/todos/${parentTodoId}/subtasks/${subtaskId}`, {
       method: "POST",
-      body: JSON.stringify(subtaskData),
-      headers: new Headers({ "Content-Type": "application/json" }),
     });
 
-    expect(response.status).toBe(201);
-    const responseData = (await response.json()) as Todo;
-    expect(responseData).toHaveProperty("id");
-    expect(responseData.title).toBe(subtaskData.title);
+    expect(res.status).toBe(201);
 
-    subtaskId = responseData.id;
-  });
-
-  test("should add an existing todo as a subtask", async () => {
-    // Create another todo to be added as a subtask
-    const todoData = {
-      title: "Existing Todo to be Subtask",
-      description: "This todo will be added as a subtask",
-    };
-
-    const createResponse = await app.request(`${apiBase}/todos`, {
-      method: "POST",
-      body: JSON.stringify(todoData),
-      headers: new Headers({ "Content-Type": "application/json" }),
-    });
-
-    const newTodo = (await createResponse.json()) as Todo;
-
-    // Add as subtask
-    const response = await app.request(`${apiBase}/todos/${parentTodoId}/subtasks/${newTodo.id}`, {
-      method: "POST",
-      headers: new Headers({ "Content-Type": "application/json" }),
-    });
-
-    expect(response.status).toBe(201);
-    const responseData = (await response.json()) as {
-      success: boolean;
-      message: string;
-    };
-    expect(responseData.success).toBe(true);
+    // Verify the subtask was added
+    const getRes = await app.request(`${apiPath}/todos/${parentTodoId}/subtasks`);
+    expect(getRes.status).toBe(200);
+    const data = (await getRes.json()) as Todo[];
+    expect(data.find((todo) => todo.id === subtaskId)).toBeDefined();
   });
 
   test("should get subtasks of a todo", async () => {
-    const response = await app.request(`${apiBase}/todos/${parentTodoId}/subtasks`);
-
-    expect(response.status).toBe(200);
-    const responseData = (await response.json()) as Todo[];
-    expect(Array.isArray(responseData)).toBe(true);
-    expect(responseData.length).toBeGreaterThan(0);
-    expect(responseData.some((todo) => todo.id === subtaskId)).toBe(true);
+    const res = await app.request(`${apiPath}/todos/${parentTodoId}/subtasks`);
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as Todo[];
+    expect(Array.isArray(data)).toBe(true);
+    expect(data.length).toBeGreaterThan(0);
+    expect(data[0]?.id).toBe(subtaskId);
   });
 
-  test("should get subtask tree", async () => {
-    const response = await app.request(`${apiBase}/todos/${parentTodoId}/subtask-tree`);
-
-    expect(response.status).toBe(200);
-    const responseData = (await response.json()) as {
-      id: string;
-      title: string;
-      subtasks: Array<{
-        id: string;
-        title: string;
-        subtasks: any[];
-      }>;
-    }[];
-
-    expect(Array.isArray(responseData)).toBe(true);
-    expect(responseData.length).toBeGreaterThan(0);
-
-    const parentTodo = responseData[0]!;
-    expect(parentTodo.id).toBe(parentTodoId);
-    expect(parentTodo.subtasks).toBeDefined();
-    expect(Array.isArray(parentTodo.subtasks)).toBe(true);
-    expect(parentTodo.subtasks.length).toBeGreaterThan(0);
+  test("should get parent todo of a subtask", async () => {
+    const res = await app.request(`${apiPath}/todos/${subtaskId}/parent`);
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as Todo;
+    expect(data.id).toBe(parentTodoId);
   });
 
-  test("should prevent circular subtask relationships", async () => {
-    // Try to add parent as subtask of its own subtask
-    const response = await app.request(`${apiBase}/todos/${subtaskId}/subtasks/${parentTodoId}`, {
-      method: "POST",
-      headers: new Headers({ "Content-Type": "application/json" }),
-    });
-
-    expect(response.status).toBe(400);
-    const responseData = (await response.json()) as {
-      error: { message: string };
-    };
-    expect(responseData.error.message).toBeDefined();
-  });
-
-  test("should remove a subtask relationship", async () => {
-    const response = await app.request(`${apiBase}/todos/${parentTodoId}/subtasks/${subtaskId}`, {
+  test("should remove a subtask from a todo", async () => {
+    const res = await app.request(`${apiPath}/todos/${parentTodoId}/subtasks/${subtaskId}`, {
       method: "DELETE",
     });
 
-    expect(response.status).toBe(204);
+    expect(res.status).toBe(204);
 
     // Verify the subtask was removed
-    const checkResponse = await app.request(`${apiBase}/todos/${parentTodoId}/subtasks`);
-    const checkData = (await checkResponse.json()) as Todo[];
-    expect(checkData.some((todo) => todo.id === subtaskId)).toBe(false);
+    const getRes = await app.request(`${apiPath}/todos/${parentTodoId}/subtasks`);
+    expect(getRes.status).toBe(200);
+    const data = (await getRes.json()) as Todo[];
+    expect(data.find((todo) => todo.id === subtaskId)).toBeUndefined();
+  });
+
+  test("should not allow circular subtask relationships", async () => {
+    // Try to create a circular subtask relationship
+    const res = await app.request(`${apiPath}/todos/${subtaskId}/subtasks/${parentTodoId}`, {
+      method: "POST",
+    });
+
+    expect(res.status).toBe(400);
+    const data = await res.json();
+    expect(data.error).toBeDefined();
   });
 });

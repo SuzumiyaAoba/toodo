@@ -31,11 +31,21 @@ export const validate = <TInput, TOutput>(
 
       // バリデーション済みデータをリクエストオブジェクトに保存
       // @ts-ignore - 型拡張による一時的な回避策
+      if (!c.req.validatedData) {
+        // @ts-ignore - 型拡張による一時的な回避策
+        c.req.validatedData = {};
+      }
+      // @ts-ignore - 型拡張による一時的な回避策
+      c.req.validatedData[target] = validatedData;
+
+      // @ts-ignore - 型拡張による一時的な回避策
       c.req.valid = (requestedTarget?: string) => {
-        if (requestedTarget && requestedTarget !== target) {
-          return undefined;
+        if (requestedTarget) {
+          // @ts-ignore - 型拡張による一時的な回避策
+          return c.req.validatedData[requestedTarget];
         }
-        return validatedData;
+        // @ts-ignore - 型拡張による一時的な回避策
+        return c.req.validatedData[target];
       };
 
       await next();
@@ -66,5 +76,6 @@ export const validate = <TInput, TOutput>(
 declare module "hono" {
   interface HonoRequest {
     valid<T = unknown>(key?: string): T;
+    validatedData?: Record<string, unknown>;
   }
 }

@@ -141,138 +141,22 @@ describe("CreateTagUseCase", () => {
   });
 
   it("should throw an error if name is empty", async () => {
-    // 直接実装したCreateTagUseCaseのインスタンスを使用（モックなし）
-    const realTagRepository: TagRepository = {
-      createTag: async () => ({
-        id: "mock-tag-id",
-        name: "Mock Tag",
-        color: "#000000",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }),
-      getTagById: async () => null,
-      getTagByName: async () => null,
-      getAllTags: async () => [],
-      updateTag: async () => ({
-        id: "mock-tag-id",
-        name: "Mock Tag",
-        color: "#000000",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }),
-      deleteTag: async () => {},
-      assignTagToTodo: async () => {},
-      removeTagFromTodo: async () => {},
-      getTagsForTodo: async () => [],
-      getTodoIdsForTag: async () => [],
-      getTodoIdsWithAllTags: async () => [],
-      getTodoIdsWithAnyTag: async () => [],
-      bulkAssignTagToTodos: async () => 0,
-      bulkRemoveTagFromTodos: async () => 0,
-      getTagStatistics: async () => [],
-      findAll: async () => [],
-      findById: async () => null,
-      create: async () => ({
-        id: "mock-tag-id",
-        name: "Mock Tag",
-        color: "#000000",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }),
-      update: async () => ({
-        id: "mock-tag-id",
-        name: "Mock Tag",
-        color: "#000000",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }),
-      findByName: async () => null,
-      getTodosByTagId: async () => [],
-      addTagToTodo: async () => {},
-      delete: async () => {},
-    };
-    const useCase = new CreateTagUseCase(realTagRepository);
-
     const input = {
       name: "",
       color: "#FF5733",
     };
 
-    try {
-      await useCase.execute(input);
-      // エラーが発生しなかった場合はテストを失敗させる
-      expect("no error thrown").toBe("error should be thrown");
-    } catch (error) {
-      // エラーが発生したことを確認
-      expect(error).toBeDefined();
-    }
+    await expect(createTagUseCase.execute(input)).rejects.toThrow("Name must be at least 1 character long");
   });
 
   it("should throw an error if color format is invalid", async () => {
-    // 直接実装したCreateTagUseCaseのインスタンスを使用（モックなし）
-    const realTagRepository: TagRepository = {
-      createTag: async () => ({
-        id: "mock-tag-id",
-        name: "Mock Tag",
-        color: "#000000",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }),
-      getTagById: async () => null,
-      getTagByName: async () => null,
-      getAllTags: async () => [],
-      updateTag: async () => ({
-        id: "mock-tag-id",
-        name: "Mock Tag",
-        color: "#000000",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }),
-      deleteTag: async () => {},
-      assignTagToTodo: async () => {},
-      removeTagFromTodo: async () => {},
-      getTagsForTodo: async () => [],
-      getTodoIdsForTag: async () => [],
-      getTodoIdsWithAllTags: async () => [],
-      getTodoIdsWithAnyTag: async () => [],
-      bulkAssignTagToTodos: async () => 0,
-      bulkRemoveTagFromTodos: async () => 0,
-      getTagStatistics: async () => [],
-      findAll: async () => [],
-      findById: async () => null,
-      create: async () => ({
-        id: "mock-tag-id",
-        name: "Mock Tag",
-        color: "#000000",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }),
-      update: async () => ({
-        id: "mock-tag-id",
-        name: "Mock Tag",
-        color: "#000000",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }),
-      findByName: async () => null,
-      getTodosByTagId: async () => [],
-      addTagToTodo: async () => {},
-      delete: async () => {},
-    };
-    const useCase = new CreateTagUseCase(realTagRepository);
-
     const input = {
       name: "Work",
       color: "invalid-color",
     };
 
-    try {
-      await useCase.execute(input);
-      // エラーが発生しなかった場合はテストを失敗させる
-      expect("no error thrown").toBe("error should be thrown");
-    } catch (error) {
-      // エラーが発生したことを確認
-      expect(error).toBeDefined();
-    }
+    await expect(createTagUseCase.execute(input)).rejects.toThrow(
+      "Color must be a valid hex color code (e.g., #FF5733)",
+    );
   });
 });

@@ -48,7 +48,7 @@ describe("GetSubtaskTreeUseCase", () => {
     // Assert
     expect(mockTodoRepository.findById).toHaveBeenCalledWith("todo-1");
     expect(mockTodoRepository.findChildrenTree).toHaveBeenCalledWith("todo-1", 10);
-    expect(result).toEqual(subtasks);
+    expect(result).toEqual({ ...rootTodo, subtasks });
   });
 
   it("should throw an error if the root todo is not found", async () => {

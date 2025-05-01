@@ -48,16 +48,6 @@ export class PrismaTagRepository extends PrismaBaseRepository<Tag, PrismaTag> im
     });
   }
 
-  async getTagById(id: string): Promise<Tag | null> {
-    return this.executePrismaOperation(async () => {
-      const tag = await this.prisma.tag.findUnique({
-        where: { id },
-      });
-
-      return tag ? this.mapToDomain(tag) : null;
-    });
-  }
-
   async getTagByName(name: string): Promise<Tag | null> {
     return this.executePrismaOperation(async () => {
       const tag = await this.prisma.tag.findFirst({
@@ -376,4 +366,7 @@ export class PrismaTagRepository extends PrismaBaseRepository<Tag, PrismaTag> im
   async addTagToTodo(tagId: string, todoId: string): Promise<void> {
     return this.assignTagToTodo(todoId, tagId);
   }
+
+  // getTagByIdをfindByIdのエイリアスにする
+  getTagById = this.findById;
 }

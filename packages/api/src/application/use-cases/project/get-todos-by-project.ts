@@ -18,12 +18,11 @@ export class GetTodosByProject {
     }
 
     // Find all todos that belong to the project
-    const todos = await this.todoRepository.findAll();
-    const projectTodos = todos.filter((todo) => todo.projectId === projectId);
+    const todos = await this.todoRepository.findByProjectId(projectId);
 
     return {
       project,
-      todos: projectTodos,
+      todos,
     };
   }
 }

@@ -1,77 +1,133 @@
-import type { ErrorHandler } from "hono";
-import { HTTPException } from "hono/http-exception";
+import type { Context } from "hono";
+import { ValiError } from "valibot";
 import { ProjectNameExistsError, ProjectNotFoundError } from "../../domain/errors/project-errors";
 import { TagNameExistsError, TagNotFoundError } from "../../domain/errors/tag-errors";
 import {
+  DependencyCycleError,
+  DependencyExistsError,
+  DependencyNotFoundError,
   InvalidStateTransitionError,
+  SelfDependencyError,
   TodoActivityNotFoundError,
   TodoNotFoundError,
   UnauthorizedActivityDeletionError,
 } from "../../domain/errors/todo-errors";
-import { ErrorCode, type ErrorResponse } from "../errors/error-codes";
+import { ErrorCode } from "../errors/error-codes";
 
 /**
  * Honoのエラーハンドラー
  */
-export const errorHandler: ErrorHandler = (err: unknown, c) => {
+export const errorHandler = async (err: Error, c: Context) => {
   console.error(err);
 
-  const errorResponse: ErrorResponse = {
-    code: ErrorCode.INTERNAL_SERVER_ERROR,
-    message: "An unexpected error occurred",
-  };
-
-  // Not Found Errors
-  if (
-    err instanceof TodoNotFoundError ||
-    err instanceof TodoActivityNotFoundError ||
-    err instanceof TagNotFoundError ||
-    err instanceof ProjectNotFoundError
-  ) {
-    errorResponse.code = ErrorCode.NOT_FOUND;
-    errorResponse.message = err.message;
-    return c.json({ error: errorResponse }, 404);
+  if (err instanceof TodoNotFoundError) {
+    c.status(404);
+    return c.json({
+      code: ErrorCode.TODO_NOT_FOUND,
+      message: err.message,
+    });
   }
 
-  // Bad Request Errors
+  if (err instanceof TagNotFoundError) {
+    c.status(404);
+    return c.json({
+      code: ErrorCode.TAG_NOT_FOUND,
+      message: err.message,
+    });
+  }
+
+  if (err instanceof ProjectNotFoundError) {
+    c.status(404);
+    return c.json({
+      code: ErrorCode.PROJECT_NOT_FOUND,
+      message: err.message,
+    });
+  }
+
+  if (err instanceof TodoActivityNotFoundError) {
+    c.status(404);
+    return c.json({
+      code: ErrorCode.TODO_ACTIVITY_NOT_FOUND,
+      message: err.message,
+    });
+  }
+
   if (err instanceof InvalidStateTransitionError) {
-    errorResponse.code = ErrorCode.BAD_REQUEST;
-    errorResponse.message = err.message;
-    return c.json({ error: errorResponse }, 400);
+    c.status(400);
+    return c.json({
+      code: ErrorCode.INVALID_STATE_TRANSITION,
+      message: err.message,
+    });
   }
 
-  // Forbidden Errors
   if (err instanceof UnauthorizedActivityDeletionError) {
-    errorResponse.code = ErrorCode.FORBIDDEN;
-    errorResponse.message = err.message;
-    return c.json({ error: errorResponse }, 403);
+    c.status(403);
+    return c.json({
+      code: ErrorCode.UNAUTHORIZED_ACTIVITY_DELETION,
+      message: err.message,
+    });
   }
 
-  // Conflict Errors
-  if (err instanceof TagNameExistsError || err instanceof ProjectNameExistsError) {
-    errorResponse.code = ErrorCode.CONFLICT;
-    errorResponse.message = err.message;
-    return c.json({ error: errorResponse }, 409);
+  if (err instanceof TagNameExistsError) {
+    c.status(409);
+    return c.json({
+      code: ErrorCode.TAG_NAME_EXISTS,
+      message: err.message,
+    });
   }
 
-  // Validation Errors
-  if (err instanceof Error && err.name === "ValiError") {
-    errorResponse.code = ErrorCode.BAD_REQUEST;
-    errorResponse.message = "Validation error";
-    return c.json({ error: errorResponse }, 400);
+  if (err instanceof ProjectNameExistsError) {
+    c.status(409);
+    return c.json({
+      code: ErrorCode.PROJECT_NAME_EXISTS,
+      message: err.message,
+    });
   }
 
-  // HTTP Exceptions
-  if (err instanceof HTTPException) {
-    errorResponse.code = ErrorCode.BAD_REQUEST;
-    errorResponse.message = err.message;
-    return c.json({ error: errorResponse }, err.status);
+  if (err instanceof DependencyExistsError) {
+    c.status(409);
+    return c.json({
+      code: ErrorCode.DEPENDENCY_EXISTS,
+      message: err.message,
+    });
   }
 
-  // Default error response
-  if (err instanceof Error) {
-    errorResponse.message = err.message;
+  if (err instanceof DependencyNotFoundError) {
+    c.status(404);
+    return c.json({
+      code: ErrorCode.DEPENDENCY_NOT_FOUND,
+      message: err.message,
+    });
   }
 
-  return c.json({ error: errorResponse }, 500);
+  if (err instanceof SelfDependencyError) {
+    c.status(400);
+    return c.json({
+      code: ErrorCode.SELF_DEPENDENCY,
+      message: err.message,
+    });
+  }
+
+  if (err instanceof DependencyCycleError) {
+    c.status(400);
+    return c.json({
+      code: ErrorCode.DEPENDENCY_CYCLE,
+      message: err.message,
+    });
+  }
+
+  if (err instanceof ValiError) {
+    c.status(400);
+    return c.json({
+      code: ErrorCode.VALIDATION_ERROR,
+      message: "Validation error",
+      issues: err.issues,
+    });
+  }
+
+  c.status(500);
+  return c.json({
+    code: ErrorCode.INTERNAL_SERVER_ERROR,
+    message: "Internal server error",
+  });
 };

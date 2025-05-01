@@ -3,7 +3,6 @@ import type { Hono } from "hono";
 import type { Env, Schema } from "hono";
 import { describeRoute } from "hono-openapi";
 import { resolver, validator as vValidator } from "hono-openapi/valibot";
-import { parse } from "valibot";
 import type * as v from "valibot";
 import { AddTodoDependencyUseCase } from "../../application/use-cases/todo-dependency/add-todo-dependency";
 import { GetTodoDependenciesUseCase } from "../../application/use-cases/todo-dependency/get-todo-dependencies";
@@ -90,7 +89,7 @@ export function setupTodoDependencyRoutes<E extends Env = Env, S extends Schema 
 
       try {
         await useCase.execute(id, dependencyId);
-        c.status(204);
+        c.status(201);
         return c.body(null);
       } catch (error) {
         if (error instanceof TodoNotFoundError) {
@@ -212,15 +211,7 @@ export function setupTodoDependencyRoutes<E extends Env = Env, S extends Schema 
 
       try {
         const dependencies = await useCase.execute(id);
-        const response = {
-          dependencies: dependencies.map((todo) => ({
-            id: todo.id,
-            title: todo.title,
-            status: todo.status,
-            priority: todo.priority,
-          })),
-        };
-        return c.json(response);
+        return c.json(dependencies);
       } catch (error) {
         if (error instanceof TodoNotFoundError) {
           return c.json({ error: error.message }, 404);
@@ -271,15 +262,7 @@ export function setupTodoDependencyRoutes<E extends Env = Env, S extends Schema 
 
       try {
         const dependents = await useCase.execute(id);
-        const response = {
-          dependents: dependents.map((todo) => ({
-            id: todo.id,
-            title: todo.title,
-            status: todo.status,
-            priority: todo.priority,
-          })),
-        };
-        return c.json(response);
+        return c.json(dependents);
       } catch (error) {
         if (error instanceof TodoNotFoundError) {
           return c.json({ error: error.message }, 404);
@@ -298,19 +281,7 @@ export function setupTodoDependencyRoutes<E extends Env = Env, S extends Schema 
       description: "Get all dependencies of a todo as a tree structure",
       request: {
         params: resolver(IdParamSchema, valibotConfig),
-        query: {
-          schema: {
-            type: "object",
-            properties: {
-              maxDepth: {
-                type: "integer",
-                description: "Maximum depth of the dependency tree (default: 10)",
-                minimum: 1,
-                maximum: 100,
-              },
-            },
-          },
-        },
+        query: resolver(DependencyTreeQuerySchema, valibotConfig),
       },
       responses: {
         200: {
@@ -318,6 +289,19 @@ export function setupTodoDependencyRoutes<E extends Env = Env, S extends Schema 
           content: {
             "application/json": {
               schema: resolver(TodoDependencyNodeSchema, valibotConfig),
+            },
+          },
+        },
+        400: {
+          description: "Invalid request parameters",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  error: { type: "string" },
+                },
+              },
             },
           },
         },
@@ -337,25 +321,22 @@ export function setupTodoDependencyRoutes<E extends Env = Env, S extends Schema 
       },
     }),
     vValidator("param", IdParamSchema),
+    vValidator("query", DependencyTreeQuerySchema),
     async (c) => {
       const { id } = c.req.valid("param") as v.InferOutput<typeof IdParamSchema>;
-
-      // Get max depth from query parameter (default is 10)
-      const queryParams = {
-        maxDepth: c.req.query("maxDepth"),
-      };
-
-      const parsedParams = parse(DependencyTreeQuerySchema, queryParams);
-      const maxDepth = parsedParams.maxDepth ?? 10; // Default value is 10
+      const { maxDepth } = c.req.valid("query") as v.InferOutput<typeof DependencyTreeQuerySchema>;
 
       const useCase = new GetTodoDependencyTreeUseCase(todoRepository);
 
       try {
-        const tree = await useCase.execute(id, maxDepth);
+        const tree = await useCase.execute(id, maxDepth ?? 10);
         return c.json(tree);
       } catch (error) {
         if (error instanceof TodoNotFoundError) {
           return c.json({ error: error.message }, 404);
+        }
+        if (error instanceof DependencyCycleError) {
+          return c.json({ error: error.message }, 400);
         }
         throw error;
       }

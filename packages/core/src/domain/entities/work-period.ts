@@ -15,6 +15,13 @@ export class WorkPeriod {
   readonly endTime: Date;
   readonly createdAt: Date;
   readonly updatedAt: Date;
+  readonly activities: {
+    id: string;
+    type: string;
+    note?: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+  }[];
 
   constructor(
     id: WorkPeriodId,
@@ -24,6 +31,13 @@ export class WorkPeriod {
     date: Date = new Date(),
     createdAt: Date = new Date(),
     updatedAt: Date = new Date(),
+    activities: {
+      id: string;
+      type: string;
+      note?: string | null;
+      createdAt: Date;
+      updatedAt: Date;
+    }[] = [],
   ) {
     if (startTime > endTime) {
       throw new Error("Start time must be before end time");
@@ -36,11 +50,21 @@ export class WorkPeriod {
     this.endTime = endTime;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
+    this.activities = activities;
   }
 
   updateName(name: string): WorkPeriod {
     if (this.name === name) return this;
-    return new WorkPeriod(this.id, name, this.startTime, this.endTime, this.date, this.createdAt, new Date());
+    return new WorkPeriod(
+      this.id,
+      name,
+      this.startTime,
+      this.endTime,
+      this.date,
+      this.createdAt,
+      new Date(),
+      this.activities,
+    );
   }
 
   updatePeriod(startTime: Date, endTime: Date): WorkPeriod {
@@ -52,12 +76,30 @@ export class WorkPeriod {
       return this;
     }
 
-    return new WorkPeriod(this.id, this.name, startTime, endTime, this.date, this.createdAt, new Date());
+    return new WorkPeriod(
+      this.id,
+      this.name,
+      startTime,
+      endTime,
+      this.date,
+      this.createdAt,
+      new Date(),
+      this.activities,
+    );
   }
 
   updateDate(date: Date): WorkPeriod {
     if (this.date.getTime() === date.getTime()) return this;
-    return new WorkPeriod(this.id, this.name, this.startTime, this.endTime, date, this.createdAt, new Date());
+    return new WorkPeriod(
+      this.id,
+      this.name,
+      this.startTime,
+      this.endTime,
+      date,
+      this.createdAt,
+      new Date(),
+      this.activities,
+    );
   }
 
   // 稼働時間の期間（ミリ秒）を取得
@@ -109,6 +151,13 @@ type DomainPrismaWorkPeriod = {
   endTime: Date | string;
   createdAt: Date | string;
   updatedAt: Date | string;
+  activities?: {
+    id: string;
+    type: string;
+    note?: string | null;
+    createdAt: Date | string;
+    updatedAt: Date | string;
+  }[];
 };
 
 export function mapToDomainWorkPeriod(prismaWorkPeriod: DomainPrismaWorkPeriod): WorkPeriod {
@@ -120,5 +169,12 @@ export function mapToDomainWorkPeriod(prismaWorkPeriod: DomainPrismaWorkPeriod):
     new Date(prismaWorkPeriod.date),
     new Date(prismaWorkPeriod.createdAt),
     new Date(prismaWorkPeriod.updatedAt),
+    prismaWorkPeriod.activities?.map((activity) => ({
+      id: activity.id,
+      type: activity.type,
+      note: activity.note,
+      createdAt: new Date(activity.createdAt),
+      updatedAt: new Date(activity.updatedAt),
+    })) || [],
   );
 }

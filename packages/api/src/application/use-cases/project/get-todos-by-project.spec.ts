@@ -100,10 +100,10 @@ describe("GetTodosByProject", () => {
       "project-2",
     ); // Different project
 
-    const allTodos = [todo1, todo2, todo3, todo4];
+    const projectTodos = [todo1, todo2];
 
     mockProjectRepository.findById = mock(async () => existingProject);
-    mockTodoRepository.findAll = mock(async () => allTodos);
+    mockTodoRepository.findByProjectId = mock(async () => projectTodos);
 
     const useCase = new GetTodosByProject(mockProjectRepository, mockTodoRepository);
 
@@ -118,7 +118,7 @@ describe("GetTodosByProject", () => {
     expect(result.todos).not.toContain(todo3);
     expect(result.todos).not.toContain(todo4);
     expect(mockProjectRepository.findById).toHaveBeenCalledWith(projectId);
-    expect(mockTodoRepository.findAll).toHaveBeenCalledTimes(1);
+    expect(mockTodoRepository.findByProjectId).toHaveBeenCalledWith(projectId);
   });
 
   it("should return an empty array if no todos belong to the project", async () => {
@@ -126,25 +126,8 @@ describe("GetTodosByProject", () => {
     const projectId = "project-1";
     const existingProject = new Project(projectId, "Test Project");
 
-    // Create todos with no matching projectId
-    const todo1 = new Todo("todo-1", "Todo 1");
-    const todo2 = new Todo(
-      "todo-2",
-      "Todo 2",
-      undefined,
-      undefined,
-      0,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      "project-2",
-    );
-
-    const allTodos = [todo1, todo2];
-
     mockProjectRepository.findById = mock(async () => existingProject);
-    mockTodoRepository.findAll = mock(async () => allTodos);
+    mockTodoRepository.findByProjectId = mock(async () => []);
 
     const useCase = new GetTodosByProject(mockProjectRepository, mockTodoRepository);
 
@@ -155,7 +138,7 @@ describe("GetTodosByProject", () => {
     expect(result.project).toBe(existingProject);
     expect(result.todos).toHaveLength(0);
     expect(mockProjectRepository.findById).toHaveBeenCalledWith(projectId);
-    expect(mockTodoRepository.findAll).toHaveBeenCalledTimes(1);
+    expect(mockTodoRepository.findByProjectId).toHaveBeenCalledWith(projectId);
   });
 
   it("should throw an error if project is not found", async () => {

@@ -1,5 +1,4 @@
 import * as v from "valibot";
-import type { Todo } from "../../../domain/entities/todo";
 import { TodoNotFoundError } from "../../../domain/errors/todo-errors";
 import type { TodoRepository } from "../../../domain/repositories/todo-repository";
 
@@ -28,7 +27,7 @@ export class GetSubtaskTreeUseCase {
   /**
    * 特定の親タスクに紐づくサブタスク階層を取得する
    */
-  async execute({ todoId, maxDepth = 10 }: GetSubtaskTreeInput): Promise<Todo[]> {
+  async execute({ todoId, maxDepth = 10 }: GetSubtaskTreeInput): Promise<any> {
     // 親タスクが存在するか確認
     const parentTodo = await this.todoRepository.findById(todoId);
     if (!parentTodo) {
@@ -36,6 +35,9 @@ export class GetSubtaskTreeUseCase {
     }
 
     // サブタスク階層を取得
-    return this.todoRepository.findChildrenTree(todoId, maxDepth);
+    const subtasks = await this.todoRepository.findChildrenTree(todoId, maxDepth);
+    console.log("[debug] subtasks in GetSubtaskTreeUseCase:", JSON.stringify(subtasks, null, 2));
+    // findChildrenTreeの戻り値を直接使用（parentIdを含める）
+    return { ...parentTodo, parentId: parentTodo.parentId, subtasks: subtasks };
   }
 }

@@ -20,9 +20,15 @@ import type { InferOutput } from "valibot";
  * Schema for Tag responses
  */
 export const TagSchema = object({
-  id: string(),
-  name: string(),
-  color: optional(string()),
+  id: pipe(string(), uuid("ID must be a valid UUID")),
+  name: pipe(
+    string(),
+    minLength(1, "Name must be at least 1 character long"),
+    maxLength(50, "Name must be at most 50 characters long"),
+  ),
+  color: optional(
+    nullable(pipe(string(), regex(/^#[0-9A-Fa-f]{6}$/, "Color must be a valid hex color code (e.g., #FF5733)"))),
+  ),
   createdAt: string(),
   updatedAt: string(),
 });
@@ -31,7 +37,7 @@ export const TagSchema = object({
  * Schema for Tag query parameters
  */
 export const MultipleTagQuerySchema = object({
-  tagIds: array(string()),
+  tagIds: array(pipe(string(), uuid("Tag ID must be a valid UUID"))),
   mode: union([literal("all"), literal("any")]),
 });
 
@@ -39,8 +45,8 @@ export const MultipleTagQuerySchema = object({
  * Schema for bulk tag operations
  */
 export const BulkTagOperationSchema = object({
-  tagIds: array(string()),
-  todoIds: array(string()),
+  tagIds: array(pipe(string(), uuid("Tag ID must be a valid UUID"))),
+  todoIds: array(pipe(string(), uuid("Todo ID must be a valid UUID"))),
 });
 
 /**
@@ -52,8 +58,14 @@ export type TagResponse = InferOutput<typeof TagSchema>;
  * Schema for creating a tag
  */
 export const CreateTagSchema = object({
-  name: pipe(string(), minLength(1), maxLength(50)),
-  color: optional(nullable(pipe(string(), regex(/^#[0-9A-Fa-f]{6}$/)))),
+  name: pipe(
+    string(),
+    minLength(1, "Name must be at least 1 character long"),
+    maxLength(50, "Name must be at most 50 characters long"),
+  ),
+  color: optional(
+    nullable(pipe(string(), regex(/^#[0-9A-Fa-f]{6}$/, "Color must be a valid hex color code (e.g., #FF5733)"))),
+  ),
 });
 
 /**
@@ -65,8 +77,16 @@ export type CreateTagRequest = InferOutput<typeof CreateTagSchema>;
  * Schema for updating a tag
  */
 export const UpdateTagSchema = object({
-  name: optional(pipe(string(), minLength(1), maxLength(50))),
-  color: optional(nullable(pipe(string(), regex(/^#[0-9A-Fa-f]{6}$/)))),
+  name: optional(
+    pipe(
+      string(),
+      minLength(1, "Name must be at least 1 character long"),
+      maxLength(50, "Name must be at most 50 characters long"),
+    ),
+  ),
+  color: optional(
+    nullable(pipe(string(), regex(/^#[0-9A-Fa-f]{6}$/, "Color must be a valid hex color code (e.g., #FF5733)"))),
+  ),
 });
 
 /**
@@ -88,7 +108,7 @@ export type TagListResponse = InferOutput<typeof TagListSchema>;
  * Schema for tag ID in URL
  */
 export const TagIdParamSchema = object({
-  tagId: pipe(string(), uuid()),
+  tagId: pipe(string(), uuid("Tag ID must be a valid UUID")),
 });
 
 /**
@@ -108,7 +128,7 @@ export const BulkTagOperationResponseSchema = object({
   success: boolean(),
   message: string(),
   tag: object({
-    id: pipe(string(), uuid()),
+    id: pipe(string(), uuid("Tag ID must be a valid UUID")),
     name: string(),
     color: optional(nullable(string())),
   }),
@@ -125,7 +145,7 @@ export type BulkTagOperationResponse = InferOutput<typeof BulkTagOperationRespon
  * Schema for tag usage statistics
  */
 export const TagStatisticsSchema = object({
-  id: pipe(string(), uuid()),
+  id: pipe(string(), uuid("Tag ID must be a valid UUID")),
   name: string(),
   color: optional(nullable(string())),
   usageCount: number(),
@@ -147,3 +167,9 @@ export const TagStatisticsListSchema = array(TagStatisticsSchema);
  * Type for tag usage statistics list
  */
 export type TagStatisticsList = InferOutput<typeof TagStatisticsListSchema>;
+
+export type Tag = InferOutput<typeof TagSchema>;
+export type TagList = InferOutput<typeof TagListSchema>;
+export type CreateTagInput = InferOutput<typeof CreateTagSchema>;
+export type UpdateTagInput = InferOutput<typeof UpdateTagSchema>;
+export type BulkTagOperationInput = InferOutput<typeof BulkTagOperationSchema>;

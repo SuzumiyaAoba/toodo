@@ -2,7 +2,6 @@ import { Project, type ProjectId } from "../../domain/entities/project";
 import { ProjectNotFoundError } from "../../domain/errors/project-errors";
 import type { ProjectRepository } from "../../domain/repositories/project-repository";
 import { PrismaClient } from "../../generated/prisma";
-import { PrismaBaseRepository } from "./prisma-base-repository";
 
 export class PrismaProjectRepository implements ProjectRepository {
   public prisma: PrismaClient;

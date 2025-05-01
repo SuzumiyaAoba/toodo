@@ -1,13 +1,19 @@
 import * as v from "valibot";
-import { CommonSchemas, DateSchema } from "./todo-schemas";
+import { CommonSchemas } from "./todo-schemas";
+
+// 日付スキーマ（ISO文字列形式）
+const ISODateSchema = v.pipe(
+  v.string(),
+  v.regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z$/, "Invalid ISO date format"),
+);
 
 // 稼働時間作成スキーマ
 export const createWorkPeriodSchema = {
   body: v.object({
     name: v.string(),
-    date: v.optional(DateSchema),
-    startTime: DateSchema,
-    endTime: DateSchema,
+    date: v.optional(ISODateSchema),
+    startTime: ISODateSchema,
+    endTime: ISODateSchema,
   }),
 };
 
@@ -15,18 +21,29 @@ export const createWorkPeriodSchema = {
 export const workPeriodResponseSchema = v.object({
   id: CommonSchemas.uuid(),
   name: v.string(),
-  date: DateSchema,
-  startTime: DateSchema,
-  endTime: DateSchema,
-  createdAt: DateSchema,
-  updatedAt: DateSchema,
+  date: v.optional(ISODateSchema),
+  startTime: ISODateSchema,
+  endTime: ISODateSchema,
+  createdAt: ISODateSchema,
+  updatedAt: ISODateSchema,
+  activities: v.optional(
+    v.array(
+      v.object({
+        id: CommonSchemas.uuid(),
+        type: v.string(),
+        note: v.string(),
+        createdAt: ISODateSchema,
+        updatedAt: ISODateSchema,
+      }),
+    ),
+  ),
 });
 
 // 稼働時間一覧取得スキーマ
 export const getWorkPeriodsSchema = {
   query: v.object({
-    startDate: v.optional(DateSchema),
-    endDate: v.optional(DateSchema),
+    startDate: v.optional(ISODateSchema),
+    endDate: v.optional(ISODateSchema),
   }),
 };
 
@@ -40,9 +57,9 @@ export const updateWorkPeriodSchema = {
   }),
   body: v.object({
     name: v.optional(v.string()),
-    date: v.optional(DateSchema),
-    startTime: v.optional(DateSchema),
-    endTime: v.optional(DateSchema),
+    date: v.optional(ISODateSchema),
+    startTime: v.optional(ISODateSchema),
+    endTime: v.optional(ISODateSchema),
   }),
 };
 
@@ -56,8 +73,8 @@ export const deleteWorkPeriodSchema = {
 // 稼働時間統計情報取得スキーマ
 export const getWorkPeriodStatisticsSchema = {
   query: v.object({
-    startDate: v.optional(DateSchema),
-    endDate: v.optional(DateSchema),
+    startDate: v.optional(ISODateSchema),
+    endDate: v.optional(ISODateSchema),
     tagIds: v.optional(v.array(CommonSchemas.uuid())),
     todoIds: v.optional(v.array(CommonSchemas.uuid())),
     workPeriodIds: v.optional(v.array(CommonSchemas.uuid())),

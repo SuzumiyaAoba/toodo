@@ -18,7 +18,9 @@ export function convertToResponseSchema<T, TInput, TOutput>(
     if (typeof entity === "object" && entity !== null) {
       for (const key in entity) {
         if (Object.prototype.hasOwnProperty.call(entity, key)) {
-          result[key] = (entity as Record<string, unknown>)[key];
+          const value = (entity as Record<string, unknown>)[key];
+          // Date型はISO文字列に変換
+          result[key] = value instanceof Date ? value.toISOString() : value;
         }
       }
     }

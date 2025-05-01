@@ -1,7 +1,7 @@
 import { vValidator } from "@hono/valibot-validator";
 import type { Hono } from "hono";
 import type { Env, Schema } from "hono";
-import { array, date, object, string } from "valibot";
+import { array, object, string } from "valibot";
 import { BulkUpdateDueDateUseCase } from "../../application/use-cases/todo/due-date/bulk-update-due-date";
 import { FindByDueDateRangeUseCase } from "../../application/use-cases/todo/due-date/find-by-due-date-range";
 import { FindDueSoonTodosUseCase } from "../../application/use-cases/todo/due-date/find-due-soon-todos";

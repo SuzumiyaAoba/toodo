@@ -9,7 +9,6 @@ export type { ProjectId, ProjectStatus } from "./domain/entities/project";
 export type { Tag, TagId } from "./domain/entities/tag";
 export type {
   WorkPeriodId,
-  WorkPeriod,
   WorkPeriodCreateInput,
 } from "./domain/entities/work-period";
 
@@ -23,7 +22,10 @@ export {
   mapToDomainTodo,
 } from "./domain/entities/todo";
 export { Project } from "./domain/entities/project";
-export { mapToDomainWorkPeriod } from "./domain/entities/work-period";
+export {
+  WorkPeriod,
+  mapToDomainWorkPeriod,
+} from "./domain/entities/work-period";
 
 // Domain repository exports
 export type { TodoRepository } from "./domain/repositories/todo-repository";

@@ -1,4 +1,3 @@
-import type { Tag } from "@toodo/core";
 import { array, object, parse, pipe, string, uuid } from "valibot";
 import { TagNotFoundError } from "../../../domain/errors/tag-errors";
 import { TodoNotFoundError } from "../../../domain/errors/todo-errors";
