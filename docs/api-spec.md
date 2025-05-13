@@ -29,8 +29,7 @@ This document outlines the API endpoints for the TODO management system built wi
     "totalWorkTime": 0,
     "lastStateChangeAt": "2025-04-20T12:34:56.789Z",
     "createdAt": "2025-04-20T12:34:56.789Z",
-    "updatedAt": "2025-04-20T12:34:56.789Z",
-    "priority": "medium"
+    "updatedAt": "2025-04-20T12:34:56.789Z"
   }
   ```
 
@@ -50,8 +49,7 @@ This document outlines the API endpoints for the TODO management system built wi
       "totalWorkTime": 0,
       "lastStateChangeAt": "2025-04-20T12:34:56.789Z",
       "createdAt": "2025-04-20T12:34:56.789Z",
-      "updatedAt": "2025-04-20T12:34:56.789Z",
-      "priority": "medium"
+      "updatedAt": "2025-04-20T12:34:56.789Z"
     }
   ]
   ```
@@ -71,8 +69,7 @@ This document outlines the API endpoints for the TODO management system built wi
     "totalWorkTime": 1200,
     "lastStateChangeAt": "2025-04-20T12:34:56.789Z",
     "createdAt": "2025-04-20T12:34:56.789Z",
-    "updatedAt": "2025-04-20T12:34:56.789Z",
-    "priority": "medium"
+    "updatedAt": "2025-04-20T12:34:56.789Z"
   }
   ```
 - **Error** (404 Not Found):
@@ -110,24 +107,12 @@ This document outlines the API endpoints for the TODO management system built wi
     "priority": "high"
   }
   ```
-- **Error** (404 Not Found):
-  ```json
-  {
-    "error": "Todo not found"
-  }
-  ```
 
 ### 2.5 Delete a TODO
 
 - **URL**: `/todos/{id}`
 - **Method**: `DELETE`
 - **Response** (204 No Content)
-- **Error** (404 Not Found):
-  ```json
-  {
-    "error": "Todo not found"
-  }
-  ```
 
 ### 2.6 Record a TODO Activity
 
@@ -315,7 +300,7 @@ This document outlines the API endpoints for the TODO management system built wi
 - **Error** (404 Not Found):
   ```json
   {
-    "message": "Tag with ID 'a0b1c2d3-e4f5-6789-abcd-ef0123456789' not found"
+    "error": "Tag not found"
   }
   ```
 
@@ -340,24 +325,12 @@ This document outlines the API endpoints for the TODO management system built wi
     "updatedAt": "2025-04-22T10:25:15.123Z"
   }
   ```
-- **Error** (404 Not Found):
-  ```json
-  {
-    "message": "Tag with ID 'a0b1c2d3-e4f5-6789-abcd-ef0123456789' not found"
-  }
-  ```
 
 ### 2.14 Delete a Tag
 
 - **URL**: `/tags/{id}`
 - **Method**: `DELETE`
 - **Response** (204 No Content)
-- **Error** (404 Not Found):
-  ```json
-  {
-    "message": "Tag with ID 'a0b1c2d3-e4f5-6789-abcd-ef0123456789' not found"
-  }
-  ```
 
 ### 2.15 Assign a Tag to a TODO
 
@@ -372,19 +345,11 @@ This document outlines the API endpoints for the TODO management system built wi
 - **Response** (201 Created):
   ```json
   {
-    "message": "Tag assigned successfully"
-  }
-  ```
-- **Error** (404 Not Found):
-  ```json
-  {
-    "message": "Todo with ID '550e8400-e29b-41d4-a716-446655440000' not found"
-  }
-  ```
-- **Error** (400 Bad Request):
-  ```json
-  {
-    "message": "Tag is already assigned to todo"
+    "id": "a0b1c2d3-e4f5-6789-abcd-ef0123456789",
+    "name": "Work",
+    "color": "#FF5733",
+    "createdAt": "2025-04-22T09:15:30.456Z",
+    "updatedAt": "2025-04-22T09:15:30.456Z"
   }
   ```
 
@@ -404,34 +369,16 @@ This document outlines the API endpoints for the TODO management system built wi
     }
   ]
   ```
-- **Error** (404 Not Found):
-  ```json
-  {
-    "message": "Todo with ID '550e8400-e29b-41d4-a716-446655440000' not found"
-  }
-  ```
 
 ### 2.17 Remove a Tag from a TODO
 
 - **URL**: `/todos/{id}/tags/{tagId}`
 - **Method**: `DELETE`
 - **Response** (204 No Content)
-- **Error** (404 Not Found):
-  ```json
-  {
-    "message": "Todo with ID '550e8400-e29b-41d4-a716-446655440000' not found"
-  }
-  ```
-- **Error** (400 Bad Request):
-  ```json
-  {
-    "message": "Tag is not assigned to todo"
-  }
-  ```
 
 ### 2.18 Get TODOs by Tag
 
-- **URL**: `/tags/{id}/todos`
+- **URL**: `/todos/by-tag/{tagId}`
 - **Method**: `GET`
 - **Response** (200 OK):
   ```json
@@ -445,16 +392,9 @@ This document outlines the API endpoints for the TODO management system built wi
       "totalWorkTime": 0,
       "lastStateChangeAt": "2025-04-20T12:34:56.789Z",
       "createdAt": "2025-04-20T12:34:56.789Z",
-      "updatedAt": "2025-04-20T12:34:56.789Z",
-      "priority": "medium"
+      "updatedAt": "2025-04-20T12:34:56.789Z"
     }
   ]
-  ```
-- **Error** (404 Not Found):
-  ```json
-  {
-    "message": "Tag with ID 'a0b1c2d3-e4f5-6789-abcd-ef0123456789' not found"
-  }
   ```
 
 ### 2.19 Get TODOs by Multiple Tags
@@ -476,16 +416,9 @@ This document outlines the API endpoints for the TODO management system built wi
       "totalWorkTime": 0,
       "lastStateChangeAt": "2025-04-20T12:34:56.789Z",
       "createdAt": "2025-04-20T12:34:56.789Z",
-      "updatedAt": "2025-04-20T12:34:56.789Z",
-      "priority": "medium"
+      "updatedAt": "2025-04-20T12:34:56.789Z"
     }
   ]
-  ```
-- **Error** (404 Not Found):
-  ```json
-  {
-    "message": "Tag with ID 'a0b1c2d3-e4f5-6789-abcd-ef0123456789' not found"
-  }
   ```
 
 ### 2.20 Bulk Assign Tag to Multiple TODOs
@@ -504,14 +437,14 @@ This document outlines the API endpoints for the TODO management system built wi
 - **Response** (200 OK):
   ```json
   {
-    "successCount": 2,
-    "failedCount": 0
-  }
-  ```
-- **Error** (404 Not Found):
-  ```json
-  {
-    "message": "Tag with ID 'a0b1c2d3-e4f5-6789-abcd-ef0123456789' not found"
+    "success": true,
+    "message": "Tag assigned to 2 TODOs",
+    "tag": {
+      "id": "a0b1c2d3-e4f5-6789-abcd-ef0123456789",
+      "name": "Work",
+      "color": "#FF5733"
+    },
+    "assignedCount": 2
   }
   ```
 
@@ -531,18 +464,42 @@ This document outlines the API endpoints for the TODO management system built wi
 - **Response** (200 OK):
   ```json
   {
-    "successCount": 2,
-    "failedCount": 0
-  }
-  ```
-- **Error** (404 Not Found):
-  ```json
-  {
-    "message": "Tag with ID 'a0b1c2d3-e4f5-6789-abcd-ef0123456789' not found"
+    "success": true,
+    "message": "Tag removed from 2 TODOs",
+    "tag": {
+      "id": "a0b1c2d3-e4f5-6789-abcd-ef0123456789",
+      "name": "Work",
+      "color": "#FF5733"
+    },
+    "removedCount": 2
   }
   ```
 
-### 2.22 Get Tag Usage Statistics
+### 2.22 Update TODO Priority
+
+- **URL**: `/todos/{id}/priority`
+- **Method**: `PATCH`
+- **Request Body**:
+  ```json
+  {
+    "priority": "low"
+  }
+  ```
+- **Response** (200 OK):
+  ```json
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "priority": "low"
+  }
+  ```
+- **Error** (400 Bad Request):
+  ```json
+  {
+    "error": "Invalid priority value. Must be one of: low, medium, high"
+  }
+  ```
+
+### 2.23 Get Tag Usage Statistics
 
 - **URL**: `/tags/stats`
 - **Method**: `GET`
@@ -575,14 +532,6 @@ Error responses have the following format:
 ```json
 {
   "error": "Error message"
-}
-```
-
-または
-
-```json
-{
-  "message": "Error message"
 }
 ```
 
