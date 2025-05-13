@@ -1,108 +1,59 @@
-# TODO Management System API Specification
+# TODO 管理 API 仕様書
 
-## 1. Introduction
-This document outlines the API endpoints for the TODO management system built with Hono framework.
+## 概要
+この API は、TODO 管理アプリケーションのバックエンドとして機能します。以下のエンドポイントを提供し、TODO の作成、取得、更新、削除をサポートします。
 
-## 2. API Endpoints
+## エンドポイント
 
-### 2.1 Create a TODO
+### 1. TODO の作成
 - **URL**: `/todos`
-- **Method**: `POST`
-- **Request Body**:
+- **メソッド**: `POST`
+- **リクエストボディ**:
   ```json
   {
-    "title": "Go shopping",
-    "description": "Buy milk and bread",
-    "status": "pending"
+    "title": "string",
+    "description": "string",
+    "status": "string" // e.g., "pending", "completed"
   }
   ```
-- **Response** (201 Created):
-  ```json
-  {
-    "id": "550e8400-e29b-41d4-a716-446655440000",
-    "title": "Go shopping",
-    "description": "Buy milk and bread",
-    "status": "pending",
-    "createdAt": "2025-04-20T12:34:56.789Z",
-    "updatedAt": "2025-04-20T12:34:56.789Z"
-  }
-  ```
+- **レスポンス**:
+  - **201 Created**: 作成された TODO の詳細
 
-### 2.2 Get TODO List
+### 2. TODO の一覧取得
 - **URL**: `/todos`
-- **Method**: `GET`
-- **Response** (200 OK):
-  ```json
-  [
-    {
-      "id": "550e8400-e29b-41d4-a716-446655440000",
-      "title": "Go shopping",
-      "description": "Buy milk and bread",
-      "status": "pending",
-      "createdAt": "2025-04-20T12:34:56.789Z",
-      "updatedAt": "2025-04-20T12:34:56.789Z"
-    }
-  ]
-  ```
+- **メソッド**: `GET`
+- **レスポンス**:
+  - **200 OK**: TODO のリスト
 
-### 2.3 Get TODO Details
+### 3. TODO の詳細取得
 - **URL**: `/todos/{id}`
-- **Method**: `GET`
-- **Response** (200 OK):
-  ```json
-  {
-    "id": "550e8400-e29b-41d4-a716-446655440000",
-    "title": "Go shopping",
-    "description": "Buy milk and bread",
-    "status": "pending",
-    "createdAt": "2025-04-20T12:34:56.789Z",
-    "updatedAt": "2025-04-20T12:34:56.789Z"
-  }
-  ```
-- **Error** (404 Not Found):
-  ```json
-  {
-    "error": "Todo not found"
-  }
-  ```
+- **メソッド**: `GET`
+- **レスポンス**:
+  - **200 OK**: 指定された TODO の詳細
+  - **404 Not Found**: TODO が見つからない場合
 
-### 2.4 Update a TODO
+### 4. TODO の更新
 - **URL**: `/todos/{id}`
-- **Method**: `PUT`
-- **Request Body**:
+- **メソッド**: `PUT`
+- **リクエストボディ**:
   ```json
   {
-    "title": "Shopping list",
-    "description": "Buy milk, bread, and eggs",
-    "status": "completed"
+    "title": "string",
+    "description": "string",
+    "status": "string"
   }
   ```
-- **Response** (200 OK):
-  ```json
-  {
-    "id": "550e8400-e29b-41d4-a716-446655440000",
-    "title": "Shopping list",
-    "description": "Buy milk, bread, and eggs",
-    "status": "completed",
-    "createdAt": "2025-04-20T12:34:56.789Z",
-    "updatedAt": "2025-04-20T13:45:12.345Z"
-  }
-  ```
+- **レスポンス**:
+  - **200 OK**: 更新された TODO の詳細
+  - **404 Not Found**: TODO が見つからない場合
 
-### 2.5 Delete a TODO
+### 5. TODO の削除
 - **URL**: `/todos/{id}`
-- **Method**: `DELETE`
-- **Response** (204 No Content)
+- **メソッド**: `DELETE`
+- **レスポンス**:
+  - **204 No Content**: 削除成功
+  - **404 Not Found**: TODO が見つからない場合
 
-## 3. Error Handling
-Error responses have the following format:
-```json
-{
-  "error": "Error message"
-}
-```
-
-Common status codes:
-- 400 Bad Request: Invalid input
-- 404 Not Found: Resource not found
-- 500 Internal Server Error: Server-side error
+## エラーレスポンス
+- **400 Bad Request**: リクエストが不正な場合
+- **500 Internal Server Error**: サーバーエラーが発生した場合
