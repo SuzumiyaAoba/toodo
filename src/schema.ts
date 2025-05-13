@@ -64,45 +64,6 @@ export const TodoListSchema = v.array(TodoSchema);
 export type TodoList = v.InferOutput<typeof TodoListSchema>;
 
 /**
- * Schema for a TODO activity
- */
-export const TodoActivitySchema = v.object({
-  id: v.pipe(v.string(), v.uuid()),
-  todoId: v.pipe(v.string(), v.uuid()),
-  type: v.picklist(["started", "paused", "completed", "discarded"]),
-  note: v.optional(v.pipe(v.string(), v.maxLength(500))),
-  createdAt: DateSchema,
-});
-
-/**
- * Type for a TODO activity
- */
-export type TodoActivity = v.InferOutput<typeof TodoActivitySchema>;
-
-/**
- * Schema for creating a new TODO activity
- */
-export const CreateTodoActivitySchema = v.object({
-  type: v.picklist(["started", "paused", "completed", "discarded"]),
-  note: v.optional(v.pipe(v.string(), v.maxLength(500))),
-});
-
-/**
- * Type for creating a new TODO activity
- */
-export type CreateTodoActivity = v.InferOutput<typeof CreateTodoActivitySchema>;
-
-/**
- * Schema for TODO activity response list
- */
-export const TodoActivityListSchema = v.array(TodoActivitySchema);
-
-/**
- * Type for TODO activity response list
- */
-export type TodoActivityList = v.InferOutput<typeof TodoActivityListSchema>;
-
-/**
  * Schema for error responses
  */
 export const ErrorResponseSchema = v.object({

@@ -6,12 +6,9 @@ import type { ConversionConfig } from "@valibot/to-json-schema";
 import { describeRoute, openAPISpecs } from "hono-openapi";
 import { resolver, validator as vValidator } from "hono-openapi/valibot";
 import {
-  CreateTodoActivitySchema,
   CreateTodoSchema,
   ErrorResponseSchema,
   IdParamSchema,
-  TodoActivityListSchema,
-  TodoActivitySchema,
   TodoListSchema,
   TodoSchema,
   UpdateTodoSchema,
@@ -206,137 +203,9 @@ app.delete(
   vValidator("param", IdParamSchema),
   async (c) => {
     const { id } = c.req.valid("param");
-
-    // Check if the TODO exists
-    const todo = await prisma.todo.findUnique({ where: { id } });
-    if (!todo) {
-      return c.json({ error: "Todo not found" }, 404);
-    }
-
-    // Create a "discarded" activity before deleting the TODO
-    await prisma.todoActivity.create({
-      data: {
-        todoId: id,
-        type: "discarded",
-        note: "TODO was deleted from the system",
-      },
-    });
-
-    // Delete the TODO
     await prisma.todo.delete({ where: { id } });
     c.status(204);
     return c.body(null);
-  },
-);
-
-// Record a TODO activity
-app.post(
-  "/todos/:id/activities",
-  describeRoute({
-    description: "Record a new activity for a TODO",
-    responses: {
-      201: {
-        description: "Activity recorded successfully",
-        content: {
-          "application/json": {
-            schema: resolver(TodoActivitySchema, valibotConfig),
-          },
-        },
-      },
-      400: {
-        description: "Invalid activity data",
-        content: {
-          "application/json": {
-            schema: resolver(ErrorResponseSchema, valibotConfig),
-          },
-        },
-      },
-      404: {
-        description: "TODO not found",
-        content: {
-          "application/json": {
-            schema: resolver(ErrorResponseSchema, valibotConfig),
-          },
-        },
-      },
-    },
-    validateResponse: true,
-  }),
-  vValidator("param", IdParamSchema),
-  vValidator("json", CreateTodoActivitySchema),
-  async (c) => {
-    const { id } = c.req.valid("param");
-    const { type, note } = c.req.valid("json");
-
-    // Check if the TODO exists
-    const todo = await prisma.todo.findUnique({ where: { id } });
-    if (!todo) {
-      return c.json({ error: "Todo not found" }, 404);
-    }
-
-    // Create the activity
-    const activity = await prisma.todoActivity.create({
-      data: {
-        todoId: id,
-        type,
-        note,
-      },
-    });
-
-    // If the activity type is "completed", also update the TODO status
-    if (type === "completed") {
-      await prisma.todo.update({
-        where: { id },
-        data: { status: "completed" },
-      });
-    }
-
-    return c.json(activity, 201);
-  },
-);
-
-// Get TODO activity history
-app.get(
-  "/todos/:id/activities",
-  describeRoute({
-    description: "Get activity history of a specific TODO",
-    responses: {
-      200: {
-        description: "Activity history",
-        content: {
-          "application/json": {
-            schema: resolver(TodoActivityListSchema, valibotConfig),
-          },
-        },
-      },
-      404: {
-        description: "TODO not found",
-        content: {
-          "application/json": {
-            schema: resolver(ErrorResponseSchema, valibotConfig),
-          },
-        },
-      },
-    },
-    validateResponse: true,
-  }),
-  vValidator("param", IdParamSchema),
-  async (c) => {
-    const { id } = c.req.valid("param");
-
-    // Check if the TODO exists
-    const todo = await prisma.todo.findUnique({ where: { id } });
-    if (!todo) {
-      return c.json({ error: "Todo not found" }, 404);
-    }
-
-    // Get the activity history
-    const activities = await prisma.todoActivity.findMany({
-      where: { todoId: id },
-      orderBy: { createdAt: "desc" },
-    });
-
-    return c.json(activities);
   },
 );
 
