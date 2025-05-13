@@ -1,7 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { ActivityType } from "@toodo/core";
 import { WorkState } from "./todo";
-import { mapToDomainTodoActivity } from "./todo-activity";
+import { ActivityType, mapToDomainTodoActivity } from "./todo-activity";
 
 describe("TodoActivity Entity", () => {
   describe("mapToDomainTodoActivity", () => {
@@ -16,7 +15,6 @@ describe("TodoActivity Entity", () => {
         previousState: "idle",
         note: "Test note",
         createdAt: now,
-        workPeriodId: "work-period-id",
       };
 
       // Act
@@ -31,7 +29,6 @@ describe("TodoActivity Entity", () => {
         previousState: WorkState.IDLE,
         note: "Test note",
         createdAt: now,
-        workPeriodId: "work-period-id",
       });
     });
 
@@ -46,7 +43,6 @@ describe("TodoActivity Entity", () => {
         previousState: null,
         note: null,
         createdAt: now,
-        workPeriodId: null,
       };
 
       // Act
@@ -54,10 +50,9 @@ describe("TodoActivity Entity", () => {
 
       // Assert
       expect(domainActivity.workTime).toBeUndefined();
-      // In the implementation, null is treated as undefined
-      expect(domainActivity.previousState).toBeUndefined();
+      // In the implementation, null is treated as null
+      expect(domainActivity.previousState).toBeNull();
       expect(domainActivity.note).toBeUndefined();
-      expect(domainActivity.workPeriodId).toBeUndefined();
     });
   });
 });

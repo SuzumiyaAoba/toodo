@@ -21,7 +21,7 @@
         "@hono/valibot-validator": "^0.5.2",
         "@hono/zod-validator": "^0.4.3",
         "@prisma/client": "^6.6.0",
-        "@scalar/hono-api-reference": "^0.8.5",
+        "@scalar/hono-api-reference": "^0.8.2",
         "@toodo/core": "workspace:*",
         "@valibot/to-json-schema": "^1.0.0",
         "hono": "^4.7.4",
@@ -141,13 +141,13 @@
 
     "@prisma/get-platform": ["@prisma/get-platform@6.6.0", "", { "dependencies": { "@prisma/debug": "6.6.0" } }, "sha512-3qCwmnT4Jh5WCGUrkWcc6VZaw0JY7eWN175/pcb5Z6FiLZZ3ygY93UX0WuV41bG51a6JN/oBH0uywJ90Y+V5eA=="],
 
-    "@scalar/core": ["@scalar/core@0.2.11", "", { "dependencies": { "@scalar/types": "0.1.11" } }, "sha512-crakGk7IOWEvlexKdxr+uLW+SzvE/9OLZMYGHn0GNop3jSsHqZRB7a4epZ6MzmOP6L2665M4q8g1IuTKBudYVw=="],
+    "@scalar/core": ["@scalar/core@0.2.8", "", { "dependencies": { "@scalar/types": "0.1.8" } }, "sha512-4WjhJl0hJGgPGznmRvMFscY4ZMRbXgfEAsDGWl9eVqE/ZdXFxnoY2LsGhBALSKEYfwgNwLzk3A+0bCv2oU6N7g=="],
 
-    "@scalar/hono-api-reference": ["@scalar/hono-api-reference@0.8.5", "", { "dependencies": { "@scalar/core": "0.2.11" }, "peerDependencies": { "hono": "^4.0.0" } }, "sha512-s9jmP7wQnXNvGR/pFyUxc1BDb7YMbLHJY7czqbMouBjNOhaeutipg2RioiViLOPdyLUoJWeUDxL7h4fUxcZMoA=="],
+    "@scalar/hono-api-reference": ["@scalar/hono-api-reference@0.8.2", "", { "dependencies": { "@scalar/core": "0.2.8" }, "peerDependencies": { "hono": "^4.0.0" } }, "sha512-sgNtRst9KTamZMxE66fuIczgTsG7Yeputoelvxw/O+5dcN4KPeZ8ac67aqFH9sG1t+bbQyxqZ+qn+6ESoZMJQw=="],
 
-    "@scalar/openapi-types": ["@scalar/openapi-types@0.2.1", "", { "dependencies": { "zod": "^3.23.8" } }, "sha512-UMxX54taQXnEWYEuesbH+pkjlXRVV1u/Wx6YbVeU3QoJdFGqT3Z7si9zsokoG6MXDcdi1LGny7A0KwownmPvUQ=="],
+    "@scalar/openapi-types": ["@scalar/openapi-types@0.2.0", "", { "dependencies": { "zod": "^3.23.8" } }, "sha512-waiKk12cRCqyUCWTOX0K1WEVX46+hVUK+zRPzAahDJ7G0TApvbNkuy5wx7aoUyEk++HHde0XuQnshXnt8jsddA=="],
 
-    "@scalar/types": ["@scalar/types@0.1.11", "", { "dependencies": { "@scalar/openapi-types": "0.2.1", "@unhead/schema": "^1.11.11", "nanoid": "^5.1.5", "type-fest": "^4.20.0", "zod": "^3.23.8" } }, "sha512-fNcaZbZKoZ2PvoW+KJHmk4au8ZukgWlb6qLK3k/SLkfsTggN3DO4PR57ch6cyl2WhwENNbw+iI+ss7fTRcPnOA=="],
+    "@scalar/types": ["@scalar/types@0.1.8", "", { "dependencies": { "@scalar/openapi-types": "0.2.0", "@unhead/schema": "^1.11.11", "nanoid": "^5.1.5", "type-fest": "^4.20.0", "zod": "^3.23.8" } }, "sha512-VL1dcLB6w7V0htFxIgcdQeQhD5LFW1oqWk9ZWfzd9Ekl0a3bDGc81R5S3fk6qCHahPZR3cVPr4rHVQh0aX+FrQ=="],
 
     "@toodo/core": ["@toodo/core@workspace:packages/core"],
 

@@ -756,46 +756,4 @@ export class PrismaTodoRepository extends PrismaBaseRepository<Todo, PrismaTodo>
       return this.mapToDomainArray(todos);
     });
   }
-
-  async findByState(state: string): Promise<Todo[]> {
-    return this.executePrismaOperation(async () => {
-      const todos = await this.prisma.todo.findMany({
-        where: { workState: state },
-        include: {
-          dependsOn: true,
-          dependents: true,
-          subtasks: true,
-        },
-      });
-      return this.mapToDomainArray(todos);
-    }, state);
-  }
-
-  async findUnassignedSubtasks(): Promise<Todo[]> {
-    return this.executePrismaOperation(async () => {
-      const todos = await this.prisma.todo.findMany({
-        where: { parentId: null },
-        include: {
-          dependsOn: true,
-          dependents: true,
-          subtasks: true,
-        },
-      });
-      return this.mapToDomainArray(todos);
-    });
-  }
-
-  async findSubtasks(parentId: string): Promise<Todo[]> {
-    return this.executePrismaOperation(async () => {
-      const todos = await this.prisma.todo.findMany({
-        where: { parentId },
-        include: {
-          dependsOn: true,
-          dependents: true,
-          subtasks: true,
-        },
-      });
-      return this.mapToDomainArray(todos);
-    }, parentId);
-  }
 }

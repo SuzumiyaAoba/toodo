@@ -6,8 +6,3 @@ alwaysApply: true
 ## Language
 
 - Write source code and documents in English
-
-## Technology Stack
-
-- Hono
-- Valibot

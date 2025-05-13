@@ -15,7 +15,6 @@ describe("GetProject", () => {
     findTodosByProjectId: mock(async () => []),
     addTodo: mock(async () => {}),
     removeTodo: mock(async () => {}),
-    getTodosByProject: mock(async () => []),
   };
 
   it("should get a project by id", async () => {

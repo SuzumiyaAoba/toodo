@@ -30,53 +30,17 @@ describe("GetTagStatisticsUseCase", () => {
   ];
 
   const mockTagRepository = {
-    createTag: mock(() =>
-      Promise.resolve({
-        id: "tag1",
-        name: "Work",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }),
-    ),
-    getTagById: mock(() =>
-      Promise.resolve({
-        id: "tag1",
-        name: "Work",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }),
-    ),
+    createTag: mock(() => Promise.resolve({ id: "tag1", name: "Work", createdAt: new Date(), updatedAt: new Date() })),
+    getTagById: mock(() => Promise.resolve({ id: "tag1", name: "Work", createdAt: new Date(), updatedAt: new Date() })),
     getTagByName: mock(() => Promise.resolve(null)),
     getAllTags: mock(() =>
       Promise.resolve([
-        {
-          id: "tag1",
-          name: "Work",
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-        {
-          id: "tag2",
-          name: "Personal",
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-        {
-          id: "tag3",
-          name: "Urgent",
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
+        { id: "tag1", name: "Work", createdAt: new Date(), updatedAt: new Date() },
+        { id: "tag2", name: "Personal", createdAt: new Date(), updatedAt: new Date() },
+        { id: "tag3", name: "Urgent", createdAt: new Date(), updatedAt: new Date() },
       ]),
     ),
-    updateTag: mock(() =>
-      Promise.resolve({
-        id: "tag1",
-        name: "Work",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }),
-    ),
+    updateTag: mock(() => Promise.resolve({ id: "tag1", name: "Work", createdAt: new Date(), updatedAt: new Date() })),
     deleteTag: mock(() => Promise.resolve()),
     assignTagToTodo: mock(() => Promise.resolve()),
     removeTagFromTodo: mock(() => Promise.resolve()),
@@ -88,54 +52,11 @@ describe("GetTagStatisticsUseCase", () => {
     getTodoIdsWithAnyTag: mock(() => Promise.resolve([])),
     getTagStatistics: mock(() =>
       Promise.resolve([
-        {
-          id: "tag1",
-          name: "Work",
-          color: null,
-          usageCount: 3,
-          pendingTodoCount: 2,
-          completedTodoCount: 1,
-        },
-        {
-          id: "tag2",
-          name: "Personal",
-          color: null,
-          usageCount: 2,
-          pendingTodoCount: 1,
-          completedTodoCount: 1,
-        },
-        {
-          id: "tag3",
-          name: "Urgent",
-          color: null,
-          usageCount: 1,
-          pendingTodoCount: 1,
-          completedTodoCount: 0,
-        },
+        { id: "tag1", name: "Work", color: null, usageCount: 3, pendingTodoCount: 2, completedTodoCount: 1 },
+        { id: "tag2", name: "Personal", color: null, usageCount: 2, pendingTodoCount: 1, completedTodoCount: 1 },
+        { id: "tag3", name: "Urgent", color: null, usageCount: 1, pendingTodoCount: 1, completedTodoCount: 0 },
       ]),
     ),
-    findAll: mock(() => Promise.resolve([])),
-    findById: mock(() => Promise.resolve(null)),
-    create: mock(() =>
-      Promise.resolve({
-        id: "tag1",
-        name: "Work",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }),
-    ),
-    update: mock(() =>
-      Promise.resolve({
-        id: "tag1",
-        name: "Work",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }),
-    ),
-    delete: mock(() => Promise.resolve()),
-    findByName: mock(() => Promise.resolve(null)),
-    getTodosByTagId: mock(() => Promise.resolve([])),
-    addTagToTodo: mock(() => Promise.resolve()),
   };
 
   const useCase = new GetTagStatisticsUseCase(mockTagRepository);

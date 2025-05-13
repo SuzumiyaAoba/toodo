@@ -35,16 +35,14 @@ model Todo {
 }
 
 model TodoActivity {
-  id            String      @id @default(uuid())
+  id            String   @id @default(uuid())
   todoId        String
   type          String
   note          String?
-  createdAt     DateTime    @default(now())
+  createdAt     DateTime @default(now())
   previousState String?
   workTime      Int?
-  todo          Todo        @relation(fields: [todoId], references: [id], onDelete: Cascade)
-  workPeriodId  String?
-  workPeriod    WorkPeriod? @relation(fields: [workPeriodId], references: [id], onDelete: SetNull)
+  todo          Todo     @relation(fields: [todoId], references: [id], onDelete: Cascade)
 }
 
 model TodoDependency {
@@ -85,15 +83,4 @@ model Project {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   todos       Todo[]
-}
-
-model WorkPeriod {
-  id          String         @id @default(uuid())
-  name        String
-  date        DateTime       @default(now())
-  startTime   DateTime
-  endTime     DateTime
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-  activities  TodoActivity[]
 }

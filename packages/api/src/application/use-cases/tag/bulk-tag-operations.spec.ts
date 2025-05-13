@@ -40,20 +40,6 @@ describe("BulkTagOperations", () => {
     bulkAssignTagToTodos: mock(() => Promise.resolve(2)),
     bulkRemoveTagFromTodos: mock(() => Promise.resolve(2)),
     getTagStatistics: mock(() => Promise.resolve([])),
-    // TagRepositoryインターフェースに合わせて追加のメソッドを実装
-    findAll: mock(() => Promise.resolve([])),
-    findById: mock((id: string) => {
-      if (id === validTagId) {
-        return Promise.resolve(mockTag);
-      }
-      return Promise.resolve(null);
-    }),
-    create: mock((tag) => Promise.resolve(tag)),
-    update: mock((tag) => Promise.resolve(tag)),
-    delete: mock(() => Promise.resolve()),
-    findByName: mock(() => Promise.resolve(null)),
-    getTodosByTagId: mock(() => Promise.resolve([])),
-    addTagToTodo: mock(() => Promise.resolve()),
   });
 
   const createMockTodoRepository = () => ({

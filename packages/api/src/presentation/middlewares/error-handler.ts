@@ -1,4 +1,5 @@
-import type { ErrorHandler } from "hono";
+import type { Context, MiddlewareHandler, Next } from "hono";
+import { ValiError } from "valibot";
 import { ProjectNameExistsError, ProjectNotFoundError } from "../../domain/errors/project-errors";
 import { TagNameExistsError, TagNotFoundError } from "../../domain/errors/tag-errors";
 import {
@@ -7,59 +8,61 @@ import {
   TodoNotFoundError,
   UnauthorizedActivityDeletionError,
 } from "../../domain/errors/todo-errors";
-import { ErrorCode, type ErrorResponse } from "../errors/error-codes";
+import { ErrorCode, createApiError } from "../errors/api-errors";
 
 /**
- * Honoのエラーハンドラー
+ * Global error handling middleware
  */
-export const errorHandler: ErrorHandler = (err, c) => {
-  console.error(err);
+export const errorHandler = async (err: Error, c: Context, next?: Next): Promise<Response> => {
+  try {
+    // In test environments, there might be no next function, so check if next is callable
+    if (typeof next === "function") {
+      await next();
+    }
+  } catch (error) {
+    console.error("Error:", error);
+  }
 
-  const errorResponse: ErrorResponse = {
-    code: ErrorCode.INTERNAL_SERVER_ERROR,
-    message: "An unexpected error occurred",
-  };
+  console.error("Error:", err);
 
-  // Not Found Errors
+  // Handle domain-specific errors
   if (
     err instanceof TodoNotFoundError ||
     err instanceof TodoActivityNotFoundError ||
     err instanceof TagNotFoundError ||
     err instanceof ProjectNotFoundError
   ) {
-    errorResponse.code = ErrorCode.NOT_FOUND;
-    errorResponse.message = err.message;
-    return c.json({ error: errorResponse }, 404);
+    return c.json({ error: createApiError(ErrorCode.NOT_FOUND, err.message) }, 404);
   }
 
-  // Bad Request Errors
   if (err instanceof InvalidStateTransitionError) {
-    errorResponse.code = ErrorCode.BAD_REQUEST;
-    errorResponse.message = err.message;
-    return c.json({ error: errorResponse }, 400);
+    return c.json({ error: createApiError(ErrorCode.INVALID_STATE, err.message) }, 400);
   }
 
-  // Forbidden Errors
   if (err instanceof UnauthorizedActivityDeletionError) {
-    errorResponse.code = ErrorCode.FORBIDDEN;
-    errorResponse.message = err.message;
-    return c.json({ error: errorResponse }, 403);
+    return c.json({ error: createApiError(ErrorCode.FORBIDDEN, err.message) }, 403);
   }
 
-  // Conflict Errors
   if (err instanceof TagNameExistsError || err instanceof ProjectNameExistsError) {
-    errorResponse.code = ErrorCode.CONFLICT;
-    errorResponse.message = err.message;
-    return c.json({ error: errorResponse }, 409);
+    return c.json({ error: createApiError(ErrorCode.CONFLICT, err.message) }, 409);
   }
 
-  // Validation Errors
-  if (err.name === "ValiError") {
-    errorResponse.code = ErrorCode.BAD_REQUEST;
-    errorResponse.message = "Validation error";
-    return c.json({ error: errorResponse }, 400);
+  // Handle validation errors from valibot
+  if (err instanceof ValiError) {
+    return c.json(
+      {
+        error: createApiError(ErrorCode.VALIDATION_ERROR, "Validation error"),
+        details: err.issues,
+      },
+      400,
+    );
   }
 
-  // Default error response
-  return c.json({ error: errorResponse }, 500);
+  // Generic error handling
+  return c.json(
+    {
+      error: createApiError(ErrorCode.INTERNAL_ERROR, "Internal Server Error"),
+    },
+    500,
+  );
 };

@@ -2,7 +2,10 @@
 // export * from "./types/index.js";
 
 // Domain entity exports
-export * from "./domain/entities/index";
+export * from "./domain/entities/tag.js";
+export * from "./domain/entities/project.js";
+export * from "./domain/entities/todo.js";
+export * from "./domain/entities/todo-activity.js";
 
 // Domain error exports
 // export * from "./domain/errors/tag-errors.js";

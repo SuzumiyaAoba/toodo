@@ -1,5 +1,4 @@
 import type { WorkState } from "./todo.js";
-import type { WorkPeriodId } from "./work-period.js";
 
 export enum ActivityType {
   STARTED = "started",
@@ -16,5 +15,4 @@ export interface TodoActivity {
   previousState?: WorkState;
   note?: string;
   createdAt: Date;
-  workPeriodId?: WorkPeriodId;
 }

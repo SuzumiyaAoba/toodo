@@ -29,9 +29,6 @@ describe("GetTodosByProject", () => {
       update: mock(() => Promise.resolve({ id: "project-1", name: "Updated Project" } as Project)),
       delete: mock(() => Promise.resolve()),
       findTodosByProjectId: mock(() => Promise.resolve([])),
-      addTodo: mock(() => Promise.resolve()),
-      removeTodo: mock(() => Promise.resolve()),
-      getTodosByProject: mock(() => Promise.resolve([])),
     } as MockedProjectRepository;
 
     // TodoRepositoryのモック
