@@ -3,8 +3,8 @@ import { Project } from "../../../domain/entities/project";
 import { createMockedTodoRepository } from "../../../domain/entities/test-helpers";
 import { PriorityLevel, Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
 import { ProjectNotFoundError, TodoNotFoundError, TodoNotInProjectError } from "../../../domain/errors/project-errors";
-import type { ProjectRepository } from "../../../domain/repositories/project-repository";
-import type { TodoRepository } from "../../../domain/repositories/todo-repository";
+import { ProjectRepository } from "../../../domain/repositories/project-repository";
+import { TodoRepository } from "../../../domain/repositories/todo-repository";
 import type { MockedFunction } from "../../../test/types";
 import { RemoveTodoFromProjectUseCase } from "./remove-todo-from-project";
 

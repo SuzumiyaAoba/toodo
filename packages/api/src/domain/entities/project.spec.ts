@@ -1,6 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { Project } from "./project";
-import type { ProjectStatus } from "./project";
+import { Project, ProjectStatus } from "./project";
 
 describe("Project", () => {
   const projectId = "project-1";

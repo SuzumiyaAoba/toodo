@@ -1,6 +1,6 @@
 import { describe, expect, it, mock } from "bun:test";
 import { Project } from "../../../domain/entities/project";
-import type { ProjectRepository } from "../../../domain/repositories/project-repository";
+import { ProjectRepository } from "../../../domain/repositories/project-repository";
 import { GetAllProjects } from "./get-all-projects";
 
 describe("GetAllProjects", () => {

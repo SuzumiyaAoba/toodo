@@ -1,9 +1,8 @@
 import { beforeEach, describe, expect, it, mock } from "bun:test";
 import { Project } from "../../../domain/entities/project";
 import { ProjectNameExistsError } from "../../../domain/errors/project-errors";
-import type { ProjectRepository } from "../../../domain/repositories/project-repository";
-import { CreateProject } from "./create-project";
-import type { CreateProjectInput } from "./create-project";
+import { ProjectRepository } from "../../../domain/repositories/project-repository";
+import { CreateProject, CreateProjectInput } from "./create-project";
 
 describe("CreateProject", () => {
   let mockProjectRepository: ProjectRepository;

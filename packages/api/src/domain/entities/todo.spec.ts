@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
-import { PriorityLevel, Todo, TodoStatus, WorkState, mapToDomainTodo } from "@toodo/core";
 import { createTestTodo } from "./test-helpers";
+import { PriorityLevel, Todo, TodoStatus, WorkState, mapToDomainTodo } from "./todo";
 
 describe("Todo Entity", () => {
   describe("Todo Class", () => {
@@ -521,30 +521,7 @@ describe("Todo Entity", () => {
         projectId: "project-1",
         dueDate: null,
         parentId: "parent-id",
-        subtasks: [
-          {
-            id: "subtask-1",
-            title: "Subtask 1",
-            status: "pending",
-            workState: "idle",
-            totalWorkTime: 0,
-            lastStateChangeAt: now,
-            createdAt: now,
-            updatedAt: now,
-            priority: PriorityLevel.MEDIUM,
-          },
-          {
-            id: "subtask-2",
-            title: "Subtask 2",
-            status: "pending",
-            workState: "idle",
-            totalWorkTime: 0,
-            lastStateChangeAt: now,
-            createdAt: now,
-            updatedAt: now,
-            priority: PriorityLevel.LOW,
-          },
-        ],
+        subtasks: [{ id: "subtask-1" }, { id: "subtask-2" }],
       };
 
       // Act

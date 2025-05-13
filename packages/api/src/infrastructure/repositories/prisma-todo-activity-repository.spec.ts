@@ -120,11 +120,11 @@ describe("PrismaTodoActivityRepository", () => {
         where: { todoId },
         orderBy: { createdAt: "desc" },
       });
-      expect(result.length).toBe(2);
-      expect(result[0]?.id).toBe("activity-1");
-      expect(result[0]?.type).toBe(ActivityType.STARTED);
-      expect(result[1]?.id).toBe("activity-2");
-      expect(result[1]?.workTime).toBe(120);
+      expect(result).toHaveLength(2);
+      expect(result[0].id).toBe("activity-1");
+      expect(result[0].type).toBe(ActivityType.STARTED);
+      expect(result[1].id).toBe("activity-2");
+      expect(result[1].workTime).toBe(120);
     });
 
     test("should return empty array when no activities exist", async () => {

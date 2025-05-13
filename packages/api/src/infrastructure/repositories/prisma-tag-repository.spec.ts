@@ -139,8 +139,8 @@ describe("PrismaTagRepository", () => {
 
       const tags = await repository.getAllTags();
       expect(tags.length).toBe(2);
-      expect(tags[0]?.id).toBe(expectedTags[0]!.id);
-      expect(tags[1]?.id).toBe(expectedTags[1]!.id);
+      expect(tags[0].id).toBe(expectedTags[0].id);
+      expect(tags[1].id).toBe(expectedTags[1].id);
       expect(prisma.tag.findMany).toHaveBeenCalledWith({
         orderBy: {
           name: "asc",
@@ -195,8 +195,8 @@ describe("PrismaTagRepository", () => {
 
       const tags = await repository.getTagsForTodo("todo-id");
       expect(tags.length).toBe(2);
-      expect(tags[0]?.id).toBe("tag-id-1");
-      expect(tags[1]?.id).toBe("tag-id-2");
+      expect(tags[0].id).toBe("tag-id-1");
+      expect(tags[1].id).toBe("tag-id-2");
       expect(prisma.todoTag.findMany).toHaveBeenCalledWith({
         where: {
           todoId: "todo-id",
