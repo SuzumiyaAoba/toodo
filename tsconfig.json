@@ -2,12 +2,6 @@
   "compilerOptions": {
     "strict": true,
     "jsx": "react-jsx",
-    "jsxImportSource": "hono/jsx",
-    "skipLibCheck": true,
-    "baseUrl": ".",
-    "paths": {
-      "*": ["*", "src/*"]
-    }
-  },
-  "include": ["src"]
+    "jsxImportSource": "hono/jsx"
+  }
 }

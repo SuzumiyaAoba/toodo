@@ -1,8 +1,2 @@
 # deps
 node_modules/
-
-**/src/generated/
-test.db
-dev.db
-
-dist
