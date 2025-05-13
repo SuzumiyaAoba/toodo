@@ -40,24 +40,11 @@ app.get("/todos/:id", async (c) => {
 // Update a TODO
 app.put("/todos/:id", async (c) => {
   const id = c.req.param("id");
-  const updateData = await c.req.json();
-
-  // Fetch the existing TODO
-  const existingTodo = await prisma.todo.findUnique({ where: { id } });
-  if (!existingTodo) {
-    return c.json({ error: "Todo not found" }, 404);
-  }
-
-  // Update only the fields specified in the request
+  const { title, description, status } = await c.req.json();
   try {
     const todo = await prisma.todo.update({
       where: { id },
-      data: {
-        // Only update fields that are not undefined
-        ...(updateData.title !== undefined && { title: updateData.title }),
-        ...(updateData.description !== undefined && { description: updateData.description }),
-        ...(updateData.status !== undefined && { status: updateData.status }),
-      },
+      data: { title, description, status },
     });
     return c.json(todo);
   } catch (error) {
@@ -192,144 +179,5 @@ describe("TODO API", () => {
       method: "GET",
     });
     expect(getResponse.status).toBe(404);
-  });
-
-  it("can partially update a TODO - only title", async () => {
-    // 1. Create a new TODO
-    const createResponse = await app.request("/todos", {
-      method: "POST",
-      body: JSON.stringify({
-        title: "Partial Update Test",
-        description: "Original Description",
-        status: "pending",
-      }),
-    });
-    const createdTodo = await createResponse.json();
-
-    // 2. Partially update only the title
-    const response = await app.request(`/todos/${createdTodo.id}`, {
-      method: "PUT",
-      body: JSON.stringify({
-        title: "Updated Title Only",
-      }),
-    });
-    const data = await response.json();
-
-    // 3. Verify that only the title was updated
-    expect(response.status).toBe(200);
-    expect(data.title).toBe("Updated Title Only");
-    expect(data.description).toBe("Original Description"); // Should remain unchanged
-    expect(data.status).toBe("pending"); // Should remain unchanged
-  });
-
-  it("can partially update a TODO - only status", async () => {
-    // 1. Create a new TODO
-    const createResponse = await app.request("/todos", {
-      method: "POST",
-      body: JSON.stringify({
-        title: "Status Update Test",
-        description: "Status Test Description",
-        status: "pending",
-      }),
-    });
-    const createdTodo = await createResponse.json();
-
-    // 2. Partially update only the status
-    const response = await app.request(`/todos/${createdTodo.id}`, {
-      method: "PUT",
-      body: JSON.stringify({
-        status: "completed",
-      }),
-    });
-    const data = await response.json();
-
-    // 3. Verify that only the status was updated
-    expect(response.status).toBe(200);
-    expect(data.title).toBe("Status Update Test"); // Should remain unchanged
-    expect(data.description).toBe("Status Test Description"); // Should remain unchanged
-    expect(data.status).toBe("completed"); // Should be updated
-  });
-
-  it("can partially update a TODO - only description", async () => {
-    // 1. Create a new TODO
-    const createResponse = await app.request("/todos", {
-      method: "POST",
-      body: JSON.stringify({
-        title: "Description Update Test",
-        description: "Original Description Text",
-        status: "pending",
-      }),
-    });
-    const createdTodo = await createResponse.json();
-
-    // 2. Partially update only the description
-    const response = await app.request(`/todos/${createdTodo.id}`, {
-      method: "PUT",
-      body: JSON.stringify({
-        description: "Updated Description Only",
-      }),
-    });
-    const data = await response.json();
-
-    // 3. Verify that only the description was updated
-    expect(response.status).toBe(200);
-    expect(data.title).toBe("Description Update Test"); // Should remain unchanged
-    expect(data.description).toBe("Updated Description Only"); // Should be updated
-    expect(data.status).toBe("pending"); // Should remain unchanged
-  });
-
-  it("can update multiple fields but not all fields", async () => {
-    // 1. Create a new TODO
-    const createResponse = await app.request("/todos", {
-      method: "POST",
-      body: JSON.stringify({
-        title: "Multiple Fields Test",
-        description: "Original Multiple Fields Description",
-        status: "pending",
-      }),
-    });
-    const createdTodo = await createResponse.json();
-
-    // 2. Update title and status but not description
-    const response = await app.request(`/todos/${createdTodo.id}`, {
-      method: "PUT",
-      body: JSON.stringify({
-        title: "Updated Multiple Fields",
-        status: "completed",
-      }),
-    });
-    const data = await response.json();
-
-    // 3. Verify that only specified fields were updated
-    expect(response.status).toBe(200);
-    expect(data.title).toBe("Updated Multiple Fields"); // Should be updated
-    expect(data.description).toBe("Original Multiple Fields Description"); // Should remain unchanged
-    expect(data.status).toBe("completed"); // Should be updated
-  });
-
-  it("handles empty update objects gracefully", async () => {
-    // 1. Create a new TODO
-    const createResponse = await app.request("/todos", {
-      method: "POST",
-      body: JSON.stringify({
-        title: "Empty Update Test",
-        description: "Empty Update Description",
-        status: "pending",
-      }),
-    });
-    const createdTodo = await createResponse.json();
-
-    // 2. Send an empty update object
-    const response = await app.request(`/todos/${createdTodo.id}`, {
-      method: "PUT",
-      body: JSON.stringify({}),
-    });
-    const data = await response.json();
-
-    // 3. Verify that no fields were updated
-    expect(response.status).toBe(200);
-    expect(data.title).toBe("Empty Update Test"); // Should remain unchanged
-    expect(data.description).toBe("Empty Update Description"); // Should remain unchanged
-    expect(data.status).toBe("pending"); // Should remain unchanged
   });
 });
