@@ -1,11 +1,6 @@
 import type { Tag as PrismaTag } from "../../generated/prisma";
 
 /**
- * Tag ID type
- */
-export type TagId = string;
-
-/**
  * Tag entity
  */
 export interface Tag {

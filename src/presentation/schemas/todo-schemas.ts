@@ -25,7 +25,6 @@ export const CommonSchemas = {
   workState: () => v.picklist([WorkState.IDLE, WorkState.ACTIVE, WorkState.PAUSED, WorkState.COMPLETED]),
   activityType: () =>
     v.picklist([ActivityType.STARTED, ActivityType.PAUSED, ActivityType.COMPLETED, ActivityType.DISCARDED]),
-  dueDate: () => v.optional(DateSchema),
 };
 
 /**
@@ -48,7 +47,6 @@ export const TodoSchema = v.object({
   workState: CommonSchemas.workState(),
   totalWorkTime: v.number(),
   lastStateChangeAt: DateSchema,
-  dueDate: CommonSchemas.dueDate(),
   createdAt: DateSchema,
   updatedAt: DateSchema,
   priority: v.string(),
@@ -71,8 +69,6 @@ export const CreateTodoSchema = v.object({
   status: v.optional(v.picklist([TodoStatus.PENDING, TodoStatus.COMPLETED])),
   workState: v.optional(CommonSchemas.workState()),
   priority: v.optional(v.string()),
-  dueDate: CommonSchemas.dueDate(),
-  projectId: v.optional(CommonSchemas.uuid()),
 });
 
 /**
@@ -89,8 +85,6 @@ export const UpdateTodoSchema = v.object({
   status: v.optional(v.picklist([TodoStatus.PENDING, TodoStatus.COMPLETED])),
   workState: v.optional(CommonSchemas.workState()),
   priority: v.optional(v.string()),
-  dueDate: CommonSchemas.dueDate(),
-  projectId: v.optional(CommonSchemas.uuid()),
 });
 
 /**
@@ -315,42 +309,3 @@ export const DependencyTreeQuerySchema = v.object({
  * Type for dependency tree query parameters
  */
 export type DependencyTreeQuery = v.InferOutput<typeof DependencyTreeQuerySchema>;
-
-/**
- * Schema for due date query parameters
- */
-export const DueDateQuerySchema = v.object({
-  days: v.optional(
-    v.pipe(
-      v.string(),
-      v.transform((val) => Number.parseInt(val, 10)),
-      v.number(),
-    ),
-  ),
-});
-
-/**
- * Type for due date query parameters
- */
-export type DueDateQuery = v.InferOutput<typeof DueDateQuerySchema>;
-
-/**
- * Schema for due date range query parameters
- */
-export const DueDateRangeQuerySchema = v.object({
-  startDate: v.pipe(
-    v.string(),
-    v.regex(ISO8601_DATE_REGEX),
-    v.transform((date) => new Date(date)),
-  ),
-  endDate: v.pipe(
-    v.string(),
-    v.regex(ISO8601_DATE_REGEX),
-    v.transform((date) => new Date(date)),
-  ),
-});
-
-/**
- * Type for due date range query parameters
- */
-export type DueDateRangeQuery = v.InferOutput<typeof DueDateRangeQuerySchema>;

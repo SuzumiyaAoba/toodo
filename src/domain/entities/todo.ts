@@ -44,7 +44,6 @@ export interface TodoCreateInput {
   workState?: WorkState;
   totalWorkTime?: number;
   lastStateChangeAt?: Date;
-  dueDate?: Date;
   priority?: PriorityLevel;
   projectId?: ProjectId;
 }
@@ -60,7 +59,6 @@ export class Todo {
   readonly workState: WorkState;
   readonly totalWorkTime: number;
   readonly lastStateChangeAt: Date;
-  readonly dueDate?: Date;
   readonly createdAt: Date;
   readonly updatedAt: Date;
   readonly priority: PriorityLevel;
@@ -80,7 +78,6 @@ export class Todo {
     priority: PriorityLevel = PriorityLevel.MEDIUM,
     projectId?: ProjectId,
     description?: string,
-    dueDate?: Date | TodoId[],
     dependencies: TodoId[] = [],
     dependents: TodoId[] = [],
   ) {
@@ -95,25 +92,8 @@ export class Todo {
     this.updatedAt = updatedAt;
     this.priority = priority;
     this.projectId = projectId;
-
-    // テストケースとの互換性のため、dueDateが配列の場合はdependenciesとして扱う
-    if (Array.isArray(dueDate)) {
-      this.dueDate = undefined;
-      this.dependencies = [...dueDate];
-      // テストケースでは、12番目が依存関係、13番目が依存先として扱われる場合がある
-      // dependenciesが空配列で渡されていて、dependentsが実際の値を持つ場合
-      if (dueDate.length === 0 && dependents.length > 0) {
-        this.dependents = [...dependents];
-      } else {
-        // dueDate (配列) が dependencies として解釈され、
-        // dependencies 引数が dependents として解釈される
-        this.dependents = [...dependencies];
-      }
-    } else {
-      this.dueDate = dueDate;
-      this.dependencies = [...dependencies];
-      this.dependents = [...dependents];
-    }
+    this.dependencies = [...dependencies];
+    this.dependents = [...dependents];
   }
 
   /**
@@ -135,14 +115,13 @@ export class Todo {
       input.priority ?? PriorityLevel.MEDIUM,
       input.projectId,
       input.description,
-      input.dueDate,
       [],
       [],
     );
 
     // id, createdAt, updatedAtを除外した新しいオブジェクトを返す
     const { id, createdAt, updatedAt, ...todoData } = todo;
-    return todoData as Omit<Todo, "id" | "createdAt" | "updatedAt">;
+    return todo;
   }
 
   /**
@@ -156,18 +135,13 @@ export class Todo {
     workState = this.workState,
     totalWorkTime = this.totalWorkTime,
     lastStateChangeAt = this.lastStateChangeAt,
-    dueDate = this.dueDate,
     createdAt = this.createdAt,
     updatedAt = new Date(),
     priority = this.priority,
     projectId = this.projectId,
-    dependencies,
-    dependents,
+    dependencies = this.dependencies,
+    dependents = this.dependents,
   }: Partial<Todo>): Todo {
-    // 配列については、明示的に指定されていない場合は現在の値をコピーして使用
-    const finalDependencies = dependencies === undefined ? [...this.dependencies] : [...dependencies];
-    const finalDependents = dependents === undefined ? [...this.dependents] : [...dependents];
-
     return new Todo(
       id,
       title,
@@ -180,9 +154,8 @@ export class Todo {
       priority,
       projectId,
       description,
-      dueDate,
-      finalDependencies,
-      finalDependents,
+      dependencies,
+      dependents,
     );
   }
 
@@ -373,15 +346,13 @@ export class Todo {
    * @param dependencyId The ID of the Todo to remove from dependencies
    */
   removeDependency(dependencyId: TodoId): Todo {
-    // 依存関係が存在しない場合は同じインスタンスを返す
-    if (!this.dependencies.includes(dependencyId)) {
+    const updatedDependencies = this.dependencies.filter((id) => id !== dependencyId);
+
+    // 依存関係が変わらない場合は同じインスタンスを返す
+    if (updatedDependencies.length === this.dependencies.length) {
       return this;
     }
 
-    // 依存関係を削除した新しい配列を作成
-    const updatedDependencies = this.dependencies.filter((id) => id !== dependencyId);
-
-    // 新しいTodoインスタンスを返す
     return this.copyWith({ dependencies: updatedDependencies });
   }
 
@@ -409,15 +380,13 @@ export class Todo {
    * @param dependentId The ID of the Todo to remove from dependents
    */
   removeDependent(dependentId: TodoId): Todo {
-    // 依存先が存在しない場合は同じインスタンスを返す
-    if (!this.dependents.includes(dependentId)) {
+    const updatedDependents = this.dependents.filter((id) => id !== dependentId);
+
+    // 依存関係が変わらない場合は同じインスタンスを返す
+    if (updatedDependents.length === this.dependents.length) {
       return this;
     }
 
-    // 依存先を削除した新しい配列を作成
-    const updatedDependents = this.dependents.filter((id) => id !== dependentId);
-
-    // 新しいTodoインスタンスを返す
     return this.copyWith({ dependents: updatedDependents });
   }
 
@@ -449,74 +418,6 @@ export class Todo {
 
     // すべての依存先Todoが完了しているかチェック
     return this.dependencies.every((dependencyId) => completedTodoIds.includes(dependencyId));
-  }
-
-  /**
-   * Create a copy of this Todo with a dueDate explicitly set to undefined
-   */
-  private copyWithNoDueDate(): Todo {
-    // Create a new Todo with same properties but dueDate explicitly set to undefined
-    return new Todo(
-      this.id,
-      this.title,
-      this.status,
-      this.workState,
-      this.totalWorkTime,
-      this.lastStateChangeAt,
-      this.createdAt,
-      new Date(), // updatedAt
-      this.priority,
-      this.projectId,
-      this.description,
-      undefined, // dueDate explicitly undefined
-      this.dependencies,
-      this.dependents,
-    );
-  }
-
-  /**
-   * Update the due date of the todo
-   * @param dueDate The new due date, or undefined to remove the due date
-   */
-  updateDueDate(dueDate?: Date): Todo {
-    // If dueDate is explicitly undefined, remove the due date
-    if (dueDate === undefined) {
-      return this.copyWithNoDueDate();
-    }
-    // Otherwise, update with the new date
-    return this.copyWith({ dueDate });
-  }
-
-  /**
-   * Check if this Todo is overdue
-   * @param currentDate The current date to compare against (default: now)
-   * @returns true if the todo has a due date and it's in the past
-   */
-  isOverdue(currentDate: Date = new Date()): boolean {
-    if (!this.dueDate) {
-      return false;
-    }
-
-    return this.dueDate < currentDate && this.status !== TodoStatus.COMPLETED;
-  }
-
-  /**
-   * Check if this Todo is due soon
-   * @param days Number of days to consider "soon" (default: 2)
-   * @param currentDate The current date to compare against (default: now)
-   * @returns true if the todo has a due date and it's within the specified number of days
-   */
-  isDueSoon(days = 2, currentDate: Date = new Date()): boolean {
-    if (!this.dueDate || this.status === TodoStatus.COMPLETED) {
-      return false;
-    }
-
-    // 現在時刻から指定された日数後の日時を計算
-    const soonDate = new Date(currentDate);
-    soonDate.setDate(soonDate.getDate() + days);
-
-    // 期限が現在から指定された日数以内かつ、まだ過ぎていない場合にtrue
-    return this.dueDate <= soonDate && this.dueDate >= currentDate;
   }
 }
 
@@ -595,7 +496,6 @@ export function mapToDomainTodo(
     prismaTodo.priority as PriorityLevel,
     prismaTodo.projectId || undefined,
     prismaTodo.description || undefined,
-    prismaTodo.dueDate || undefined,
     dependencies,
     dependents,
   );

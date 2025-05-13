@@ -6,29 +6,21 @@ import type { MockedFunction } from "../../../test/types";
 import { GetTodoDependencyTreeUseCase } from "./get-todo-dependency-tree";
 
 // TodoRepositoryのメソッドをモック化するための関数
-const createMockTodoRepository = () => {
+function createMockTodoRepository(): TodoRepository {
   return {
     findById: mock((id: string) => Promise.resolve(null)),
     findDependencies: mock((todoId: string) => Promise.resolve([])),
     findAll: mock(() => Promise.resolve([])),
-    create: mock(() => Promise.resolve({} as Todo)),
-    update: mock(() => Promise.resolve({} as Todo)),
-    delete: mock(() => Promise.resolve()),
-    findByProjectId: mock(() => Promise.resolve([])),
-    findByTagId: mock(() => Promise.resolve([])),
-    findDependents: mock(() => Promise.resolve([])),
-    addDependency: mock(() => Promise.resolve()),
-    removeDependency: mock(() => Promise.resolve()),
-    updateWorkState: mock(() => Promise.resolve({} as Todo)),
-    updateWorkTime: mock(() => Promise.resolve({} as Todo)),
-    wouldCreateDependencyCycle: mock(() => Promise.resolve(false)),
     findAllCompleted: mock(() => Promise.resolve([])),
-    // 期限日関連のメソッドを追加
-    findOverdue: mock(() => Promise.resolve([])),
-    findDueSoon: mock(() => Promise.resolve([])),
-    findByDueDateRange: mock(() => Promise.resolve([])),
+    create: mock((todo) => Promise.resolve({} as Todo)),
+    update: mock((id, todo) => Promise.resolve(null)),
+    delete: mock((id) => Promise.resolve()),
+    findDependents: mock((todoId) => Promise.resolve([])),
+    addDependency: mock((todoId, dependencyId) => Promise.resolve()),
+    removeDependency: mock((todoId, dependencyId) => Promise.resolve()),
+    wouldCreateDependencyCycle: mock((todoId, dependencyId) => Promise.resolve(false)),
   };
-};
+}
 
 // モックTodoオブジェクトを作成する関数
 function createMockTodo(

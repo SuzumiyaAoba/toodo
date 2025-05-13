@@ -130,13 +130,6 @@ describe("BulkTagOperations", () => {
     findDependencies: mock(() => Promise.resolve([])),
     wouldCreateDependencyCycle: mock(() => Promise.resolve(false)),
     findAllCompleted: mock(() => Promise.resolve([])),
-    // 期限日関連のメソッドを追加
-    findOverdue: mock(() => Promise.resolve([])),
-    findDueSoon: mock(() => Promise.resolve([])),
-    findByDueDateRange: mock(() => Promise.resolve([])),
-    // その他不足しているメソッド
-    findByProjectId: mock(() => Promise.resolve([])),
-    findByTagId: mock(() => Promise.resolve([])),
   });
 
   describe("BulkAssignTagUseCase", () => {

@@ -1,10 +1,10 @@
-import { describe, expect, it } from "bun:test";
-import { createTestTodo } from "./test-helpers";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import { createTestTodo, jest } from "./test-helpers";
 import { PriorityLevel, Todo, TodoStatus, WorkState, mapToDomainTodo } from "./todo";
 
 describe("Todo Entity", () => {
   describe("Todo Class", () => {
-    it("should create a todo with default values", () => {
+    test("should create a todo with default values", () => {
       // Arrange & Act
       const todo = new Todo("test-id", "Test Todo");
 
@@ -20,7 +20,7 @@ describe("Todo Entity", () => {
       expect(todo.dependents).toEqual([]);
     });
 
-    it("should update title", () => {
+    test("should update title", () => {
       // Arrange
       const todo = new Todo("test-id", "Test Todo");
 
@@ -32,7 +32,7 @@ describe("Todo Entity", () => {
       expect(updatedTodo.title).toBe("Updated Title");
     });
 
-    it("should update description", () => {
+    test("should update description", () => {
       // Arrange
       const todo = new Todo("test-id", "Test Todo");
 
@@ -43,7 +43,7 @@ describe("Todo Entity", () => {
       expect(updatedTodo.description).toBe("Updated Description");
     });
 
-    it("should update status", () => {
+    test("should update status", () => {
       // Arrange
       const todo = new Todo("test-id", "Test Todo");
 
@@ -54,7 +54,7 @@ describe("Todo Entity", () => {
       expect(updatedTodo.status).toBe(TodoStatus.COMPLETED);
     });
 
-    it("should mark todo as completed", () => {
+    test("should mark todo as completed", () => {
       // Arrange
       const todo = new Todo("test-id", "Test Todo");
 
@@ -66,7 +66,7 @@ describe("Todo Entity", () => {
       expect(completedTodo.workState).toBe(WorkState.COMPLETED);
     });
 
-    it("should mark todo as pending", () => {
+    test("should mark todo as pending", () => {
       // Arrange
       const todo = new Todo("test-id", "Test Todo", TodoStatus.COMPLETED, WorkState.COMPLETED);
 
@@ -78,7 +78,7 @@ describe("Todo Entity", () => {
       expect(reopenedTodo.workState).toBe(WorkState.IDLE);
     });
 
-    it("should update work state", () => {
+    test("should update work state", () => {
       // Arrange
       const todo = new Todo("test-id", "Test Todo");
       const now = new Date();
@@ -91,7 +91,7 @@ describe("Todo Entity", () => {
       expect(updatedTodo.lastStateChangeAt).toBe(now);
     });
 
-    it("should calculate work time when transitioning from active state", () => {
+    test("should calculate work time when transitioning from active state", () => {
       // Arrange
       const startTime = new Date(2025, 0, 1, 10, 0, 0);
       const endTime = new Date(2025, 0, 1, 10, 0, 30); // 30 seconds later
@@ -104,7 +104,7 @@ describe("Todo Entity", () => {
       expect(updatedTodo.totalWorkTime).toBe(30); // 30 seconds
     });
 
-    it("should start working on todo", () => {
+    test("should start working on todo", () => {
       // Arrange
       const todo = new Todo("test-id", "Test Todo");
       const now = new Date();
@@ -117,7 +117,7 @@ describe("Todo Entity", () => {
       expect(startedTodo.lastStateChangeAt).toBe(now);
     });
 
-    it("should pause working on todo", () => {
+    test("should pause working on todo", () => {
       // Arrange
       const startTime = new Date(2025, 0, 1, 10, 0, 0);
       const pauseTime = new Date(2025, 0, 1, 10, 0, 45); // 45 seconds later
@@ -131,7 +131,7 @@ describe("Todo Entity", () => {
       expect(pausedTodo.totalWorkTime).toBe(45); // 45 seconds
     });
 
-    it("should update priority", () => {
+    test("should update priority", () => {
       // Arrange
       const todo = new Todo("test-id", "Test Todo");
 
@@ -142,7 +142,7 @@ describe("Todo Entity", () => {
       expect(updatedTodo.priority).toBe(PriorityLevel.HIGH);
     });
 
-    it("should assign todo to project", () => {
+    test("should assign todo to project", () => {
       // Arrange
       const todo = new Todo("test-id", "Test Todo");
       const projectId = "project-1";
@@ -154,7 +154,7 @@ describe("Todo Entity", () => {
       expect(updatedTodo.projectId).toBe(projectId);
     });
 
-    it("should remove todo from project", () => {
+    test("should remove todo from project", () => {
       // Arrange
       const todo = new Todo(
         "test-id",
@@ -178,7 +178,7 @@ describe("Todo Entity", () => {
   });
 
   describe("Dependency Management", () => {
-    it("should add a dependency", () => {
+    test("should add a dependency", () => {
       // Arrange
       const todo = new Todo("test-id", "Test Todo");
       const dependencyId = "dependency-id";
@@ -191,7 +191,7 @@ describe("Todo Entity", () => {
       expect(updatedTodo.dependencies.length).toBe(1);
     });
 
-    it("should not add duplicate dependency", () => {
+    test("should not add duplicate dependency", () => {
       // Arrange
       const todo = new Todo(
         "test-id",
@@ -217,7 +217,7 @@ describe("Todo Entity", () => {
       expect(updatedTodo.dependencies.length).toBe(1);
     });
 
-    it("should throw error when adding self as dependency", () => {
+    test("should throw error when adding self as dependency", () => {
       // Arrange
       const todo = new Todo("test-id", "Test Todo");
 
@@ -225,7 +225,7 @@ describe("Todo Entity", () => {
       expect(() => todo.addDependency("test-id")).toThrow("A todo cannot depend on itself");
     });
 
-    it("should remove a dependency", () => {
+    test("should remove a dependency", () => {
       // Arrange
       const todo = new Todo(
         "test-id",
@@ -251,7 +251,7 @@ describe("Todo Entity", () => {
       expect(updatedTodo.dependencies.length).toBe(1);
     });
 
-    it("should return same instance when removing non-existent dependency", () => {
+    test("should return same instance when removing non-existent dependency", () => {
       // Arrange
       const todo = new Todo("test-id", "Test Todo");
 
@@ -262,7 +262,7 @@ describe("Todo Entity", () => {
       expect(updatedTodo).toBe(todo);
     });
 
-    it("should add a dependent", () => {
+    test("should add a dependent", () => {
       // Arrange
       const todo = new Todo("test-id", "Test Todo");
       const dependentId = "dependent-id";
@@ -275,7 +275,7 @@ describe("Todo Entity", () => {
       expect(updatedTodo.dependents.length).toBe(1);
     });
 
-    it("should not add duplicate dependent", () => {
+    test("should not add duplicate dependent", () => {
       // Arrange
       const todo = new Todo(
         "test-id",
@@ -302,7 +302,7 @@ describe("Todo Entity", () => {
       expect(updatedTodo.dependents.length).toBe(1);
     });
 
-    it("should throw error when adding self as dependent", () => {
+    test("should throw error when adding self as dependent", () => {
       // Arrange
       const todo = new Todo("test-id", "Test Todo");
 
@@ -310,7 +310,7 @@ describe("Todo Entity", () => {
       expect(() => todo.addDependent("test-id")).toThrow("A todo cannot depend on itself");
     });
 
-    it("should remove a dependent", () => {
+    test("should remove a dependent", () => {
       // Arrange
       const todo = new Todo(
         "test-id",
@@ -337,7 +337,7 @@ describe("Todo Entity", () => {
       expect(updatedTodo.dependents.length).toBe(1);
     });
 
-    it("should return same instance when removing non-existent dependent", () => {
+    test("should return same instance when removing non-existent dependent", () => {
       // Arrange
       const todo = new Todo("test-id", "Test Todo");
 
@@ -348,7 +348,7 @@ describe("Todo Entity", () => {
       expect(updatedTodo).toBe(todo);
     });
 
-    it("should check if todo has dependency on another todo", () => {
+    test("should check if todo has dependency on another todo", () => {
       // Arrange
       const todo = new Todo(
         "test-id",
@@ -370,7 +370,7 @@ describe("Todo Entity", () => {
       expect(todo.hasDependencyOn("non-existent")).toBe(false);
     });
 
-    it("should check if todo has dependent", () => {
+    test("should check if todo has dependent", () => {
       // Arrange
       const todo = new Todo(
         "test-id",
@@ -393,7 +393,7 @@ describe("Todo Entity", () => {
       expect(todo.hasDependent("non-existent")).toBe(false);
     });
 
-    it("should check if todo can be completed when all dependencies are completed", () => {
+    test("should check if todo can be completed when all dependencies are completed", () => {
       // Arrange
       const todo = new Todo(
         "test-id",
@@ -415,7 +415,7 @@ describe("Todo Entity", () => {
       expect(todo.canBeCompleted(completedTodoIds)).toBe(true);
     });
 
-    it("should check if todo can be completed when some dependencies are not completed", () => {
+    test("should check if todo can be completed when some dependencies are not completed", () => {
       // Arrange
       const todo = new Todo(
         "test-id",
@@ -437,7 +437,7 @@ describe("Todo Entity", () => {
       expect(todo.canBeCompleted(completedTodoIds)).toBe(false);
     });
 
-    it("should check if todo can be completed when there are no dependencies", () => {
+    test("should check if todo can be completed when there are no dependencies", () => {
       // Arrange
       const todo = new Todo("test-id", "Test Todo");
 
@@ -447,7 +447,7 @@ describe("Todo Entity", () => {
   });
 
   describe("mapToDomainTodo", () => {
-    it("should map prisma todo to domain todo with dependencies", () => {
+    test("should map prisma todo to domain todo with dependencies", () => {
       // Arrange
       const now = new Date();
       const prismaTodo = {
@@ -462,7 +462,6 @@ describe("Todo Entity", () => {
         updatedAt: now,
         priority: PriorityLevel.HIGH,
         projectId: "project-1",
-        dueDate: null, // dueDate フィールドを追加
         dependsOn: [{ dependencyId: "dep-1" }, { dependencyId: "dep-2" }],
         dependents: [{ dependentId: "depnt-1" }],
       };
@@ -477,7 +476,7 @@ describe("Todo Entity", () => {
       expect(domainTodo.dependents).toEqual(["depnt-1"]);
     });
 
-    it("should map prisma todo to domain todo", () => {
+    test("should map prisma todo to domain todo", () => {
       // Arrange
       const now = new Date();
       const prismaTodo = {
@@ -492,7 +491,6 @@ describe("Todo Entity", () => {
         updatedAt: now,
         priority: PriorityLevel.HIGH,
         projectId: "project-1",
-        dueDate: null,
       };
 
       // Act
@@ -513,7 +511,7 @@ describe("Todo Entity", () => {
       expect(domainTodo.projectId).toBe("project-1");
     });
 
-    it("should handle null description", () => {
+    test("should handle null description", () => {
       // Arrange
       const now = new Date();
       const prismaTodo = {
@@ -528,7 +526,6 @@ describe("Todo Entity", () => {
         updatedAt: now,
         priority: PriorityLevel.MEDIUM,
         projectId: null,
-        dueDate: null,
       };
 
       // Act
@@ -537,176 +534,6 @@ describe("Todo Entity", () => {
       // Assert
       expect(domainTodo.description).toBeUndefined();
       expect(domainTodo.projectId).toBeUndefined();
-    });
-  });
-
-  describe("Due Date Features", () => {
-    it("should update due date", () => {
-      // Arrange
-      const todo = new Todo("test-id", "Test Todo");
-      const dueDate = new Date(2025, 4, 30); // 2025年5月30日
-
-      // Act
-      const updatedTodo = todo.updateDueDate(dueDate);
-
-      // Assert
-      expect(updatedTodo.dueDate).toEqual(dueDate);
-    });
-
-    it("should remove due date when undefined is passed", () => {
-      // Arrange
-      const dueDate = new Date(2025, 4, 30);
-      const todo = new Todo(
-        "test-id",
-        "Test Todo",
-        TodoStatus.PENDING,
-        WorkState.IDLE,
-        0,
-        new Date(),
-        new Date(),
-        new Date(),
-        PriorityLevel.MEDIUM,
-        undefined,
-        undefined,
-        dueDate,
-      );
-
-      // Act
-      const updatedTodo = todo.updateDueDate(undefined);
-
-      // Assert
-      expect(updatedTodo.dueDate).toBeUndefined();
-    });
-
-    it("should detect overdue todos", () => {
-      // Arrange
-      const pastDate = new Date(2025, 3, 1); // 2025年4月1日 (過去の日付)
-      const currentDate = new Date(2025, 3, 15); // 2025年4月15日 (現在の日付)
-      const todo = new Todo(
-        "test-id",
-        "Test Todo",
-        TodoStatus.PENDING,
-        WorkState.IDLE,
-        0,
-        new Date(),
-        new Date(),
-        new Date(),
-        PriorityLevel.MEDIUM,
-        undefined,
-        undefined,
-        pastDate,
-      );
-
-      // Act & Assert
-      expect(todo.isOverdue(currentDate)).toBe(true);
-    });
-
-    it("should not detect completed todos as overdue", () => {
-      // Arrange
-      const pastDate = new Date(2025, 3, 1); // 2025年4月1日 (過去の日付)
-      const currentDate = new Date(2025, 3, 15); // 2025年4月15日 (現在の日付)
-      const todo = new Todo(
-        "test-id",
-        "Test Todo",
-        TodoStatus.COMPLETED,
-        WorkState.COMPLETED,
-        0,
-        new Date(),
-        new Date(),
-        new Date(),
-        PriorityLevel.MEDIUM,
-        undefined,
-        undefined,
-        pastDate,
-      );
-
-      // Act & Assert
-      expect(todo.isOverdue(currentDate)).toBe(false);
-    });
-
-    it("should not detect todos without due date as overdue", () => {
-      // Arrange
-      const todo = new Todo("test-id", "Test Todo");
-
-      // Act & Assert
-      expect(todo.isOverdue()).toBe(false);
-    });
-
-    it("should detect todos due soon", () => {
-      // Arrange
-      const currentDate = new Date(2025, 3, 15); // 2025年4月15日
-      const soonDate = new Date(2025, 3, 16); // 2025年4月16日 (1日後)
-      const todo = new Todo(
-        "test-id",
-        "Test Todo",
-        TodoStatus.PENDING,
-        WorkState.IDLE,
-        0,
-        new Date(),
-        new Date(),
-        new Date(),
-        PriorityLevel.MEDIUM,
-        undefined,
-        undefined,
-        soonDate,
-      );
-
-      // Act & Assert
-      expect(todo.isDueSoon(2, currentDate)).toBe(true);
-    });
-
-    it("should not detect completed todos as due soon", () => {
-      // Arrange
-      const currentDate = new Date(2025, 3, 15); // 2025年4月15日
-      const soonDate = new Date(2025, 3, 16); // 2025年4月16日 (1日後)
-      const todo = new Todo(
-        "test-id",
-        "Test Todo",
-        TodoStatus.COMPLETED,
-        WorkState.COMPLETED,
-        0,
-        new Date(),
-        new Date(),
-        new Date(),
-        PriorityLevel.MEDIUM,
-        undefined,
-        undefined,
-        soonDate,
-      );
-
-      // Act & Assert
-      expect(todo.isDueSoon(2, currentDate)).toBe(false);
-    });
-
-    it("should not detect todos without due date as due soon", () => {
-      // Arrange
-      const todo = new Todo("test-id", "Test Todo");
-
-      // Act & Assert
-      expect(todo.isDueSoon()).toBe(false);
-    });
-
-    it("should not detect todos with due date beyond soon threshold", () => {
-      // Arrange
-      const currentDate = new Date(2025, 3, 15); // 2025年4月15日
-      const farDate = new Date(2025, 3, 20); // 2025年4月20日 (5日後)
-      const todo = new Todo(
-        "test-id",
-        "Test Todo",
-        TodoStatus.PENDING,
-        WorkState.IDLE,
-        0,
-        new Date(),
-        new Date(),
-        new Date(),
-        PriorityLevel.MEDIUM,
-        undefined,
-        undefined,
-        farDate,
-      );
-
-      // Act & Assert
-      expect(todo.isDueSoon(2, currentDate)).toBe(false); // 2日以内ではない
     });
   });
 });

@@ -15,18 +15,12 @@ interface MockedTodoRepository extends TodoRepository {
   findById: MockedFunction<(id: string) => Promise<Todo | null>>;
   findAll: MockedFunction<() => Promise<Todo[]>>;
   delete: MockedFunction<(id: string) => Promise<void>>;
-  findByProjectId: MockedFunction<(projectId: string) => Promise<Todo[]>>;
-  findByTagId: MockedFunction<(tagId: string) => Promise<Todo[]>>;
-  findDependencies: MockedFunction<(todoId: string) => Promise<Todo[]>>;
-  findDependents: MockedFunction<(todoId: string) => Promise<Todo[]>>;
   addDependency: MockedFunction<(todoId: string, dependencyId: string) => Promise<void>>;
   removeDependency: MockedFunction<(todoId: string, dependencyId: string) => Promise<void>>;
+  findDependents: MockedFunction<(todoId: string) => Promise<Todo[]>>;
+  findDependencies: MockedFunction<(todoId: string) => Promise<Todo[]>>;
   wouldCreateDependencyCycle: MockedFunction<(todoId: string, dependencyId: string) => Promise<boolean>>;
   findAllCompleted: MockedFunction<() => Promise<Todo[]>>;
-  // 期限日関連のメソッドを追加
-  findOverdue: MockedFunction<() => Promise<Todo[]>>;
-  findDueSoon: MockedFunction<() => Promise<Todo[]>>;
-  findByDueDateRange: MockedFunction<(start: Date, end: Date) => Promise<Todo[]>>;
 }
 
 interface MockedProjectRepository extends ProjectRepository {
@@ -36,6 +30,7 @@ interface MockedProjectRepository extends ProjectRepository {
   findAll: MockedFunction<() => Promise<Project[]>>;
   update: MockedFunction<(project: Project) => Promise<Project>>;
   delete: MockedFunction<(id: string) => Promise<void>>;
+  findTodosByProjectId: MockedFunction<(projectId: string) => Promise<string[]>>;
 }
 
 describe("RemoveTodoFromProject", () => {
@@ -45,33 +40,27 @@ describe("RemoveTodoFromProject", () => {
 
   beforeEach(() => {
     mockProjectRepository = {
-      create: mock(() => Promise.resolve({ id: "project-1", name: "Test Project" } as Project)),
-      findById: mock(() => Promise.resolve({ id: "project-1", name: "Test Project" } as Project)),
+      create: mock(() => Promise.resolve({} as Project)),
+      findById: mock(() => Promise.resolve(null)),
       findByName: mock(() => Promise.resolve(null)),
       findAll: mock(() => Promise.resolve([])),
-      update: mock(() => Promise.resolve({ id: "project-1", name: "Updated Project" } as Project)),
+      update: mock(() => Promise.resolve({} as Project)),
       delete: mock(() => Promise.resolve()),
       findTodosByProjectId: mock(() => Promise.resolve([])),
     } as MockedProjectRepository;
 
     mockTodoRepository = {
       create: mock(() => Promise.resolve({ id: "todo-1" } as Todo)),
-      update: mock(() => Promise.resolve({ id: "todo-1" } as Todo)),
+      update: mock(() => Promise.resolve({} as Todo)),
       findById: mock(() => Promise.resolve(null)),
       findAll: mock(() => Promise.resolve([])),
       delete: mock(() => Promise.resolve()),
-      findByProjectId: mock(() => Promise.resolve([])),
-      findByTagId: mock(() => Promise.resolve([])),
-      findDependencies: mock(() => Promise.resolve([])),
-      findDependents: mock(() => Promise.resolve([])),
       addDependency: mock(() => Promise.resolve()),
       removeDependency: mock(() => Promise.resolve()),
+      findDependents: mock(() => Promise.resolve([])),
+      findDependencies: mock(() => Promise.resolve([])),
       wouldCreateDependencyCycle: mock(() => Promise.resolve(false)),
       findAllCompleted: mock(() => Promise.resolve([])),
-      // 期限日関連のメソッドを追加
-      findOverdue: mock(() => Promise.resolve([])),
-      findDueSoon: mock(() => Promise.resolve([])),
-      findByDueDateRange: mock(() => Promise.resolve([])),
     } as MockedTodoRepository;
 
     useCase = new RemoveTodoFromProject(mockProjectRepository, mockTodoRepository);

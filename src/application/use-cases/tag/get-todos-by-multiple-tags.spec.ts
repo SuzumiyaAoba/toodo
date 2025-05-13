@@ -1,34 +1,13 @@
 import { describe, expect, it, mock } from "bun:test";
 import { createTestTodo } from "../../../domain/entities/test-helpers";
-import { PriorityLevel, Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
+import { PriorityLevel, TodoStatus, WorkState } from "../../../domain/entities/todo";
 import { GetTodosByMultipleTagsUseCase } from "./get-todos-by-multiple-tags";
 
 describe("GetTodosByMultipleTagsUseCase", () => {
   // 有効なUUID形式のIDを使用
   const validTagIds = ["a0b1c2d3-e4f5-6789-abcd-ef0123456789", "b1c2d3e4-f5a6-7890-bcde-f01234567890"];
-  const nonExistentTagId = "12345678-1234-1234-1234-123456789012";
 
-  // テスト用のTodoオブジェクトを作成
-  const todos = [
-    createTestTodo({
-      id: "todo-1",
-      title: "Todo 1",
-      status: TodoStatus.PENDING,
-      priority: PriorityLevel.MEDIUM,
-    }),
-    createTestTodo({
-      id: "todo-2",
-      title: "Todo 2",
-      status: TodoStatus.PENDING,
-      priority: PriorityLevel.HIGH,
-    }),
-    createTestTodo({
-      id: "todo-3",
-      title: "Todo 3",
-      status: TodoStatus.COMPLETED,
-      priority: PriorityLevel.LOW,
-    }),
-  ];
+  const nonExistentTagId = "12345678-1234-1234-1234-123456789012";
 
   const mockTagRepository = {
     createTag: mock(() =>
@@ -86,28 +65,93 @@ describe("GetTodosByMultipleTagsUseCase", () => {
   };
 
   const mockTodoRepository = {
-    create: mock(() => Promise.resolve({} as Todo)),
-    update: mock(() => Promise.resolve({} as Todo)),
+    create: mock(() =>
+      Promise.resolve(
+        createTestTodo({
+          id: "new-todo-id",
+          title: "New Todo",
+          status: TodoStatus.PENDING,
+          workState: WorkState.IDLE,
+          totalWorkTime: 0,
+          lastStateChangeAt: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          priority: PriorityLevel.MEDIUM,
+        }),
+      ),
+    ),
     findById: mock((id: string) => {
-      if (todos.some((todo) => todo.id === id)) {
-        return Promise.resolve(todos.find((todo) => todo.id === id) || null);
+      if (id === "todo-1" || id === "todo-2" || id === "todo-3") {
+        return Promise.resolve(
+          createTestTodo({
+            id,
+            title: `Todo ${id.split("-")[1]}`,
+            status: TodoStatus.PENDING,
+            workState: WorkState.IDLE,
+            totalWorkTime: 0,
+            lastStateChangeAt: new Date(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            priority: PriorityLevel.MEDIUM,
+          }),
+        );
       }
       return Promise.resolve(null);
     }),
     findAll: mock(() => Promise.resolve([])),
+    update: mock(() =>
+      Promise.resolve(
+        createTestTodo({
+          id: "todo-1",
+          title: "Updated Todo",
+          status: TodoStatus.PENDING,
+          workState: WorkState.IDLE,
+          totalWorkTime: 0,
+          lastStateChangeAt: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          priority: PriorityLevel.MEDIUM,
+        }),
+      ),
+    ),
     delete: mock(() => Promise.resolve()),
-    findByProjectId: mock(() => Promise.resolve([])),
-    findByTagId: mock(() => Promise.resolve([])),
-    findDependencies: mock(() => Promise.resolve([])),
-    findDependents: mock(() => Promise.resolve([])),
+    updateWorkState: mock(() =>
+      Promise.resolve(
+        createTestTodo({
+          id: "todo-1",
+          title: "Todo 1",
+          status: TodoStatus.PENDING,
+          workState: WorkState.ACTIVE,
+          totalWorkTime: 0,
+          lastStateChangeAt: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          priority: PriorityLevel.MEDIUM,
+        }),
+      ),
+    ),
+    updateWorkTime: mock(() =>
+      Promise.resolve(
+        createTestTodo({
+          id: "todo-1",
+          title: "Todo 1",
+          status: TodoStatus.PENDING,
+          workState: WorkState.IDLE,
+          totalWorkTime: 60,
+          lastStateChangeAt: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          priority: PriorityLevel.MEDIUM,
+        }),
+      ),
+    ),
+    // 依存関係関連のメソッドを追加
     addDependency: mock(() => Promise.resolve()),
     removeDependency: mock(() => Promise.resolve()),
+    findDependents: mock(() => Promise.resolve([])),
+    findDependencies: mock(() => Promise.resolve([])),
     wouldCreateDependencyCycle: mock(() => Promise.resolve(false)),
     findAllCompleted: mock(() => Promise.resolve([])),
-    // 期限日関連のメソッドを追加
-    findOverdue: mock(() => Promise.resolve([])),
-    findDueSoon: mock(() => Promise.resolve([])),
-    findByDueDateRange: mock(() => Promise.resolve([])),
   };
 
   it("should get todos with all specified tags", async () => {

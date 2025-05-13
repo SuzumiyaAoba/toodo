@@ -1,5 +1,3 @@
-import type { ProjectId } from "../entities/project";
-import type { TagId } from "../entities/tag";
 import type { Todo, TodoId } from "../entities/todo";
 
 /**
@@ -74,36 +72,4 @@ export interface TodoRepository {
    * Get all completed todos
    */
   findAllCompleted(): Promise<Todo[]>;
-
-  /**
-   * Find overdue todos (todos with due date in the past that are not completed)
-   * @param currentDate Optional date to compare against (defaults to now)
-   */
-  findOverdue(currentDate?: Date): Promise<Todo[]>;
-
-  /**
-   * Find todos due soon
-   * @param days Number of days to consider "soon" (default: 2)
-   * @param currentDate Optional date to compare against (defaults to now)
-   */
-  findDueSoon(days?: number, currentDate?: Date): Promise<Todo[]>;
-
-  /**
-   * Find todos by due date range
-   * @param startDate Start date of the range (inclusive)
-   * @param endDate End date of the range (inclusive)
-   */
-  findByDueDateRange(startDate: Date, endDate: Date): Promise<Todo[]>;
-
-  /**
-   * Find todos by project id
-   * @param projectId Project id
-   */
-  findByProjectId(projectId: ProjectId): Promise<Todo[]>;
-
-  /**
-   * Find todos by tag id
-   * @param tagId Tag id
-   */
-  findByTagId(tagId: TagId): Promise<Todo[]>;
 }
