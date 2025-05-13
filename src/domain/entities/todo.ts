@@ -47,7 +47,6 @@ export interface TodoCreateInput {
   dueDate?: Date;
   priority?: PriorityLevel;
   projectId?: ProjectId;
-  parentId?: TodoId; // 親タスクID追加
 }
 
 /**
@@ -68,8 +67,6 @@ export class Todo {
   readonly projectId?: ProjectId;
   readonly dependencies: TodoId[];
   readonly dependents: TodoId[];
-  readonly parentId?: TodoId; // 親タスクID
-  readonly subtaskIds: TodoId[]; // サブタスクIDリスト
 
   constructor(
     id: TodoId,
@@ -86,8 +83,6 @@ export class Todo {
     dueDate?: Date | TodoId[],
     dependencies: TodoId[] = [],
     dependents: TodoId[] = [],
-    parentId?: TodoId,
-    subtaskIds: TodoId[] = [],
   ) {
     this.id = id;
     this.title = title;
@@ -100,8 +95,6 @@ export class Todo {
     this.updatedAt = updatedAt;
     this.priority = priority;
     this.projectId = projectId;
-    this.parentId = parentId;
-    this.subtaskIds = [...subtaskIds];
 
     // テストケースとの互換性のため、dueDateが配列の場合はdependenciesとして扱う
     if (Array.isArray(dueDate)) {
@@ -145,8 +138,6 @@ export class Todo {
       input.dueDate,
       [],
       [],
-      input.parentId,
-      [],
     );
 
     // id, createdAt, updatedAtを除外した新しいオブジェクトを返す
@@ -172,13 +163,10 @@ export class Todo {
     projectId = this.projectId,
     dependencies,
     dependents,
-    parentId = this.parentId,
-    subtaskIds,
   }: Partial<Todo>): Todo {
     // 配列については、明示的に指定されていない場合は現在の値をコピーして使用
     const finalDependencies = dependencies === undefined ? [...this.dependencies] : [...dependencies];
     const finalDependents = dependents === undefined ? [...this.dependents] : [...dependents];
-    const finalSubtaskIds = subtaskIds === undefined ? [...this.subtaskIds] : [...subtaskIds];
 
     return new Todo(
       id,
@@ -195,8 +183,6 @@ export class Todo {
       dueDate,
       finalDependencies,
       finalDependents,
-      parentId,
-      finalSubtaskIds,
     );
   }
 
@@ -532,130 +518,6 @@ export class Todo {
     // 期限が現在から指定された日数以内かつ、まだ過ぎていない場合にtrue
     return this.dueDate <= soonDate && this.dueDate >= currentDate;
   }
-
-  /**
-   * サブタスクを追加する
-   * @param subtaskId 追加するサブタスクのID
-   */
-  addSubtask(subtaskId: TodoId): Todo {
-    // 自分自身をサブタスクとして追加することはできない
-    if (subtaskId === this.id) {
-      throw new Error("A todo cannot be a subtask of itself");
-    }
-
-    // すでにサブタスクとして存在する場合は追加しない
-    if (this.subtaskIds.includes(subtaskId)) {
-      return this;
-    }
-
-    // サブタスクに循環参照がないか確認するため、実際の確認はリポジトリレベルで行う必要がある
-
-    const updatedSubtaskIds = [...this.subtaskIds, subtaskId];
-    return this.copyWith({ subtaskIds: updatedSubtaskIds });
-  }
-
-  /**
-   * サブタスクを削除する
-   * @param subtaskId 削除するサブタスクのID
-   */
-  removeSubtask(subtaskId: TodoId): Todo {
-    // サブタスクが存在しない場合は同じインスタンスを返す
-    if (!this.subtaskIds.includes(subtaskId)) {
-      return this;
-    }
-
-    const updatedSubtaskIds = this.subtaskIds.filter((id) => id !== subtaskId);
-    return this.copyWith({ subtaskIds: updatedSubtaskIds });
-  }
-
-  /**
-   * 親タスクを設定する
-   * @param parentId 親タスクのID
-   */
-  setParent(parentId: TodoId): Todo {
-    // 自分自身を親タスクとして設定することはできない
-    if (parentId === this.id) {
-      throw new Error("A todo cannot be a parent of itself");
-    }
-
-    // 循環参照チェックはリポジトリレベルで行う必要がある
-    return this.copyWith({ parentId });
-  }
-
-  /**
-   * 親タスクの関連付けを解除する
-   */
-  removeParent(): Todo {
-    // 親タスクがない場合は同じインスタンスを返す
-    if (!this.parentId) {
-      return this;
-    }
-
-    // parentIdをundefinedに明示的に設定するためにcopyWithを使わず直接新しいインスタンスを作成
-    return new Todo(
-      this.id,
-      this.title,
-      this.status,
-      this.workState,
-      this.totalWorkTime,
-      this.lastStateChangeAt,
-      this.createdAt,
-      new Date(), // updatedAt
-      this.priority,
-      this.projectId,
-      this.description,
-      this.dueDate,
-      [...this.dependencies],
-      [...this.dependents],
-      undefined, // 親タスクIDを明示的にundefinedに設定
-      [...this.subtaskIds],
-    );
-  }
-
-  /**
-   * すべてのサブタスクが完了しているかどうかを確認する
-   * @param completedTodoIds 完了済みのTodoのIDリスト
-   */
-  areAllSubtasksCompleted(completedTodoIds: TodoId[]): boolean {
-    // サブタスクがない場合はtrueを返す
-    if (this.subtaskIds.length === 0) {
-      return true;
-    }
-
-    // すべてのサブタスクが完了しているかチェック
-    return this.subtaskIds.every((subtaskId) => completedTodoIds.includes(subtaskId));
-  }
-
-  /**
-   * あるTodoがこのTodoのサブタスクであるかどうかを確認する
-   * @param todoId 確認対象のTodoのID
-   */
-  hasSubtask(todoId: TodoId): boolean {
-    return this.subtaskIds.includes(todoId);
-  }
-
-  /**
-   * このTodoが親タスクを持っているかどうかを確認する
-   */
-  hasParent(): boolean {
-    return this.parentId !== undefined;
-  }
-
-  /**
-   * このTodoが特定のTodoの親タスクであるかどうかを確認する
-   * @param todoId 確認対象のTodoのID
-   */
-  isParentOf(todoId: TodoId): boolean {
-    return this.subtaskIds.includes(todoId);
-  }
-
-  /**
-   * このTodoが特定のTodoの子タスク（サブタスク）であるかどうかを確認する
-   * @param todoId 確認対象のTodoのID
-   */
-  isChildOf(todoId: TodoId): boolean {
-    return this.parentId === todoId;
-  }
 }
 
 /**
@@ -715,14 +577,11 @@ export function mapToDomainTodo(
   prismaTodo: PrismaTodo & {
     dependsOn?: { dependencyId: string }[];
     dependents?: { dependentId: string }[];
-    subtasks?: { id: string }[];
   },
 ): Todo {
   // 依存関係のIDを抽出
   const dependencies = prismaTodo.dependsOn?.map((dep) => dep.dependencyId) || [];
   const dependents = prismaTodo.dependents?.map((dep) => dep.dependentId) || [];
-  // サブタスクのIDを抽出
-  const subtaskIds = prismaTodo.subtasks?.map((subtask) => subtask.id) || [];
 
   return new Todo(
     prismaTodo.id,
@@ -739,8 +598,5 @@ export function mapToDomainTodo(
     prismaTodo.dueDate || undefined,
     dependencies,
     dependents,
-    // nullの場合はundefinedに変換（型互換性のため）
-    prismaTodo.parentId === null ? undefined : prismaTodo.parentId,
-    subtaskIds,
   );
 }

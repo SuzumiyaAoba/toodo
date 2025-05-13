@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, mock } from "bun:test";
-import { createMockedTodoRepository } from "../../../domain/entities/test-helpers";
 import { PriorityLevel, Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
 import {
   DependencyCycleError,
@@ -8,24 +7,43 @@ import {
   TodoNotFoundError,
 } from "../../../domain/errors/todo-errors";
 import { TodoRepository } from "../../../domain/repositories/todo-repository";
+import type { MockedFunction } from "../../../test/types";
 import { AddTodoDependencyUseCase } from "./add-todo-dependency";
 
 describe("AddTodoDependencyUseCase", () => {
   // リポジトリのモック
-  let mockTodoRepository: TodoRepository;
+  const mockTodoRepository = {
+    findById: mock(() => Promise.resolve(null)),
+    update: mock(() => Promise.resolve(null)),
+    wouldCreateDependencyCycle: mock(() => Promise.resolve(false)),
+    addDependency: mock(() => Promise.resolve()),
+    create: mock(() => Promise.resolve({} as Todo)),
+    delete: mock(() => Promise.resolve()),
+    findAll: mock(() => Promise.resolve([])),
+    findByProjectId: mock(() => Promise.resolve([])),
+    findByTagId: mock(() => Promise.resolve([])),
+    findDependencies: mock(() => Promise.resolve([])),
+    findDependents: mock(() => Promise.resolve([])),
+    removeDependency: mock(() => Promise.resolve()),
+    updateWorkState: mock(() => Promise.resolve({} as Todo)),
+    updateWorkTime: mock(() => Promise.resolve({} as Todo)),
+    findAllCompleted: mock(() => Promise.resolve([])),
+    // 期限日関連のメソッドを追加
+    findOverdue: mock(() => Promise.resolve([])),
+    findDueSoon: mock(() => Promise.resolve([])),
+    findByDueDateRange: mock(() => Promise.resolve([])),
+  } as TodoRepository;
 
   // テスト対象のユースケース
   let useCase: AddTodoDependencyUseCase;
 
   beforeEach(() => {
-    // モックリポジトリの作成
-    mockTodoRepository = {
-      ...createMockedTodoRepository(),
-      findById: mock(() => Promise.resolve(null)),
-      wouldCreateDependencyCycle: mock(() => Promise.resolve(false)),
-      addDependency: mock(() => Promise.resolve()),
-    };
-
+    // モックをリセット
+    Object.values(mockTodoRepository).forEach((mockFn) => {
+      if (typeof mockFn === "function" && "mockClear" in mockFn) {
+        mockFn.mockClear();
+      }
+    });
     useCase = new AddTodoDependencyUseCase(mockTodoRepository);
   });
 

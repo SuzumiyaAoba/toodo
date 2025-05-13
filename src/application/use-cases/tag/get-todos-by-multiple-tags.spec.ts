@@ -1,6 +1,6 @@
 import { describe, expect, it, mock } from "bun:test";
-import { createMockedTodoRepository, createTestTodo } from "../../../domain/entities/test-helpers";
-import { PriorityLevel, TodoStatus } from "../../../domain/entities/todo";
+import { createTestTodo } from "../../../domain/entities/test-helpers";
+import { PriorityLevel, Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
 import { GetTodosByMultipleTagsUseCase } from "./get-todos-by-multiple-tags";
 
 describe("GetTodosByMultipleTagsUseCase", () => {
@@ -86,13 +86,28 @@ describe("GetTodosByMultipleTagsUseCase", () => {
   };
 
   const mockTodoRepository = {
-    ...createMockedTodoRepository(),
+    create: mock(() => Promise.resolve({} as Todo)),
+    update: mock(() => Promise.resolve({} as Todo)),
     findById: mock((id: string) => {
       if (todos.some((todo) => todo.id === id)) {
         return Promise.resolve(todos.find((todo) => todo.id === id) || null);
       }
       return Promise.resolve(null);
     }),
+    findAll: mock(() => Promise.resolve([])),
+    delete: mock(() => Promise.resolve()),
+    findByProjectId: mock(() => Promise.resolve([])),
+    findByTagId: mock(() => Promise.resolve([])),
+    findDependencies: mock(() => Promise.resolve([])),
+    findDependents: mock(() => Promise.resolve([])),
+    addDependency: mock(() => Promise.resolve()),
+    removeDependency: mock(() => Promise.resolve()),
+    wouldCreateDependencyCycle: mock(() => Promise.resolve(false)),
+    findAllCompleted: mock(() => Promise.resolve([])),
+    // 期限日関連のメソッドを追加
+    findOverdue: mock(() => Promise.resolve([])),
+    findDueSoon: mock(() => Promise.resolve([])),
+    findByDueDateRange: mock(() => Promise.resolve([])),
   };
 
   it("should get todos with all specified tags", async () => {

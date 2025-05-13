@@ -3,7 +3,6 @@ import type { Hono } from "hono";
 import type { Env, Schema } from "hono";
 import { describeRoute } from "hono-openapi";
 import { resolver, validator as vValidator } from "hono-openapi/valibot";
-import type * as v from "valibot";
 import { parse } from "valibot";
 import { BulkAssignTagUseCase, BulkRemoveTagUseCase } from "../../application/use-cases/tag/bulk-tag-operations";
 import { CreateTagUseCase } from "../../application/use-cases/tag/create-tag";
@@ -331,7 +330,7 @@ export function setupTagRoutes<E extends Env = Env, S extends Schema = Schema>(
     vValidator("json", TagIdParamSchema),
     async (c) => {
       const todoId = c.req.param("id");
-      const { tagId } = c.req.valid("json") as v.InferOutput<typeof TagIdParamSchema>;
+      const { tagId } = c.req.valid("json");
       const useCase = new AssignTagToTodoUseCase(tagRepository, todoRepository);
 
       try {
@@ -452,23 +451,15 @@ export function setupTagRoutes<E extends Env = Env, S extends Schema = Schema>(
     }),
     vValidator("param", IdParamSchema),
     async (c) => {
-      const { id } = c.req.valid("param") as v.InferOutput<typeof IdParamSchema>;
+      const id = c.req.param("id");
       const useCase = new GetTagByIdUseCase(tagRepository);
+      const tag = await useCase.execute({ id });
 
-      try {
-        const tag = await useCase.execute({ id });
-
-        if (!tag) {
-          return c.json({ message: `Tag with ID '${id}' not found` }, 404);
-        }
-
-        return c.json(mapTagToResponse(tag));
-      } catch (error) {
-        if (error instanceof Error && error.message.includes("not found")) {
-          return c.json({ message: error.message }, 404);
-        }
-        throw error;
+      if (!tag) {
+        return c.json({ message: `Tag with ID '${id}' not found` }, 404);
       }
+
+      return c.json(mapTagToResponse(tag));
     },
   );
 
@@ -518,7 +509,7 @@ export function setupTagRoutes<E extends Env = Env, S extends Schema = Schema>(
     vValidator("json", UpdateTagSchema),
     async (c) => {
       const id = c.req.param("id");
-      const data = c.req.valid("json") as v.InferOutput<typeof UpdateTagSchema>;
+      const data = c.req.valid("json");
       const useCase = new UpdateTagUseCase(tagRepository);
 
       try {
@@ -559,7 +550,7 @@ export function setupTagRoutes<E extends Env = Env, S extends Schema = Schema>(
     }),
     vValidator("param", IdParamSchema),
     async (c) => {
-      const { id } = c.req.valid("param") as v.InferOutput<typeof IdParamSchema>;
+      const { id } = c.req.valid("param");
       const useCase = new DeleteTagUseCase(tagRepository);
 
       try {
@@ -605,7 +596,7 @@ export function setupTagRoutes<E extends Env = Env, S extends Schema = Schema>(
     }),
     vValidator("param", IdParamSchema),
     async (c) => {
-      const { id: tagId } = c.req.valid("param") as v.InferOutput<typeof IdParamSchema>;
+      const { id: tagId } = c.req.valid("param");
       const useCase = new GetTodosByTagUseCase(tagRepository, todoRepository);
 
       try {
@@ -678,8 +669,8 @@ export function setupTagRoutes<E extends Env = Env, S extends Schema = Schema>(
     vValidator("param", IdParamSchema),
     vValidator("json", BulkTagOperationSchema),
     async (c) => {
-      const { id: tagId } = c.req.valid("param") as v.InferOutput<typeof IdParamSchema>;
-      const data = c.req.valid("json") as v.InferOutput<typeof BulkTagOperationSchema>;
+      const { id: tagId } = c.req.valid("param");
+      const data = c.req.valid("json");
       const useCase = new BulkAssignTagUseCase(tagRepository, todoRepository);
 
       try {
@@ -747,8 +738,8 @@ export function setupTagRoutes<E extends Env = Env, S extends Schema = Schema>(
     vValidator("param", IdParamSchema),
     vValidator("json", BulkTagOperationSchema),
     async (c) => {
-      const { id: tagId } = c.req.valid("param") as v.InferOutput<typeof IdParamSchema>;
-      const data = c.req.valid("json") as v.InferOutput<typeof BulkTagOperationSchema>;
+      const { id: tagId } = c.req.valid("param");
+      const data = c.req.valid("json");
       const useCase = new BulkRemoveTagUseCase(tagRepository, todoRepository);
 
       try {
@@ -761,64 +752,6 @@ export function setupTagRoutes<E extends Env = Env, S extends Schema = Schema>(
       } catch (error) {
         if (error instanceof Error && error.message.includes("not found")) {
           return c.json({ message: error.message }, 404);
-        }
-        throw error;
-      }
-    },
-  );
-
-  // Create a new tag
-  app.post(
-    "/tags",
-    describeRoute({
-      tags: ["Tags"],
-      summary: "Create a new tag",
-      description: "Create a new tag with the provided information",
-      request: {
-        body: {
-          required: true,
-          content: {
-            "application/json": {
-              schema: resolver(CreateTagSchema, valibotConfig),
-            },
-          },
-        },
-      },
-      responses: {
-        201: {
-          description: "Tag created successfully",
-          content: {
-            "application/json": {
-              schema: resolver(TagSchema, valibotConfig),
-            },
-          },
-        },
-        400: {
-          description: "Invalid tag data",
-          content: {
-            "application/json": {
-              schema: {
-                type: "object",
-                properties: {
-                  message: { type: "string" },
-                },
-              },
-            },
-          },
-        },
-      },
-    }),
-    vValidator("json", CreateTagSchema),
-    async (c) => {
-      const data = c.req.valid("json") as v.InferOutput<typeof CreateTagSchema>;
-      const useCase = new CreateTagUseCase(tagRepository);
-
-      try {
-        const tag = await useCase.execute(data);
-        return c.json(mapTagToResponse(tag), 201);
-      } catch (error) {
-        if (error instanceof Error) {
-          return c.json({ message: error.message }, 400);
         }
         throw error;
       }

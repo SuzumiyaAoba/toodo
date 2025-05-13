@@ -18,8 +18,6 @@ describe("Todo Entity", () => {
       expect(todo.projectId).toBeUndefined();
       expect(todo.dependencies).toEqual([]);
       expect(todo.dependents).toEqual([]);
-      expect(todo.parentId).toBeUndefined();
-      expect(todo.subtaskIds).toEqual([]);
     });
 
     it("should update title", () => {
@@ -179,21 +177,21 @@ describe("Todo Entity", () => {
     });
   });
 
-  describe("Subtask Management", () => {
-    it("should add a subtask", () => {
+  describe("Dependency Management", () => {
+    it("should add a dependency", () => {
       // Arrange
       const todo = new Todo("test-id", "Test Todo");
-      const subtaskId = "subtask-id";
+      const dependencyId = "dependency-id";
 
       // Act
-      const updatedTodo = todo.addSubtask(subtaskId);
+      const updatedTodo = todo.addDependency(dependencyId);
 
       // Assert
-      expect(updatedTodo.subtaskIds).toContain(subtaskId);
-      expect(updatedTodo.subtaskIds.length).toBe(1);
+      expect(updatedTodo.dependencies).toContain(dependencyId);
+      expect(updatedTodo.dependencies.length).toBe(1);
     });
 
-    it("should not add the same subtask twice", () => {
+    it("should not add duplicate dependency", () => {
       // Arrange
       const todo = new Todo(
         "test-id",
@@ -207,30 +205,27 @@ describe("Todo Entity", () => {
         PriorityLevel.MEDIUM,
         undefined,
         undefined,
-        undefined,
-        [],
-        [],
-        undefined,
-        ["subtask-id"],
+        ["dependency-id"],
       );
+      const dependencyId = "dependency-id";
 
       // Act
-      const updatedTodo = todo.addSubtask("subtask-id");
+      const updatedTodo = todo.addDependency(dependencyId);
 
       // Assert
-      expect(updatedTodo).toBe(todo);
-      expect(updatedTodo.subtaskIds.length).toBe(1);
+      expect(updatedTodo.dependencies).toEqual(["dependency-id"]);
+      expect(updatedTodo.dependencies.length).toBe(1);
     });
 
-    it("should throw error when adding itself as a subtask", () => {
+    it("should throw error when adding self as dependency", () => {
       // Arrange
       const todo = new Todo("test-id", "Test Todo");
 
       // Act & Assert
-      expect(() => todo.addSubtask("test-id")).toThrow("A todo cannot be a subtask of itself");
+      expect(() => todo.addDependency("test-id")).toThrow("A todo cannot depend on itself");
     });
 
-    it("should remove a subtask", () => {
+    it("should remove a dependency", () => {
       // Arrange
       const todo = new Todo(
         "test-id",
@@ -244,54 +239,43 @@ describe("Todo Entity", () => {
         PriorityLevel.MEDIUM,
         undefined,
         undefined,
-        undefined,
-        [],
-        [],
-        undefined,
-        ["subtask-id", "other-subtask"],
+        ["dependency-id", "other-dependency"],
       );
 
       // Act
-      const updatedTodo = todo.removeSubtask("subtask-id");
+      const updatedTodo = todo.removeDependency("dependency-id");
 
       // Assert
-      expect(updatedTodo.subtaskIds).not.toContain("subtask-id");
-      expect(updatedTodo.subtaskIds).toEqual(["other-subtask"]);
-      expect(updatedTodo.subtaskIds.length).toBe(1);
+      expect(updatedTodo.dependencies).not.toContain("dependency-id");
+      expect(updatedTodo.dependencies).toEqual(["other-dependency"]);
+      expect(updatedTodo.dependencies.length).toBe(1);
     });
 
-    it("should return same instance when removing non-existent subtask", () => {
+    it("should return same instance when removing non-existent dependency", () => {
       // Arrange
       const todo = new Todo("test-id", "Test Todo");
 
       // Act
-      const updatedTodo = todo.removeSubtask("non-existent");
+      const updatedTodo = todo.removeDependency("non-existent");
 
       // Assert
       expect(updatedTodo).toBe(todo);
     });
 
-    it("should set a parent todo", () => {
+    it("should add a dependent", () => {
       // Arrange
       const todo = new Todo("test-id", "Test Todo");
-      const parentId = "parent-id";
+      const dependentId = "dependent-id";
 
       // Act
-      const updatedTodo = todo.setParent(parentId);
+      const updatedTodo = todo.addDependent(dependentId);
 
       // Assert
-      expect(updatedTodo.parentId).toBe(parentId);
+      expect(updatedTodo.dependents).toContain(dependentId);
+      expect(updatedTodo.dependents.length).toBe(1);
     });
 
-    it("should throw error when setting itself as a parent", () => {
-      // Arrange
-      const todo = new Todo("test-id", "Test Todo");
-
-      // Act & Assert
-      expect(() => todo.setParent("test-id")).toThrow("A todo cannot be a parent of itself");
-    });
-
-    it("should remove parent", () => {
+    it("should not add duplicate dependent", () => {
       // Arrange
       const todo = new Todo(
         "test-id",
@@ -305,31 +289,66 @@ describe("Todo Entity", () => {
         PriorityLevel.MEDIUM,
         undefined,
         undefined,
+        [],
+        ["dependent-id"],
+      );
+      const dependentId = "dependent-id";
+
+      // Act
+      const updatedTodo = todo.addDependent(dependentId);
+
+      // Assert
+      expect(updatedTodo.dependents).toEqual(["dependent-id"]);
+      expect(updatedTodo.dependents.length).toBe(1);
+    });
+
+    it("should throw error when adding self as dependent", () => {
+      // Arrange
+      const todo = new Todo("test-id", "Test Todo");
+
+      // Act & Assert
+      expect(() => todo.addDependent("test-id")).toThrow("A todo cannot depend on itself");
+    });
+
+    it("should remove a dependent", () => {
+      // Arrange
+      const todo = new Todo(
+        "test-id",
+        "Test Todo",
+        TodoStatus.PENDING,
+        WorkState.IDLE,
+        0,
+        new Date(),
+        new Date(),
+        new Date(),
+        PriorityLevel.MEDIUM,
+        undefined,
         undefined,
         [],
-        [],
-        "parent-id",
+        ["dependent-id", "other-dependent"],
       );
 
       // Act
-      const updatedTodo = todo.removeParent();
+      const updatedTodo = todo.removeDependent("dependent-id");
 
       // Assert
-      expect(updatedTodo.parentId).toBeUndefined();
+      expect(updatedTodo.dependents).not.toContain("dependent-id");
+      expect(updatedTodo.dependents).toEqual(["other-dependent"]);
+      expect(updatedTodo.dependents.length).toBe(1);
     });
 
-    it("should return same instance when removing non-existent parent", () => {
+    it("should return same instance when removing non-existent dependent", () => {
       // Arrange
       const todo = new Todo("test-id", "Test Todo");
 
       // Act
-      const updatedTodo = todo.removeParent();
+      const updatedTodo = todo.removeDependent("non-existent");
 
       // Assert
       expect(updatedTodo).toBe(todo);
     });
 
-    it("should check if all subtasks are completed", () => {
+    it("should check if todo has dependency on another todo", () => {
       // Arrange
       const todo = new Todo(
         "test-id",
@@ -343,22 +362,15 @@ describe("Todo Entity", () => {
         PriorityLevel.MEDIUM,
         undefined,
         undefined,
-        undefined,
-        [],
-        [],
-        undefined,
-        ["subtask-1", "subtask-2"],
+        ["dependency-id"],
       );
-      const completedTodoIds = ["subtask-1", "subtask-2"];
 
-      // Act
-      const result = todo.areAllSubtasksCompleted(completedTodoIds);
-
-      // Assert
-      expect(result).toBe(true);
+      // Act & Assert
+      expect(todo.hasDependencyOn("dependency-id")).toBe(true);
+      expect(todo.hasDependencyOn("non-existent")).toBe(false);
     });
 
-    it("should return false when not all subtasks are completed", () => {
+    it("should check if todo has dependent", () => {
       // Arrange
       const todo = new Todo(
         "test-id",
@@ -372,139 +384,100 @@ describe("Todo Entity", () => {
         PriorityLevel.MEDIUM,
         undefined,
         undefined,
-        undefined,
         [],
-        [],
-        undefined,
-        ["subtask-1", "subtask-2", "subtask-3"],
+        ["dependent-id"],
       );
-      const completedTodoIds = ["subtask-1", "subtask-2"];
 
-      // Act
-      const result = todo.areAllSubtasksCompleted(completedTodoIds);
-
-      // Assert
-      expect(result).toBe(false);
+      // Act & Assert
+      expect(todo.hasDependent("dependent-id")).toBe(true);
+      expect(todo.hasDependent("non-existent")).toBe(false);
     });
 
-    it("should return true when there are no subtasks", () => {
+    it("should check if todo can be completed when all dependencies are completed", () => {
+      // Arrange
+      const todo = new Todo(
+        "test-id",
+        "Test Todo",
+        TodoStatus.PENDING,
+        WorkState.IDLE,
+        0,
+        new Date(),
+        new Date(),
+        new Date(),
+        PriorityLevel.MEDIUM,
+        undefined,
+        undefined,
+        ["dependency-1", "dependency-2"],
+      );
+      const completedTodoIds = ["dependency-1", "dependency-2"];
+
+      // Act & Assert
+      expect(todo.canBeCompleted(completedTodoIds)).toBe(true);
+    });
+
+    it("should check if todo can be completed when some dependencies are not completed", () => {
+      // Arrange
+      const todo = new Todo(
+        "test-id",
+        "Test Todo",
+        TodoStatus.PENDING,
+        WorkState.IDLE,
+        0,
+        new Date(),
+        new Date(),
+        new Date(),
+        PriorityLevel.MEDIUM,
+        undefined,
+        undefined,
+        ["dependency-1", "dependency-2"],
+      );
+      const completedTodoIds = ["dependency-1"];
+
+      // Act & Assert
+      expect(todo.canBeCompleted(completedTodoIds)).toBe(false);
+    });
+
+    it("should check if todo can be completed when there are no dependencies", () => {
       // Arrange
       const todo = new Todo("test-id", "Test Todo");
-      const completedTodoIds: string[] = [];
-
-      // Act
-      const result = todo.areAllSubtasksCompleted(completedTodoIds);
-
-      // Assert
-      expect(result).toBe(true);
-    });
-
-    it("should check if a todo has a specific subtask", () => {
-      // Arrange
-      const todo = new Todo(
-        "test-id",
-        "Test Todo",
-        TodoStatus.PENDING,
-        WorkState.IDLE,
-        0,
-        new Date(),
-        new Date(),
-        new Date(),
-        PriorityLevel.MEDIUM,
-        undefined,
-        undefined,
-        undefined,
-        [],
-        [],
-        undefined,
-        ["subtask-1", "subtask-2"],
-      );
 
       // Act & Assert
-      expect(todo.hasSubtask("subtask-1")).toBe(true);
-      expect(todo.hasSubtask("non-existent")).toBe(false);
-    });
-
-    it("should check if a todo has a parent", () => {
-      // Arrange
-      const todoWithParent = new Todo(
-        "test-id",
-        "Test Todo",
-        TodoStatus.PENDING,
-        WorkState.IDLE,
-        0,
-        new Date(),
-        new Date(),
-        new Date(),
-        PriorityLevel.MEDIUM,
-        undefined,
-        undefined,
-        undefined,
-        [],
-        [],
-        "parent-id",
-      );
-      const todoWithoutParent = new Todo("test-id", "Test Todo");
-
-      // Act & Assert
-      expect(todoWithParent.hasParent()).toBe(true);
-      expect(todoWithoutParent.hasParent()).toBe(false);
-    });
-
-    it("should check if a todo is parent of another todo", () => {
-      // Arrange
-      const todo = new Todo(
-        "test-id",
-        "Test Todo",
-        TodoStatus.PENDING,
-        WorkState.IDLE,
-        0,
-        new Date(),
-        new Date(),
-        new Date(),
-        PriorityLevel.MEDIUM,
-        undefined,
-        undefined,
-        undefined,
-        [],
-        [],
-        undefined,
-        ["subtask-1", "subtask-2"],
-      );
-
-      // Act & Assert
-      expect(todo.isParentOf("subtask-1")).toBe(true);
-      expect(todo.isParentOf("non-existent")).toBe(false);
-    });
-
-    it("should check if a todo is child of another todo", () => {
-      // Arrange
-      const todo = new Todo(
-        "test-id",
-        "Test Todo",
-        TodoStatus.PENDING,
-        WorkState.IDLE,
-        0,
-        new Date(),
-        new Date(),
-        new Date(),
-        PriorityLevel.MEDIUM,
-        undefined,
-        undefined,
-        undefined,
-        [],
-        [],
-        "parent-id",
-      );
-
-      // Act & Assert
-      expect(todo.isChildOf("parent-id")).toBe(true);
-      expect(todo.isChildOf("non-existent")).toBe(false);
+      expect(todo.canBeCompleted([])).toBe(true);
     });
   });
 
   describe("mapToDomainTodo", () => {
-    it("should map PrismaTodo to domain Todo with subtasks", () => {
+    it("should map prisma todo to domain todo with dependencies", () => {
+      // Arrange
+      const now = new Date();
+      const prismaTodo = {
+        id: "test-id",
+        title: "Test Todo",
+        description: "Test description",
+        status: "pending",
+        workState: "idle",
+        totalWorkTime: 0,
+        lastStateChangeAt: now,
+        createdAt: now,
+        updatedAt: now,
+        priority: PriorityLevel.HIGH,
+        projectId: "project-1",
+        dueDate: null, // dueDate フィールドを追加
+        dependsOn: [{ dependencyId: "dep-1" }, { dependencyId: "dep-2" }],
+        dependents: [{ dependentId: "depnt-1" }],
+      };
+
+      // Act
+      const domainTodo = mapToDomainTodo(prismaTodo);
+
+      // Assert
+      expect(domainTodo).toBeInstanceOf(Todo);
+      expect(domainTodo.id).toBe("test-id");
+      expect(domainTodo.dependencies).toEqual(["dep-1", "dep-2"]);
+      expect(domainTodo.dependents).toEqual(["depnt-1"]);
+    });
+
+    it("should map prisma todo to domain todo", () => {
       // Arrange
       const now = new Date();
       const prismaTodo = {
@@ -520,8 +493,6 @@ describe("Todo Entity", () => {
         priority: PriorityLevel.HIGH,
         projectId: "project-1",
         dueDate: null,
-        parentId: "parent-id",
-        subtasks: [{ id: "subtask-1" }, { id: "subtask-2" }],
       };
 
       // Act
@@ -529,8 +500,43 @@ describe("Todo Entity", () => {
 
       // Assert
       expect(domainTodo).toBeInstanceOf(Todo);
-      expect(domainTodo.parentId).toBe("parent-id");
-      expect(domainTodo.subtaskIds).toEqual(["subtask-1", "subtask-2"]);
+      expect(domainTodo.id).toBe("test-id");
+      expect(domainTodo.title).toBe("Test Todo");
+      expect(domainTodo.description).toBe("Test description");
+      expect(domainTodo.status).toBe(TodoStatus.PENDING);
+      expect(domainTodo.workState).toBe(WorkState.IDLE);
+      expect(domainTodo.totalWorkTime).toBe(0);
+      expect(domainTodo.lastStateChangeAt).toBe(now);
+      expect(domainTodo.createdAt).toBe(now);
+      expect(domainTodo.updatedAt).toBe(now);
+      expect(domainTodo.priority).toBe(PriorityLevel.HIGH);
+      expect(domainTodo.projectId).toBe("project-1");
+    });
+
+    it("should handle null description", () => {
+      // Arrange
+      const now = new Date();
+      const prismaTodo = {
+        id: "test-id",
+        title: "Test Todo",
+        description: null,
+        status: "pending",
+        workState: "idle",
+        totalWorkTime: 0,
+        lastStateChangeAt: now,
+        createdAt: now,
+        updatedAt: now,
+        priority: PriorityLevel.MEDIUM,
+        projectId: null,
+        dueDate: null,
+      };
+
+      // Act
+      const domainTodo = mapToDomainTodo(prismaTodo);
+
+      // Assert
+      expect(domainTodo.description).toBeUndefined();
+      expect(domainTodo.projectId).toBeUndefined();
     });
   });
 

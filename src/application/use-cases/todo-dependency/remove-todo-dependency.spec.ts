@@ -1,21 +1,42 @@
 import { beforeEach, describe, expect, it, mock } from "bun:test";
-import { createMockedTodoRepository } from "../../../domain/entities/test-helpers";
 import { PriorityLevel, Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
 import { DependencyNotFoundError, TodoNotFoundError } from "../../../domain/errors/todo-errors";
 import { TodoRepository } from "../../../domain/repositories/todo-repository";
+import type { MockedFunction } from "../../../test/types";
 import { RemoveTodoDependencyUseCase } from "./remove-todo-dependency";
 
 describe("RemoveTodoDependencyUseCase", () => {
-  let mockTodoRepository: TodoRepository;
+  // リポジトリのモック
+  const mockTodoRepository = {
+    findById: mock(() => Promise.resolve(null)),
+    removeDependency: mock(() => Promise.resolve()),
+    create: mock(() => Promise.resolve({} as Todo)),
+    update: mock(() => Promise.resolve({} as Todo)),
+    delete: mock(() => Promise.resolve()),
+    findAll: mock(() => Promise.resolve([])),
+    findByProjectId: mock(() => Promise.resolve([])),
+    findByTagId: mock(() => Promise.resolve([])),
+    findDependencies: mock(() => Promise.resolve([])),
+    findDependents: mock(() => Promise.resolve([])),
+    addDependency: mock(() => Promise.resolve()),
+    wouldCreateDependencyCycle: mock(() => Promise.resolve(false)),
+    findAllCompleted: mock(() => Promise.resolve([])),
+    // 期限日関連のメソッドを追加
+    findOverdue: mock(() => Promise.resolve([])),
+    findDueSoon: mock(() => Promise.resolve([])),
+    findByDueDateRange: mock(() => Promise.resolve([])),
+  } as TodoRepository;
+
+  // テスト対象のユースケース
   let useCase: RemoveTodoDependencyUseCase;
 
   beforeEach(() => {
-    mockTodoRepository = {
-      ...createMockedTodoRepository(),
-      findById: mock(() => Promise.resolve(null)),
-      removeDependency: mock(() => Promise.resolve()),
-    };
-
+    // モックをリセット
+    Object.values(mockTodoRepository).forEach((mockFn) => {
+      if (typeof mockFn === "function" && "mockClear" in mockFn) {
+        mockFn.mockClear();
+      }
+    });
     useCase = new RemoveTodoDependencyUseCase(mockTodoRepository);
   });
 

@@ -16,8 +16,6 @@ describe("UpdateProject", () => {
       update: mock(async (project: Project) => project),
       delete: mock(async () => {}),
       findTodosByProjectId: mock(async () => []),
-      addTodo: mock(async () => {}),
-      removeTodo: mock(async () => {}),
     };
   });
 

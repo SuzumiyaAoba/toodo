@@ -27,11 +27,6 @@ model Todo {
   
   dependsOn         TodoDependency[]  @relation("DependentTodo")
   dependents        TodoDependency[]  @relation("DependencyTodo")
-  
-  // サブタスク関連のフィールドとリレーション
-  parentId          String?           // 親タスクID
-  parent            Todo?             @relation("TodoHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
-  subtasks          Todo[]            @relation("TodoHierarchy")
 }
 
 model TodoActivity {

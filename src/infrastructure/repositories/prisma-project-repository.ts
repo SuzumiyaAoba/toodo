@@ -77,22 +77,6 @@ export class PrismaProjectRepository implements ProjectRepository {
     return todos.map((todo) => todo.id);
   }
 
-  async addTodo(projectId: ProjectId, todoId: string): Promise<void> {
-    // todoのprojectIdフィールドを更新
-    await this.prisma.todo.update({
-      where: { id: todoId },
-      data: { projectId },
-    });
-  }
-
-  async removeTodo(projectId: ProjectId, todoId: string): Promise<void> {
-    // todoからprojectIdを削除
-    await this.prisma.todo.update({
-      where: { id: todoId },
-      data: { projectId: null },
-    });
-  }
-
   private mapToProject(data: {
     id: string;
     name: string;

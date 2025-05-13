@@ -8,6 +8,4 @@ export interface ProjectRepository {
   update(project: Project): Promise<Project>;
   delete(id: ProjectId): Promise<void>;
   findTodosByProjectId(id: ProjectId): Promise<string[]>;
-  addTodo(projectId: ProjectId, todoId: string): Promise<void>;
-  removeTodo(projectId: ProjectId, todoId: string): Promise<void>;
 }

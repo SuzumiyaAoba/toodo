@@ -96,14 +96,3 @@ export class IncompleteDependenciesError extends Error {
     this.name = "IncompleteDependenciesError";
   }
 }
-
-/**
- * SubtaskNotFoundError
- * Thrown when a subtask is not found in the parent todo
- */
-export class SubtaskNotFoundError extends Error {
-  constructor(subtaskId: string, parentId: string) {
-    super(`Subtask ${subtaskId} not found in parent todo ${parentId}`);
-    this.name = "SubtaskNotFoundError";
-  }
-}

@@ -1,49 +1,72 @@
-import { beforeEach, describe, expect, it, mock } from "bun:test";
-import { createMockedTodoRepository } from "../../../domain/entities/test-helpers";
+import { describe, expect, it, mock } from "bun:test";
 import { PriorityLevel, Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
 import { TodoNotFoundError } from "../../../domain/errors/todo-errors";
-import { TodoRepository } from "../../../domain/repositories/todo-repository";
+import type { TodoRepository } from "../../../domain/repositories/todo-repository";
 import type { MockedFunction } from "../../../test/types";
 import { GetTodoDependencyTreeUseCase } from "./get-todo-dependency-tree";
 
-describe("GetTodoDependencyTreeUseCase", () => {
-  let mockTodoRepository: TodoRepository;
-  let useCase: GetTodoDependencyTreeUseCase;
+// TodoRepositoryのメソッドをモック化するための関数
+const createMockTodoRepository = () => {
+  return {
+    findById: mock((id: string) => Promise.resolve(null)),
+    findDependencies: mock((todoId: string) => Promise.resolve([])),
+    findAll: mock(() => Promise.resolve([])),
+    create: mock(() => Promise.resolve({} as Todo)),
+    update: mock(() => Promise.resolve({} as Todo)),
+    delete: mock(() => Promise.resolve()),
+    findByProjectId: mock(() => Promise.resolve([])),
+    findByTagId: mock(() => Promise.resolve([])),
+    findDependents: mock(() => Promise.resolve([])),
+    addDependency: mock(() => Promise.resolve()),
+    removeDependency: mock(() => Promise.resolve()),
+    updateWorkState: mock(() => Promise.resolve({} as Todo)),
+    updateWorkTime: mock(() => Promise.resolve({} as Todo)),
+    wouldCreateDependencyCycle: mock(() => Promise.resolve(false)),
+    findAllCompleted: mock(() => Promise.resolve([])),
+    // 期限日関連のメソッドを追加
+    findOverdue: mock(() => Promise.resolve([])),
+    findDueSoon: mock(() => Promise.resolve([])),
+    findByDueDateRange: mock(() => Promise.resolve([])),
+  };
+};
 
-  // ヘルパー関数
-  function createMockTodo(
-    id: string,
-    title: string,
-    status: TodoStatus,
-    priority: PriorityLevel,
-    description?: string,
-  ): Todo {
-    return new Todo(
-      id,
-      title,
-      status,
-      WorkState.IDLE,
-      0,
-      new Date(),
-      new Date(),
-      new Date(),
-      priority,
-      undefined,
-      description,
-    );
+// モックTodoオブジェクトを作成する関数
+function createMockTodo(
+  id: string,
+  title: string,
+  status: TodoStatus,
+  priority: PriorityLevel,
+  description?: string,
+): Todo {
+  return new Todo(
+    id,
+    title,
+    status,
+    WorkState.IDLE,
+    0, // totalWorkTime
+    new Date(), // lastStateChangeAt
+    new Date(), // createdAt
+    new Date(), // updatedAt
+    priority,
+    undefined, // projectId
+    description,
+    [], // dependencies
+    [], // dependents
+  );
+}
+
+describe("GetTodoDependencyTreeUseCase", () => {
+  // テスト毎に新しいモックを作成
+  function setupMockRepository(): TodoRepository {
+    return createMockTodoRepository();
   }
 
-  beforeEach(() => {
-    mockTodoRepository = {
-      ...createMockedTodoRepository(),
-      findById: mock(() => Promise.resolve(null)),
-      findDependencies: mock(() => Promise.resolve([])),
-    };
-
-    useCase = new GetTodoDependencyTreeUseCase(mockTodoRepository);
-  });
-
   it("should throw TodoNotFoundError when todo is not found", async () => {
+    const mockTodoRepository = setupMockRepository();
+    const mockFindById = mockTodoRepository.findById as MockedFunction<typeof mockTodoRepository.findById>;
+    mockFindById.mockImplementation((id: string) => Promise.resolve(null));
+
+    const useCase = new GetTodoDependencyTreeUseCase(mockTodoRepository);
     await expect(useCase.execute("non-existent-id")).rejects.toThrow(TodoNotFoundError);
   });
 
@@ -61,6 +84,7 @@ describe("GetTodoDependencyTreeUseCase", () => {
     );
 
     // モックの設定
+    const mockTodoRepository = setupMockRepository();
     const mockFindById = mockTodoRepository.findById as MockedFunction<typeof mockTodoRepository.findById>;
     mockFindById.mockImplementation((id: string) => {
       if (id === "todo-1") return Promise.resolve(todo1);
@@ -81,6 +105,7 @@ describe("GetTodoDependencyTreeUseCase", () => {
       return Promise.resolve([]);
     });
 
+    const useCase = new GetTodoDependencyTreeUseCase(mockTodoRepository);
     const result = await useCase.execute("todo-1");
 
     // 期待される結果
@@ -134,6 +159,7 @@ describe("GetTodoDependencyTreeUseCase", () => {
     );
 
     // 循環依存をモック
+    const mockTodoRepository = setupMockRepository();
     const mockFindById = mockTodoRepository.findById as MockedFunction<typeof mockTodoRepository.findById>;
     mockFindById.mockImplementation((id: string) => {
       if (id === "todo-1") return Promise.resolve(todo1);
@@ -150,6 +176,7 @@ describe("GetTodoDependencyTreeUseCase", () => {
       return Promise.resolve([]);
     });
 
+    const useCase = new GetTodoDependencyTreeUseCase(mockTodoRepository);
     const result = await useCase.execute("todo-1");
 
     // 期待される結果 - 循環依存は処理されず、1レベル目までのみ展開される
@@ -177,6 +204,7 @@ describe("GetTodoDependencyTreeUseCase", () => {
     const todo3 = createMockTodo("todo-3", "Level 2", TodoStatus.PENDING, PriorityLevel.HIGH, "Level 2");
 
     // 依存関係をモック
+    const mockTodoRepository = setupMockRepository();
     const mockFindById = mockTodoRepository.findById as MockedFunction<typeof mockTodoRepository.findById>;
     mockFindById.mockImplementation((id: string) => {
       if (id === "todo-1") return Promise.resolve(todo1);
