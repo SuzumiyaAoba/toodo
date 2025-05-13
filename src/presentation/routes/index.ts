@@ -71,7 +71,6 @@ import {
   CreateTodoSchema,
   ErrorResponseSchema,
   IdParamSchema,
-  ProjectTodoParamSchema,
   TodoActivityIdParamSchema,
   TodoActivityListSchema,
   TodoActivitySchema,
@@ -1742,7 +1741,7 @@ export function setupRoutes<E extends Env = Env>(
       summary: "Remove a todo from a project",
       description: "Remove the association between a todo and a project",
       request: {
-        params: resolver(ProjectTodoParamSchema, valibotConfig),
+        params: resolver(TodoTagParamSchema, valibotConfig),
       },
       responses: {
         204: {
@@ -1763,9 +1762,9 @@ export function setupRoutes<E extends Env = Env>(
         },
       },
     }),
-    vValidator("param", ProjectTodoParamSchema),
+    vValidator("param", TodoTagParamSchema),
     async (c) => {
-      const { id, todoId } = c.req.valid("param");
+      const { id, tagId: todoId } = c.req.valid("param");
       const useCase = new RemoveTodoFromProject(projectRepository, todoRepository);
 
       try {
