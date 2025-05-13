@@ -272,7 +272,7 @@ Response:
     "workState": "idle | active | paused | completed",
     "priority": "low | medium | high",
     "dueDate": "ISO date string",
-    // other Todo properties
+    // その他のTodoプロパティ
   }
 ]
 ```
@@ -299,7 +299,7 @@ Response:
     "workState": "idle | active | paused | completed",
     "priority": "low | medium | high",
     "dueDate": "ISO date string",
-    // other Todo properties
+    // その他のTodoプロパティ
   }
 ]
 ```
@@ -327,7 +327,7 @@ Response:
     "workState": "idle | active | paused | completed",
     "priority": "low | medium | high",
     "dueDate": "ISO date string",
-    // other Todo properties
+    // その他のTodoプロパティ
   }
 ]
 ```
