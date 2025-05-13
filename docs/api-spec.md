@@ -1,13 +1,11 @@
 # TODO Management System API Specification
 
 ## 1. Introduction
-
 This document outlines the API endpoints for the TODO management system built with Hono framework.
 
 ## 2. API Endpoints
 
 ### 2.1 Create a TODO
-
 - **URL**: `/todos`
 - **Method**: `POST`
 - **Request Body**:
@@ -34,7 +32,6 @@ This document outlines the API endpoints for the TODO management system built wi
   ```
 
 ### 2.2 Get TODO List
-
 - **URL**: `/todos`
 - **Method**: `GET`
 - **Response** (200 OK):
@@ -55,7 +52,6 @@ This document outlines the API endpoints for the TODO management system built wi
   ```
 
 ### 2.3 Get TODO Details
-
 - **URL**: `/todos/{id}`
 - **Method**: `GET`
 - **Response** (200 OK):
@@ -80,7 +76,6 @@ This document outlines the API endpoints for the TODO management system built wi
   ```
 
 ### 2.4 Update a TODO
-
 - **URL**: `/todos/{id}`
 - **Method**: `PUT`
 - **Request Body**:
@@ -88,8 +83,7 @@ This document outlines the API endpoints for the TODO management system built wi
   {
     "title": "Shopping list",
     "description": "Buy milk, bread, and eggs",
-    "status": "completed",
-    "priority": "high"
+    "status": "completed"
   }
   ```
 - **Response** (200 OK):
@@ -103,19 +97,16 @@ This document outlines the API endpoints for the TODO management system built wi
     "totalWorkTime": 3600,
     "lastStateChangeAt": "2025-04-20T13:45:12.345Z",
     "createdAt": "2025-04-20T12:34:56.789Z",
-    "updatedAt": "2025-04-20T13:45:12.345Z",
-    "priority": "high"
+    "updatedAt": "2025-04-20T13:45:12.345Z"
   }
   ```
 
 ### 2.5 Delete a TODO
-
 - **URL**: `/todos/{id}`
 - **Method**: `DELETE`
 - **Response** (204 No Content)
 
 ### 2.6 Record a TODO Activity
-
 - **URL**: `/todos/{id}/activities`
 - **Method**: `POST`
 - **Request Body**:
@@ -157,7 +148,6 @@ This document outlines the API endpoints for the TODO management system built wi
   ```
 
 ### 2.7 Get TODO Activity History
-
 - **URL**: `/todos/{id}/activities`
 - **Method**: `GET`
 - **Response** (200 OK):
@@ -200,7 +190,6 @@ This document outlines the API endpoints for the TODO management system built wi
   ```
 
 ### 2.8 Get TODO Work Time
-
 - **URL**: `/todos/{id}/work-time`
 - **Method**: `GET`
 - **Response** (200 OK):
@@ -220,7 +209,6 @@ This document outlines the API endpoints for the TODO management system built wi
   ```
 
 ### 2.9 Delete a TODO Activity
-
 - **URL**: `/todos/{id}/activities/{activityId}`
 - **Method**: `DELETE`
 - **Response** (204 No Content)
@@ -238,7 +226,6 @@ This document outlines the API endpoints for the TODO management system built wi
   ```
 
 ### 2.10 Create a Tag
-
 - **URL**: `/tags`
 - **Method**: `POST`
 - **Request Body**:
@@ -260,7 +247,6 @@ This document outlines the API endpoints for the TODO management system built wi
   ```
 
 ### 2.11 Get Tag List
-
 - **URL**: `/tags`
 - **Method**: `GET`
 - **Response** (200 OK):
@@ -284,7 +270,6 @@ This document outlines the API endpoints for the TODO management system built wi
   ```
 
 ### 2.12 Get Tag Details
-
 - **URL**: `/tags/{id}`
 - **Method**: `GET`
 - **Response** (200 OK):
@@ -305,7 +290,6 @@ This document outlines the API endpoints for the TODO management system built wi
   ```
 
 ### 2.13 Update a Tag
-
 - **URL**: `/tags/{id}`
 - **Method**: `PUT`
 - **Request Body**:
@@ -327,13 +311,11 @@ This document outlines the API endpoints for the TODO management system built wi
   ```
 
 ### 2.14 Delete a Tag
-
 - **URL**: `/tags/{id}`
 - **Method**: `DELETE`
 - **Response** (204 No Content)
 
 ### 2.15 Assign a Tag to a TODO
-
 - **URL**: `/todos/{id}/tags`
 - **Method**: `POST`
 - **Request Body**:
@@ -354,7 +336,6 @@ This document outlines the API endpoints for the TODO management system built wi
   ```
 
 ### 2.16 Get Tags for a TODO
-
 - **URL**: `/todos/{id}/tags`
 - **Method**: `GET`
 - **Response** (200 OK):
@@ -371,13 +352,11 @@ This document outlines the API endpoints for the TODO management system built wi
   ```
 
 ### 2.17 Remove a Tag from a TODO
-
 - **URL**: `/todos/{id}/tags/{tagId}`
 - **Method**: `DELETE`
 - **Response** (204 No Content)
 
 ### 2.18 Get TODOs by Tag
-
 - **URL**: `/todos/by-tag/{tagId}`
 - **Method**: `GET`
 - **Response** (200 OK):
@@ -398,7 +377,6 @@ This document outlines the API endpoints for the TODO management system built wi
   ```
 
 ### 2.19 Get TODOs by Multiple Tags
-
 - **URL**: `/todos/by-tags`
 - **Method**: `GET`
 - **Query Parameters**:
@@ -422,16 +400,12 @@ This document outlines the API endpoints for the TODO management system built wi
   ```
 
 ### 2.20 Bulk Assign Tag to Multiple TODOs
-
 - **URL**: `/tags/{id}/bulk-assign`
 - **Method**: `POST`
 - **Request Body**:
   ```json
   {
-    "todoIds": [
-      "550e8400-e29b-41d4-a716-446655440000",
-      "661f9511-f3ac-52e5-b827-557766551111"
-    ]
+    "todoIds": ["550e8400-e29b-41d4-a716-446655440000", "661f9511-f3ac-52e5-b827-557766551111"]
   }
   ```
 - **Response** (200 OK):
@@ -449,16 +423,12 @@ This document outlines the API endpoints for the TODO management system built wi
   ```
 
 ### 2.21 Bulk Remove Tag from Multiple TODOs
-
 - **URL**: `/tags/{id}/bulk-remove`
 - **Method**: `DELETE`
 - **Request Body**:
   ```json
   {
-    "todoIds": [
-      "550e8400-e29b-41d4-a716-446655440000",
-      "661f9511-f3ac-52e5-b827-557766551111"
-    ]
+    "todoIds": ["550e8400-e29b-41d4-a716-446655440000", "661f9511-f3ac-52e5-b827-557766551111"]
   }
   ```
 - **Response** (200 OK):
@@ -475,32 +445,7 @@ This document outlines the API endpoints for the TODO management system built wi
   }
   ```
 
-### 2.22 Update TODO Priority
-
-- **URL**: `/todos/{id}/priority`
-- **Method**: `PATCH`
-- **Request Body**:
-  ```json
-  {
-    "priority": "low"
-  }
-  ```
-- **Response** (200 OK):
-  ```json
-  {
-    "id": "550e8400-e29b-41d4-a716-446655440000",
-    "priority": "low"
-  }
-  ```
-- **Error** (400 Bad Request):
-  ```json
-  {
-    "error": "Invalid priority value. Must be one of: low, medium, high"
-  }
-  ```
-
-### 2.23 Get Tag Usage Statistics
-
+### 2.22 Get Tag Usage Statistics
 - **URL**: `/tags/stats`
 - **Method**: `GET`
 - **Response** (200 OK):
@@ -526,9 +471,7 @@ This document outlines the API endpoints for the TODO management system built wi
   ```
 
 ## 3. Error Handling
-
 Error responses have the following format:
-
 ```json
 {
   "error": "Error message"
@@ -536,7 +479,6 @@ Error responses have the following format:
 ```
 
 Common status codes:
-
 - 400 Bad Request: Invalid input
 - 404 Not Found: Resource not found
 - 500 Internal Server Error: Server-side error

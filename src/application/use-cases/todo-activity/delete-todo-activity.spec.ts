@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
-import { PriorityLevel, type Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
+import { type Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
 import { ActivityType, type TodoActivity } from "../../../domain/entities/todo-activity";
 import {
   TodoActivityNotFoundError,
@@ -91,7 +91,6 @@ describe("DeleteTodoActivityUseCase", () => {
       lastStateChangeAt: now,
       createdAt: now,
       updatedAt: now,
-      priority: PriorityLevel.MEDIUM,
     };
 
     mockTodoRepository.findById.mockImplementationOnce(async () => Promise.resolve(mockTodo));
@@ -122,7 +121,6 @@ describe("DeleteTodoActivityUseCase", () => {
       lastStateChangeAt: now,
       createdAt: now,
       updatedAt: now,
-      priority: PriorityLevel.MEDIUM,
     };
 
     const mockActivity: TodoActivity = {
@@ -161,7 +159,6 @@ describe("DeleteTodoActivityUseCase", () => {
       lastStateChangeAt: now,
       createdAt: now,
       updatedAt: now,
-      priority: PriorityLevel.MEDIUM,
     };
 
     const mockActivity: TodoActivity = {

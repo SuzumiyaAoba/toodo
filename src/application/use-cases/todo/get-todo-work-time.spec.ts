@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
-import { PriorityLevel, type Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
+import { type Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
 import { TodoNotFoundError } from "../../../domain/errors/todo-errors";
 import type { TodoRepository } from "../../../domain/repositories/todo-repository";
 import { GetTodoWorkTimeUseCase } from "./get-todo-work-time";
@@ -53,7 +53,6 @@ describe("GetTodoWorkTimeUseCase", () => {
       lastStateChangeAt: startedAt, // 1時間前に作業開始
       createdAt: new Date(now.getTime() - 86400000), // 1日前に作成
       updatedAt: startedAt,
-      priority: PriorityLevel.MEDIUM,
     };
 
     mockTodoRepository.findById.mockImplementationOnce(async () => Promise.resolve(mockTodo));
@@ -85,7 +84,6 @@ describe("GetTodoWorkTimeUseCase", () => {
       lastStateChangeAt: now,
       createdAt: now,
       updatedAt: now,
-      priority: PriorityLevel.MEDIUM,
     };
 
     const mockTodo2: Todo = {
@@ -98,7 +96,6 @@ describe("GetTodoWorkTimeUseCase", () => {
       lastStateChangeAt: now,
       createdAt: now,
       updatedAt: now,
-      priority: PriorityLevel.LOW,
     };
 
     const mockTodo3: Todo = {
@@ -111,7 +108,6 @@ describe("GetTodoWorkTimeUseCase", () => {
       lastStateChangeAt: now,
       createdAt: now,
       updatedAt: now,
-      priority: PriorityLevel.HIGH,
     };
 
     mockTodoRepository.findById.mockImplementationOnce(async () => Promise.resolve(mockTodo1));

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
-import { PriorityLevel, type Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
+import { type Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
 import type { TodoRepository } from "../../../domain/repositories/todo-repository";
 import { GetTodoListUseCase } from "./get-todo-list";
 
@@ -50,7 +50,6 @@ describe("GetTodoListUseCase", () => {
         lastStateChangeAt: now,
         createdAt: now,
         updatedAt: now,
-        priority: PriorityLevel.MEDIUM,
       },
       {
         id: "todo-2",
@@ -62,7 +61,6 @@ describe("GetTodoListUseCase", () => {
         lastStateChangeAt: now,
         createdAt: now,
         updatedAt: now,
-        priority: PriorityLevel.LOW,
       },
     ];
 

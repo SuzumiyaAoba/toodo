@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
-import { PriorityLevel, type Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
+import { type Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
 import { ActivityType, type TodoActivity } from "../../../domain/entities/todo-activity";
 import { InvalidStateTransitionError, TodoNotFoundError } from "../../../domain/errors/todo-errors";
 import type { TodoActivityRepository } from "../../../domain/repositories/todo-activity-repository";
@@ -94,7 +94,6 @@ describe("CreateTodoActivityUseCase", () => {
       lastStateChangeAt: now,
       createdAt: now,
       updatedAt: now,
-      priority: PriorityLevel.MEDIUM,
     };
 
     const createdActivity = {
@@ -159,7 +158,6 @@ describe("CreateTodoActivityUseCase", () => {
       lastStateChangeAt: pastTime, // Todo was set to ACTIVE 1 hour ago
       createdAt: pastTime,
       updatedAt: pastTime,
-      priority: PriorityLevel.MEDIUM,
     };
 
     // Calculate expected work time (around 3600 seconds, but might vary slightly during test execution)
@@ -219,7 +217,6 @@ describe("CreateTodoActivityUseCase", () => {
       lastStateChangeAt: now,
       createdAt: now,
       updatedAt: now,
-      priority: PriorityLevel.MEDIUM,
     };
 
     mockTodoRepository.findById.mockImplementationOnce(() => Promise.resolve(mockTodo));
@@ -250,7 +247,6 @@ describe("CreateTodoActivityUseCase", () => {
       lastStateChangeAt: pastTime, // Todo was set to ACTIVE 30 minutes ago
       createdAt: pastTime,
       updatedAt: pastTime,
-      priority: PriorityLevel.MEDIUM,
     };
 
     // Calculate expected work time (around 1800 seconds + 600 existing seconds)

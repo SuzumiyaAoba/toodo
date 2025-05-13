@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
-import { PriorityLevel, type Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
+import { type Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
 import type { TodoRepository } from "../../../domain/repositories/todo-repository";
 import { CreateTodoUseCase } from "./create-todo";
 
@@ -53,7 +53,6 @@ describe("CreateTodoUseCase", () => {
       lastStateChangeAt: now,
       createdAt: now,
       updatedAt: now,
-      priority: PriorityLevel.MEDIUM,
     };
 
     mockTodoRepository.create.mockImplementationOnce(async () => Promise.resolve(createdTodo));
@@ -70,7 +69,6 @@ describe("CreateTodoUseCase", () => {
       workState: WorkState.IDLE,
       totalWorkTime: 0,
       lastStateChangeAt: expect.any(Date),
-      priority: PriorityLevel.MEDIUM,
     });
     expect(result).toEqual(createdTodo);
   });
@@ -93,7 +91,6 @@ describe("CreateTodoUseCase", () => {
       lastStateChangeAt: now,
       createdAt: now,
       updatedAt: now,
-      priority: PriorityLevel.MEDIUM,
     };
 
     mockTodoRepository.create.mockImplementationOnce(async () => Promise.resolve(createdTodo));
@@ -110,7 +107,6 @@ describe("CreateTodoUseCase", () => {
       workState: WorkState.IDLE,
       totalWorkTime: 0,
       lastStateChangeAt: expect.any(Date),
-      priority: PriorityLevel.MEDIUM,
     });
     expect(result).toEqual(createdTodo);
   });

@@ -1,4 +1,4 @@
-import type { PriorityLevel, Todo } from "../../domain/entities/todo";
+import type { Todo } from "../../domain/entities/todo";
 import { mapToDomainTodo } from "../../domain/entities/todo";
 import { TodoNotFoundError } from "../../domain/errors/todo-errors";
 import type { TodoRepository } from "../../domain/repositories/todo-repository";
@@ -44,7 +44,6 @@ export class PrismaTodoRepository extends PrismaBaseRepository<Todo, PrismaTodo>
           workState: todo.workState,
           totalWorkTime: todo.totalWorkTime,
           lastStateChangeAt: todo.lastStateChangeAt,
-          priority: todo.priority,
         },
       });
       return this.mapToDomain(createdTodo);
@@ -63,18 +62,11 @@ export class PrismaTodoRepository extends PrismaBaseRepository<Todo, PrismaTodo>
         where: { id },
         data: {
           ...(todo.title !== undefined && { title: todo.title }),
-          ...(todo.description !== undefined && {
-            description: todo.description,
-          }),
+          ...(todo.description !== undefined && { description: todo.description }),
           ...(todo.status !== undefined && { status: todo.status }),
           ...(todo.workState !== undefined && { workState: todo.workState }),
-          ...(todo.totalWorkTime !== undefined && {
-            totalWorkTime: todo.totalWorkTime,
-          }),
-          ...(todo.lastStateChangeAt !== undefined && {
-            lastStateChangeAt: todo.lastStateChangeAt,
-          }),
-          ...(todo.priority !== undefined && { priority: todo.priority }),
+          ...(todo.totalWorkTime !== undefined && { totalWorkTime: todo.totalWorkTime }),
+          ...(todo.lastStateChangeAt !== undefined && { lastStateChangeAt: todo.lastStateChangeAt }),
         },
       });
       return this.mapToDomain(updatedTodo);

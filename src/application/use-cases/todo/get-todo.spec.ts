@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
-import { PriorityLevel, type Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
+import { type Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
 import { TodoNotFoundError } from "../../../domain/errors/todo-errors";
 import type { TodoRepository } from "../../../domain/repositories/todo-repository";
 import { GetTodoUseCase } from "./get-todo";
@@ -51,7 +51,6 @@ describe("GetTodoUseCase", () => {
       lastStateChangeAt: now,
       createdAt: now,
       updatedAt: now,
-      priority: PriorityLevel.MEDIUM,
     };
 
     mockTodoRepository.findById.mockImplementationOnce(async () => Promise.resolve(mockTodo));

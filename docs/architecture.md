@@ -27,17 +27,14 @@ The Toodo application is a RESTful API system for managing TODO items. This docu
 The application is divided into the following layers:
 
 1. **Presentation Layer** (`/src/presentation`):
-
    - API endpoints and routing
    - Request/response validation
 
 2. **Application Layer** (`/src/application`):
-
    - Use cases
    - Services
 
 3. **Domain Layer** (`/src/domain`):
-
    - Entities
    - Repository interfaces
 
@@ -80,7 +77,6 @@ export interface Todo {
   lastStateChangeAt: Date;
   createdAt: Date;
   updatedAt: Date;
-  priority: PriorityLevel; // Added priority field
 }
 
 export enum TodoStatus {
@@ -94,12 +90,6 @@ export enum WorkState {
   PAUSED = "paused",
   COMPLETED = "completed",
 }
-
-export enum PriorityLevel {
-  LOW = "low",
-  MEDIUM = "medium",
-  HIGH = "high",
-} // Added PriorityLevel enum
 ```
 
 ### 4.2 Repository Example
@@ -127,11 +117,7 @@ import { TodoRepository } from "../../../domain/repositories/todo-repository";
 export class CreateTodoUseCase {
   constructor(private todoRepository: TodoRepository) {}
 
-  async execute(data: {
-    title: string;
-    description?: string;
-    status?: string;
-  }) {
+  async execute(data: { title: string; description?: string; status?: string }) {
     return this.todoRepository.create({
       title: data.title,
       description: data.description,
@@ -167,11 +153,11 @@ export const errorHandler = async (c, next) => {
     await next();
   } catch (error) {
     console.error(error);
-
+    
     if (error.name === "TodoNotFoundError") {
       return c.json({ error: error.message }, 404);
     }
-
+    
     // Handle other errors
     return c.json({ error: "Internal Server Error" }, 500);
   }
@@ -191,15 +177,15 @@ app.get(
       info: {
         title: "Toodo API",
         version: "1.0.0",
-      },
-    },
+      }
+    }
   })
 );
 
 app.get(
   "/scalar",
   Scalar({
-    spec: { url: "/openapi" },
+    spec: { url: "/openapi" }
   })
 );
 ```
