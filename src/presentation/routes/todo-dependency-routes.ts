@@ -3,10 +3,8 @@ import type { Hono } from "hono";
 import type { Env, Schema } from "hono";
 import { describeRoute } from "hono-openapi";
 import { resolver, validator as vValidator } from "hono-openapi/valibot";
-import { parse } from "valibot";
 import { AddTodoDependencyUseCase } from "../../application/use-cases/todo-dependency/add-todo-dependency";
 import { GetTodoDependenciesUseCase } from "../../application/use-cases/todo-dependency/get-todo-dependencies";
-import { GetTodoDependencyTreeUseCase } from "../../application/use-cases/todo-dependency/get-todo-dependency-tree";
 import { GetTodoDependentsUseCase } from "../../application/use-cases/todo-dependency/get-todo-dependents";
 import { RemoveTodoDependencyUseCase } from "../../application/use-cases/todo-dependency/remove-todo-dependency";
 import {
@@ -18,10 +16,8 @@ import {
 } from "../../domain/errors/todo-errors";
 import type { TodoRepository } from "../../domain/repositories/todo-repository";
 import {
-  DependencyTreeQuerySchema,
   IdParamSchema,
   TodoDependencyListSchema,
-  TodoDependencyNodeSchema,
   TodoDependencyParamSchema,
   TodoDependentListSchema,
 } from "../schemas/todo-schemas";
@@ -279,79 +275,6 @@ export function setupTodoDependencyRoutes<E extends Env = Env, S extends Schema 
           })),
         };
         return c.json(response);
-      } catch (error) {
-        if (error instanceof TodoNotFoundError) {
-          return c.json({ error: error.message }, 404);
-        }
-        throw error;
-      }
-    },
-  );
-
-  // 依存関係ツリーを取得するエンドポイント
-  app.get(
-    "/todos/:id/dependency-tree",
-    describeRoute({
-      tags: ["Todos", "Dependencies"],
-      summary: "Get todo dependency tree",
-      description: "Get all dependencies of a todo as a tree structure",
-      request: {
-        params: resolver(IdParamSchema, valibotConfig),
-        query: {
-          schema: {
-            type: "object",
-            properties: {
-              maxDepth: {
-                type: "integer",
-                description: "Maximum depth of the dependency tree (default: 10)",
-                minimum: 1,
-                maximum: 100,
-              },
-            },
-          },
-        },
-      },
-      responses: {
-        200: {
-          description: "Dependency tree",
-          content: {
-            "application/json": {
-              schema: resolver(TodoDependencyNodeSchema, valibotConfig),
-            },
-          },
-        },
-        404: {
-          description: "Todo not found",
-          content: {
-            "application/json": {
-              schema: {
-                type: "object",
-                properties: {
-                  error: { type: "string" },
-                },
-              },
-            },
-          },
-        },
-      },
-    }),
-    vValidator("param", IdParamSchema),
-    async (c) => {
-      const { id } = c.req.valid("param");
-
-      // クエリパラメータから最大深度を取得（デフォルト値は10）
-      const queryParams = {
-        maxDepth: c.req.query("maxDepth"),
-      };
-
-      const parsedParams = parse(DependencyTreeQuerySchema, queryParams);
-      const maxDepth = parsedParams.maxDepth ?? 10; // デフォルト値は10
-
-      const useCase = new GetTodoDependencyTreeUseCase(todoRepository);
-
-      try {
-        const tree = await useCase.execute(id, maxDepth);
-        return c.json(tree);
       } catch (error) {
         if (error instanceof TodoNotFoundError) {
           return c.json({ error: error.message }, 404);

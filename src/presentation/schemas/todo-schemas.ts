@@ -244,37 +244,3 @@ export const ProjectTodoParamSchema = v.object({
  * Type for Project and Todo ID path parameters
  */
 export type ProjectTodoParam = v.InferOutput<typeof ProjectTodoParamSchema>;
-
-/**
- * Schema for Todo dependency tree node response
- */
-export const TodoDependencyNodeSchema = v.object({
-  id: v.pipe(v.string(), v.uuid()),
-  title: v.string(),
-  status: v.picklist([TodoStatus.PENDING, TodoStatus.IN_PROGRESS, TodoStatus.COMPLETED]),
-  priority: v.nullable(v.number()),
-  dependencies: v.array(v.any()), // 循環参照の型エラーを回避するためのanyの使用
-});
-
-/**
- * Type for Todo dependency tree node response
- */
-export type TodoDependencyNodeResponse = v.InferOutput<typeof TodoDependencyNodeSchema>;
-
-/**
- * Schema for dependency tree query parameters
- */
-export const DependencyTreeQuerySchema = v.object({
-  maxDepth: v.optional(
-    v.pipe(
-      v.string(),
-      v.transform((val) => Number.parseInt(val, 10)),
-      v.number(),
-    ),
-  ),
-});
-
-/**
- * Type for dependency tree query parameters
- */
-export type DependencyTreeQuery = v.InferOutput<typeof DependencyTreeQuerySchema>;
