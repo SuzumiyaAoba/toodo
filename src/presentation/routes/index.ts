@@ -33,16 +33,13 @@ import {
   WorkTimeResponseSchema,
 } from "../schemas/todo-schemas";
 
-// Honoのより具体的な型定義をインポート
-import type { Context, Env, Schema } from "hono";
-
 /**
  * Setup API routes for the Todo application
  * @param app - Hono application instance
  * @returns Hono application instance with routes configured
  */
-export function setupRoutes<E extends Env = Env>(
-  app: Hono<E, Schema>,
+export function setupRoutes(
+  app: Hono,
   // Todo use cases
   createTodoUseCase: CreateTodoUseCase,
   getTodoListUseCase: GetTodoListUseCase,
@@ -56,7 +53,7 @@ export function setupRoutes<E extends Env = Env>(
   deleteTodoActivityUseCase: DeleteTodoActivityUseCase,
   // PrismaClient for controllers
   prisma: PrismaClient,
-): Hono<E, Schema> {
+): Hono {
   // Todo routes
   app.post(
     "/todos",

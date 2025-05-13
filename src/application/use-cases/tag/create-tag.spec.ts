@@ -36,12 +36,6 @@ describe("CreateTagUseCase", () => {
       removeTagFromTodo: mock(() => Promise.resolve()),
       getTagsForTodo: mock(() => Promise.resolve([])),
       getTodoIdsForTag: mock(() => Promise.resolve([])),
-      // 追加されたメソッド
-      getTodoIdsWithAllTags: mock(() => Promise.resolve([])),
-      getTodoIdsWithAnyTag: mock(() => Promise.resolve([])),
-      bulkAssignTagToTodos: mock(() => Promise.resolve(0)),
-      bulkRemoveTagFromTodos: mock(() => Promise.resolve(0)),
-      getTagStatistics: mock(() => Promise.resolve([])),
     };
 
     createTagUseCase = new CreateTagUseCase(tagRepository);
@@ -142,11 +136,6 @@ describe("CreateTagUseCase", () => {
       removeTagFromTodo: async () => {},
       getTagsForTodo: async () => [],
       getTodoIdsForTag: async () => [],
-      getTodoIdsWithAllTags: async () => [],
-      getTodoIdsWithAnyTag: async () => [],
-      bulkAssignTagToTodos: async () => 0,
-      bulkRemoveTagFromTodos: async () => 0,
-      getTagStatistics: async () => [],
     };
     const useCase = new CreateTagUseCase(realTagRepository);
 
@@ -190,11 +179,6 @@ describe("CreateTagUseCase", () => {
       removeTagFromTodo: async () => {},
       getTagsForTodo: async () => [],
       getTodoIdsForTag: async () => [],
-      getTodoIdsWithAllTags: async () => [],
-      getTodoIdsWithAnyTag: async () => [],
-      bulkAssignTagToTodos: async () => 0,
-      bulkRemoveTagFromTodos: async () => 0,
-      getTagStatistics: async () => [],
     };
     const useCase = new CreateTagUseCase(realTagRepository);
 

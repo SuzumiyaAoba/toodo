@@ -92,10 +92,6 @@ This document defines the requirements and specifications for a TODO management 
 | GET     | /todos/{id}/tags          | Get tags of a specific TODO          | 200: OK, 404: Not Found           |
 | DELETE  | /todos/{id}/tags/{tagId}  | Remove a tag from a TODO             | 204: No Content, 404: Not Found   |
 | GET     | /todos/by-tag/{tagId}     | Get TODOs by tag                     | 200: OK, 404: Not Found           |
-| GET     | /todos/by-tags            | Get TODOs by multiple tags           | 200: OK                           |
-| POST    | /tags/{id}/bulk-assign    | Assign a tag to multiple TODOs       | 200: OK, 404: Not Found           |
-| DELETE  | /tags/{id}/bulk-remove    | Remove a tag from multiple TODOs     | 200: OK, 404: Not Found           |
-| GET     | /tags/stats               | Get tag usage statistics             | 200: OK                           |
 
 ## 4. Technical Stack
 - **Backend**: TypeScript with Hono framework
@@ -109,7 +105,7 @@ This document defines the requirements and specifications for a TODO management 
 - Priority setting for TODOs
 - Due date functionality
 - ~~Tagging system~~ (Implemented)
-- ~~Tag-based filtering and reporting~~ (Implemented)
 - Mobile app integration
 - Activity statistics and reports
 - Work time visualization and reporting
+- Tag-based filtering and reporting
