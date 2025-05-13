@@ -1,7 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "bun:test";
 import { Hono } from "hono";
 import { PrismaClient, type TodoActivity } from "./generated/prisma";
-import type { TodoActivityList } from "./schema";
 
 // Create a Prisma Client for testing
 const prisma = new PrismaClient({
@@ -935,7 +934,7 @@ describe("TODO API", () => {
         const activitiesResponse = await app.request(`/todos/${todo.id}/activities`, {
           method: "GET",
         });
-        const activities: TodoActivityList = await activitiesResponse.json();
+        const activities = await activitiesResponse.json();
 
         // Should not find the deleted activity ID in the list
         const deletedActivityExists = activities.some((activity) => activity.id === noteActivity.id);
