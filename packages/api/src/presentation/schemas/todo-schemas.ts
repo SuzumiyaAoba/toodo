@@ -242,7 +242,7 @@ type TodoDependencyNode = {
   id: string;
   title: string;
   status: TodoStatus;
-  priority: PriorityLevel | null; // Changed from number type to PriorityLevel type
+  priority: PriorityLevel | null; // number型からPriorityLevel型に変更
   dependencies: TodoDependencyNode[];
 };
 

@@ -15,10 +15,10 @@ describe("Todo API E2E Tests", () => {
     await teardownTestDatabase();
   });
 
-  test("should create a new todo successfully", async () => {
+  test("Todoの新規作成が正常に行えること", async () => {
     const todoData = {
-      title: "Todo for E2E test",
-      description: "This todo is used for E2E test validation.",
+      title: "E2Eテスト用Todo",
+      description: "E2Eテストの検証に使用するTodoです",
       priority: "high",
     };
 
@@ -40,7 +40,7 @@ describe("Todo API E2E Tests", () => {
     createdTodoId = responseData.id;
   });
 
-  test("should get the list of all todos", async () => {
+  test("全Todoのリストが取得できること", async () => {
     const response = await app.request(`${apiBase}/todos`);
 
     expect(response.status).toBe(200);
@@ -48,30 +48,30 @@ describe("Todo API E2E Tests", () => {
     expect(Array.isArray(responseData)).toBe(true);
     expect(responseData.length).toBeGreaterThan(0);
 
-    // Check that the created todo is included
+    // 作成したTodoが含まれていることを確認
     const foundTodo = responseData.find((todo) => todo.id === createdTodoId);
     expect(foundTodo).toBeDefined();
   });
 
-  test("should get a todo by ID", async () => {
+  test("IDでTodoを取得できること", async () => {
     const response = await app.request(`${apiBase}/todos/${createdTodoId}`);
 
     expect(response.status).toBe(200);
     const responseData = (await response.json()) as Todo;
     expect(responseData).toHaveProperty("id", createdTodoId);
-    expect(responseData).toHaveProperty("title", "Todo for E2E test");
+    expect(responseData).toHaveProperty("title", "E2Eテスト用Todo");
   });
 
-  test("should return 404 when accessing a non-existent todo", async () => {
+  test("存在しないTodoへのアクセスで404が返ること", async () => {
     const nonExistentId = "00000000-0000-0000-0000-000000000000";
     const response = await app.request(`${apiBase}/todos/${nonExistentId}`);
 
     expect(response.status).toBe(404);
   });
 
-  test("should update a todo successfully", async () => {
+  test("Todoの更新が正常に行えること", async () => {
     const updateData = {
-      title: "Updated todo title",
+      title: "更新されたTodoタイトル",
       status: "completed",
     };
 
@@ -85,15 +85,15 @@ describe("Todo API E2E Tests", () => {
     const responseData = (await response.json()) as Todo;
     expect(responseData).toHaveProperty("title", updateData.title);
     expect(responseData).toHaveProperty("status", updateData.status);
-    // Check that the description is retained
-    expect(responseData).toHaveProperty("description", "This todo is used for E2E test validation.");
+    // 更新していない項目は保持されていることを確認
+    expect(responseData).toHaveProperty("description", "E2Eテストの検証に使用するTodoです");
   });
 
-  test("should add and get todo activities", async () => {
-    // Add activity
+  test("Todoアクティビティの追加と取得が行えること", async () => {
+    // アクティビティを追加
     const activityData = {
       type: "started",
-      note: "Start work in E2E test",
+      note: "E2Eテストでの作業開始",
     };
 
     const createResponse = await app.request(`${apiBase}/todos/${createdTodoId}/activities`, {
@@ -108,7 +108,7 @@ describe("Todo API E2E Tests", () => {
     expect(createResponseData).toHaveProperty("type", activityData.type);
     expect(createResponseData).toHaveProperty("note", activityData.note);
 
-    // Get activity list
+    // アクティビティのリストを取得
     const listResponse = await app.request(`${apiBase}/todos/${createdTodoId}/activities`);
 
     expect(listResponse.status).toBe(200);
@@ -116,20 +116,20 @@ describe("Todo API E2E Tests", () => {
     expect(Array.isArray(listResponseData)).toBe(true);
     expect(listResponseData.length).toBeGreaterThan(0);
 
-    // Check that the added activity is included
+    // 追加したアクティビティが含まれていることを確認
     const foundActivity = listResponseData.find(
       (activity) => activity.type === activityData.type && activity.note === activityData.note,
     );
     expect(foundActivity).toBeDefined();
   });
 
-  test("should get work time for a todo", async () => {
-    // Add completed activity to generate work time
+  test("Todoの作業時間が取得できること", async () => {
+    // まず完了アクティビティを追加してwork timeを生成
     await app.request(`${apiBase}/todos/${createdTodoId}/activities`, {
       method: "POST",
       body: JSON.stringify({
         type: "completed",
-        note: "Complete work in E2E test",
+        note: "E2Eテストでの作業完了",
       }),
       headers: new Headers({ "Content-Type": "application/json" }),
     });
@@ -143,13 +143,13 @@ describe("Todo API E2E Tests", () => {
     expect(responseData).toHaveProperty("formattedTime");
   });
 
-  test("should delete a todo successfully", async () => {
+  test("Todoの削除が正常に行えること", async () => {
     const deleteResponse = await app.request(`${apiBase}/todos/${createdTodoId}`, {
       method: "DELETE",
     });
     expect(deleteResponse.status).toBe(204);
 
-    // Check that 404 is returned after deletion
+    // 削除後にアクセスして404が返ることを確認
     const getResponse = await app.request(`${apiBase}/todos/${createdTodoId}`);
     expect(getResponse.status).toBe(404);
   });

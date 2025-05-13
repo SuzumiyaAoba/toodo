@@ -1,4 +1,4 @@
-// Type definitions for Todo
+// Todo関連の型定義
 export interface Todo {
   id: string;
   title: string;
@@ -13,7 +13,7 @@ export interface Todo {
   projectId?: string;
 }
 
-// Type definitions for TodoActivity
+// TodoActivity関連の型定義
 export interface TodoActivity {
   id: string;
   todoId: string;
@@ -24,7 +24,7 @@ export interface TodoActivity {
   workTime?: number;
 }
 
-// Type definitions for Tag
+// Tag関連の型定義
 export interface Tag {
   id: string;
   name: string;
@@ -33,7 +33,7 @@ export interface Tag {
   updatedAt: string;
 }
 
-// Type definitions for Project
+// Project関連の型定義
 export interface Project {
   id: string;
   name: string;
@@ -44,7 +44,7 @@ export interface Project {
   updatedAt: string;
 }
 
-// Type definitions for TodoWorkTime
+// TodoWorkTime関連の型定義
 export interface TodoWorkTime {
   id: string;
   totalWorkTime: number;

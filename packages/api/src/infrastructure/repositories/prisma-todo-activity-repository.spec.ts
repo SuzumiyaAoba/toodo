@@ -6,12 +6,12 @@ import type { PrismaClient } from "../../generated/prisma";
 import type { DefaultArgs, PrismaClientOptions } from "../../generated/prisma/runtime/library";
 import { PrismaTodoActivityRepository } from "./prisma-todo-activity-repository";
 
-// Extended type for mock functions
+// モック関数の型を拡張
 type MockedFunction<T extends (...args: unknown[]) => unknown> = {
   [K in keyof ReturnType<typeof mock<T>>]: ReturnType<typeof mock<T>>[K];
 } & T;
 
-// Type for mocked PrismaClient
+// モック化されたPrismaClientの型
 interface MockedPrismaClient {
   todoActivity: {
     findMany: MockedFunction<(args: unknown) => Promise<unknown[]>>;
@@ -252,16 +252,16 @@ describe("PrismaTodoActivityRepository", () => {
         await repository.delete("non-existent");
       } catch (error) {
         errorThrown = true;
-        // Assert the type of the error object
+        // エラーオブジェクトの型をアサーション
         const err = error as TodoActivityNotFoundError;
         expect(err.name).toBe("TodoActivityNotFoundError");
         expect(err.message).toContain("non-existent");
       }
 
-      // Confirm that the error was thrown
+      // エラーがスローされたことを確認
       expect(errorThrown).toBe(true);
 
-      // Confirm that the delete method was not called
+      // deleteメソッドが呼ばれていないことを確認
       expect(deleteMethod).not.toHaveBeenCalled();
     });
   });

@@ -85,14 +85,14 @@ export class PrismaTagRepository extends PrismaBaseRepository<Tag, PrismaTag> im
         throw new TagNotFoundError(id);
       }
 
-      // Use a transaction to delete the tag and related TodoTag
+      // トランザクションを使って、タグとそのタグに関連するTodoTagを削除
       await this.prisma.$transaction(async (prisma) => {
-        // First, delete related TodoTag
+        // まず関連するTodoTagを削除
         await prisma.todoTag.deleteMany({
           where: { tagId: id },
         });
 
-        // Next, delete the tag itself
+        // 次にタグ自体を削除
         await prisma.tag.delete({
           where: { id },
         });
@@ -113,7 +113,7 @@ export class PrismaTagRepository extends PrismaBaseRepository<Tag, PrismaTag> im
 
   async removeTagFromTodo(todoId: string, tagId: string): Promise<void> {
     return this.executePrismaOperation(async () => {
-      // First, check if the relation exists
+      // まず関連が存在するか確認
       const todoTag = await this.prisma.todoTag.findUnique({
         where: {
           todoId_tagId: {
@@ -127,7 +127,7 @@ export class PrismaTagRepository extends PrismaBaseRepository<Tag, PrismaTag> im
         throw new Error(`Tag with ID '${tagId}' is not assigned to todo with ID '${todoId}'`);
       }
 
-      // Execute the deletion
+      // 削除を実行
       await this.prisma.todoTag.delete({
         where: {
           todoId_tagId: {
@@ -161,8 +161,8 @@ export class PrismaTagRepository extends PrismaBaseRepository<Tag, PrismaTag> im
 
   async getTodoIdsWithAllTags(tagIds: string[]): Promise<string[]> {
     return this.executePrismaOperation(async () => {
-      // Use raw SQL for efficient implementation
-      // Get all todos with the specified tags
+      // 効率的な実装のためにRaw SQLを使用
+      // 指定されたすべてのタグを持つTodoを取得
       const todos = await this.prisma.$queryRaw<Array<{ todoId: string }>>`
         SELECT tt.todoId
         FROM TodoTag tt
@@ -195,7 +195,7 @@ export class PrismaTagRepository extends PrismaBaseRepository<Tag, PrismaTag> im
 
   async bulkAssignTagToTodos(tagId: string, todoIds: string[]): Promise<number> {
     return this.executePrismaOperation(async () => {
-      // Get existing relations to avoid duplicates
+      // 既存の関連を取得して、重複を避ける
       const existingRelations = await this.prisma.todoTag.findMany({
         where: {
           tagId,
@@ -215,7 +215,7 @@ export class PrismaTagRepository extends PrismaBaseRepository<Tag, PrismaTag> im
         return 0;
       }
 
-      // New relations are created in bulk
+      // 新しい関連を一括作成
       const result = await this.prisma.todoTag.createMany({
         data: newTodoIds.map((todoId) => ({
           todoId,
@@ -229,7 +229,7 @@ export class PrismaTagRepository extends PrismaBaseRepository<Tag, PrismaTag> im
 
   async bulkRemoveTagFromTodos(tagId: string, todoIds: string[]): Promise<number> {
     return this.executePrismaOperation(async () => {
-      // Get relations to be deleted
+      // 削除対象の関連を取得
       const relations = await this.prisma.todoTag.findMany({
         where: {
           tagId,
@@ -243,7 +243,7 @@ export class PrismaTagRepository extends PrismaBaseRepository<Tag, PrismaTag> im
         return 0;
       }
 
-      // Delete relations in bulk
+      // 関連を一括削除
       await this.prisma.todoTag.deleteMany({
         where: {
           tagId,
@@ -268,13 +268,13 @@ export class PrismaTagRepository extends PrismaBaseRepository<Tag, PrismaTag> im
     }>
   > {
     return this.executePrismaOperation(async () => {
-      // Get all tags
+      // すべてのタグを取得
       const tags = await this.prisma.tag.findMany();
 
-      // Collect statistics for each tag
+      // タグごとの統計情報を収集
       const statistics = await Promise.all(
         tags.map(async (tag) => {
-          // Get all todos with the specified tag
+          // タグが付けられたすべてのTodoを取得
           const todoTags = await this.prisma.todoTag.findMany({
             where: { tagId: tag.id },
             include: { todo: true },
@@ -295,7 +295,7 @@ export class PrismaTagRepository extends PrismaBaseRepository<Tag, PrismaTag> im
         }),
       );
 
-      // Sort by usage frequency
+      // 使用頻度順にソート
       return statistics.sort((a, b) => b.usageCount - a.usageCount);
     });
   }

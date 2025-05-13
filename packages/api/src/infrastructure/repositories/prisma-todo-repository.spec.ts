@@ -30,7 +30,7 @@ describe("PrismaTodoRepository", () => {
     await prisma.$disconnect();
   });
 
-  // ... other existing tests
+  // ... 他の既存のテスト
 
   describe("Subtask management", () => {
     let parentTodo: Todo;
@@ -38,7 +38,7 @@ describe("PrismaTodoRepository", () => {
     let subtask2: Todo;
 
     beforeEach(async () => {
-      // Create Todo entity using Todo.createNew
+      // Todo.createNewを使用してTodoエンティティを作成
       parentTodo = await repository.create(
         Todo.createNew({
           id: "test-parent-id",
@@ -99,7 +99,7 @@ describe("PrismaTodoRepository", () => {
 
       // Assert
       const updatedSubtask = await repository.findById(subtask1.id);
-      // parentId becomes undefined (not null) when mapped to Todo entity
+      // parentIdはnullではなくundefinedになる（Todoエンティティにマッピングされる際の変換）
       expect(updatedSubtask?.parentId).toBeUndefined();
 
       const children = await repository.findByParent(parentTodo.id);
@@ -138,7 +138,7 @@ describe("PrismaTodoRepository", () => {
 
       // Assert
       const updatedSubtask = await repository.findById(subtask1.id);
-      // parentId becomes undefined (not null) when mapped to Todo entity
+      // parentIdはnullではなくundefinedになる（Todoエンティティにマッピングされる際の変換）
       expect(updatedSubtask?.parentId).toBeUndefined();
     });
 
@@ -148,7 +148,7 @@ describe("PrismaTodoRepository", () => {
       await repository.updateParent(subtask2.id, subtask1.id);
 
       // Act & Assert
-      // Circular reference: parent -> subtask1 -> subtask2 -> parent
+      // 循環参照: parent -> subtask1 -> subtask2 -> parent
       const wouldCreateCycle = await repository.checkForHierarchyCycle(parentTodo.id, subtask2.id);
       expect(wouldCreateCycle).toBe(true);
     });
@@ -191,10 +191,10 @@ describe("PrismaTodoRepository", () => {
       expect(childrenTree[0]?.subtaskIds.length).toBe(1);
       expect(childrenTree[0]?.subtaskIds[0]).toBe(subtask2.id);
 
-      // Depth limit test
+      // 深さ制限テスト
       expect(limitedTree.length).toBe(1);
       expect(limitedTree[0]?.id).toBe(subtask1.id);
-      // subtask2 is not included because depth is limited to 1
+      // 深さが1に制限されているので、subtask2は含まれない
       expect(limitedTree[0]?.subtaskIds.length).toBe(0);
     });
   });

@@ -98,7 +98,7 @@ export function setupTodoRoutes<E extends Env = Env, S extends Schema = Schema>(
     async (c) => {
       const data = c.req.valid("json") as v.InferOutput<typeof CreateTodoSchema>;
 
-      // Convert priority string to PriorityLevel type
+      // 文字列のpriorityをPriorityLevel型に変換
       const todoData = {
         ...data,
         priority: data.priority ? (data.priority as PriorityLevel) : undefined,
@@ -225,7 +225,7 @@ export function setupTodoRoutes<E extends Env = Env, S extends Schema = Schema>(
       const { id } = c.req.valid("param") as v.InferOutput<typeof IdParamSchema>;
       const data = c.req.valid("json") as v.InferOutput<typeof UpdateTodoSchema>;
 
-      // Convert priority string to PriorityLevel type
+      // 文字列のpriorityをPriorityLevel型に変換
       const todoData = {
         ...data,
         priority: data.priority ? (data.priority as PriorityLevel) : undefined,

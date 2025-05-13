@@ -489,7 +489,7 @@ export class Todo {
   }
 }
 
-// Define type aliases to avoid direct import of api package types from core package
+// coreパッケージからapiパッケージの型を直接importしないため、型エイリアスを定義
 type DomainPrismaTodo = {
   id: string;
   title: string;

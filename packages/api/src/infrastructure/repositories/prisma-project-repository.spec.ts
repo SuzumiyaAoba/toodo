@@ -32,7 +32,7 @@ describe("PrismaProjectRepository", () => {
     const createdProject = await repository.create(testProject);
     expect(createdProject.id).toBe(testProject.id);
     expect(createdProject.name).toBe(testProject.name);
-    // Changed to conditional checks considering the type instead of using toEqual
+    // toEqualではなく、型を考慮した条件チェックに変更
     if (testProject.description) {
       expect(createdProject.description).toBe(testProject.description);
     }

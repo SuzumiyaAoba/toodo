@@ -41,7 +41,7 @@ export function setupTodoDependencyRoutes<E extends Env = Env, S extends Schema 
   app: Hono<E, S>,
   todoRepository: TodoRepository,
 ): Hono<E, S> {
-  // Endpoint to add a dependency relationship
+  // 依存関係を追加するエンドポイント
   app.post(
     "/todos/:id/dependencies/:dependencyId",
     describeRoute({
@@ -108,7 +108,7 @@ export function setupTodoDependencyRoutes<E extends Env = Env, S extends Schema 
     },
   );
 
-  // Endpoint to remove a dependency relationship
+  // 依存関係を削除するエンドポイント
   app.delete(
     "/todos/:id/dependencies/:dependencyId",
     describeRoute({
@@ -171,7 +171,7 @@ export function setupTodoDependencyRoutes<E extends Env = Env, S extends Schema 
     },
   );
 
-  // Endpoint to get dependencies
+  // 依存関係を取得するエンドポイント
   app.get(
     "/todos/:id/dependencies",
     describeRoute({
@@ -230,7 +230,7 @@ export function setupTodoDependencyRoutes<E extends Env = Env, S extends Schema 
     },
   );
 
-  // Endpoint to get dependents
+  // 依存先を取得するエンドポイント
   app.get(
     "/todos/:id/dependents",
     describeRoute({
@@ -289,7 +289,7 @@ export function setupTodoDependencyRoutes<E extends Env = Env, S extends Schema 
     },
   );
 
-  // Endpoint to get dependency tree
+  // 依存関係ツリーを取得するエンドポイント
   app.get(
     "/todos/:id/dependency-tree",
     describeRoute({
@@ -340,13 +340,13 @@ export function setupTodoDependencyRoutes<E extends Env = Env, S extends Schema 
     async (c) => {
       const { id } = c.req.valid("param") as v.InferOutput<typeof IdParamSchema>;
 
-      // Get max depth from query parameter (default is 10)
+      // クエリパラメータから最大深度を取得（デフォルト値は10）
       const queryParams = {
         maxDepth: c.req.query("maxDepth"),
       };
 
       const parsedParams = parse(DependencyTreeQuerySchema, queryParams);
-      const maxDepth = parsedParams.maxDepth ?? 10; // Default value is 10
+      const maxDepth = parsedParams.maxDepth ?? 10; // デフォルト値は10
 
       const useCase = new GetTodoDependencyTreeUseCase(todoRepository);
 
