@@ -6,13 +6,9 @@
     "format": "biome check --write"
   },
   "dependencies": {
-    "@hono/valibot-validator": "^0.5.2",
-    "@valibot/to-json-schema": "^1.0.0",
     "hono": "^4.7.4",
-    "hono-openapi": "^0.4.6",
     "lint-staged": "^15.5.0",
-    "prisma": "^6.6.0",
-    "valibot": "^1.0.0"
+    "prisma": "^6.6.0"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
