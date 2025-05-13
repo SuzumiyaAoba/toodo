@@ -5,6 +5,10 @@ import { PrismaClient } from "./generated/prisma";
 import { errorHandler } from "./presentation/middlewares/error-handler";
 import { setupRoutes } from "./presentation/routes";
 
+import { TodoActivityController } from "./presentation/controllers/todo-activity-controller";
+// Controllers
+import { TodoController } from "./presentation/controllers/todo-controller";
+
 import { CreateTodoActivityUseCase } from "./application/use-cases/todo-activity/create-todo-activity";
 import { DeleteTodoActivityUseCase } from "./application/use-cases/todo-activity/delete-todo-activity";
 import { GetTodoActivityListUseCase } from "./application/use-cases/todo-activity/get-todo-activity-list";
@@ -69,18 +73,24 @@ const createTodoActivityUseCase = new CreateTodoActivityUseCase(todoRepository, 
 const getTodoActivityListUseCase = new GetTodoActivityListUseCase(todoRepository, todoActivityRepository);
 const deleteTodoActivityUseCase = new DeleteTodoActivityUseCase(todoRepository, todoActivityRepository);
 
-// Setup routes directly with use cases
-const routes = setupRoutes(
+// Initialize controllers
+const todoController = new TodoController(
   createTodoUseCase,
   getTodoListUseCase,
   getTodoUseCase,
   updateTodoUseCase,
   deleteTodoUseCase,
   getTodoWorkTimeUseCase,
+);
+
+const todoActivityController = new TodoActivityController(
   createTodoActivityUseCase,
   getTodoActivityListUseCase,
   deleteTodoActivityUseCase,
 );
+
+// Setup routes
+const routes = setupRoutes(todoController, todoActivityController);
 app.route("/", routes);
 
 // Export app
