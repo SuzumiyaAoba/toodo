@@ -9,6 +9,6 @@
     "enabled": true
   },
   "files": {
-    "ignore": [".github/**", "docs/**", "prisma", "src/generated/**"]
+    "ignore": ["docs/**", "prisma", "src/generated/**"]
   }
 }
