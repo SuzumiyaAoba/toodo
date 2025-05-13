@@ -16,8 +16,6 @@ import {
   TodoNotFoundError,
   UnauthorizedActivityDeletionError,
 } from "../../domain/errors/todo-errors";
-import type { PrismaClient } from "../../generated/prisma";
-import { TagController } from "../controllers/tag-controller";
 import {
   CreateTodoActivitySchema,
   CreateTodoSchema,
@@ -50,8 +48,6 @@ export function setupRoutes(
   createTodoActivityUseCase: CreateTodoActivityUseCase,
   getTodoActivityListUseCase: GetTodoActivityListUseCase,
   deleteTodoActivityUseCase: DeleteTodoActivityUseCase,
-  // PrismaClient for Tag controller
-  prisma: PrismaClient,
 ): Hono {
   // Todo routes
   app.post(
@@ -469,10 +465,6 @@ export function setupRoutes(
       }
     },
   );
-
-  // Tag routes
-  const tagController = new TagController(prisma);
-  app.route("/tags", tagController.getApp());
 
   return app;
 }

@@ -81,7 +81,6 @@ setupRoutes(
   createTodoActivityUseCase,
   getTodoActivityListUseCase,
   deleteTodoActivityUseCase,
-  prisma, // Pass PrismaClient instance for TagController
 );
 
 // Export app

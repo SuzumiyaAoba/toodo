@@ -3,7 +3,6 @@
     "strict": true,
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx",
-    "types": ["bun-types", "node"],
-    "skipLibCheck": true
+    "types": ["bun-types", "node"]
   }
 }

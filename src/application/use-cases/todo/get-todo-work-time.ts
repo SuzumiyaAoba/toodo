@@ -1,4 +1,3 @@
-import { WorkState } from "../../../domain/entities/todo";
 import { TodoNotFoundError } from "../../../domain/errors/todo-errors";
 import type { TodoRepository } from "../../../domain/repositories/todo-repository";
 
@@ -25,20 +24,12 @@ export class GetTodoWorkTimeUseCase {
       throw new TodoNotFoundError(id);
     }
 
-    // Calculate the current total work time, including ongoing work if in ACTIVE state
-    let totalWorkTime = todo.totalWorkTime;
-    if (todo.workState === WorkState.ACTIVE && todo.lastStateChangeAt) {
-      const now = new Date();
-      const activeTime = Math.floor((now.getTime() - todo.lastStateChangeAt.getTime()) / 1000);
-      totalWorkTime += activeTime;
-    }
-
     // Format the work time
-    const formattedTime = this.formatWorkTime(totalWorkTime);
+    const formattedTime = this.formatWorkTime(todo.totalWorkTime);
 
     return {
       id: todo.id,
-      totalWorkTime: totalWorkTime,
+      totalWorkTime: todo.totalWorkTime,
       workState: todo.workState,
       formattedTime,
     };
@@ -47,34 +38,31 @@ export class GetTodoWorkTimeUseCase {
   /**
    * Format work time in seconds to a human-readable string
    * @param seconds Total seconds
-   * @returns Formatted time string in shortened format (e.g., "2h 30m 15s")
+   * @returns Formatted time string (e.g., "2 hours, 30 minutes, 15 seconds")
    */
   private formatWorkTime(seconds: number): string {
     if (seconds === 0) {
-      return "0s";
+      return "0 seconds";
     }
 
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const remainingSeconds = seconds % 60;
 
-    const parts: string[] = [];
+    const parts = [];
 
     if (hours > 0) {
-      parts.push(`${hours}h`);
-      // 時間がある場合は常に分を表示（0分でも表示）
-      parts.push(`${minutes}m`);
-    } else {
-      // 時間がない場合
-      if (minutes > 0) {
-        parts.push(`${minutes}m`);
-      }
-
-      if (remainingSeconds > 0 || (hours === 0 && minutes === 0)) {
-        parts.push(`${remainingSeconds}s`);
-      }
+      parts.push(`${hours} ${hours === 1 ? "hour" : "hours"}`);
     }
 
-    return parts.join(" ");
+    if (minutes > 0) {
+      parts.push(`${minutes} ${minutes === 1 ? "minute" : "minutes"}`);
+    }
+
+    if (remainingSeconds > 0) {
+      parts.push(`${remainingSeconds} ${remainingSeconds === 1 ? "second" : "seconds"}`);
+    }
+
+    return parts.join(", ");
   }
 }

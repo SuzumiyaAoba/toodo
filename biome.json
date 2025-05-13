@@ -6,8 +6,7 @@
     "lineWidth": 120
   },
   "linter": {
-    "enabled": true,
-    "ignore": ["*.spec.ts"]
+    "enabled": true
   },
   "files": {
     "ignore": [".github/**", "docs/**", "prisma", "src/generated/**"]
