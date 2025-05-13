@@ -18,10 +18,10 @@ import {
 import { IdParamSchema, TodoSchema } from "../schemas/todo-schemas";
 import { convertToResponseSchema } from "../utils/schema-converter";
 
-// Subtask-related routes
+// サブタスク関連のルート
 const subtaskRoutes = new Hono();
 
-// Initialize repository and use cases
+// リポジトリとユースケースの初期化
 const todoRepository = new PrismaTodoRepository(prisma);
 const addSubtaskUseCase = new AddSubtaskUseCase(todoRepository);
 const removeSubtaskUseCase = new RemoveSubtaskUseCase(todoRepository);
@@ -29,7 +29,7 @@ const getSubtasksUseCase = new GetSubtasksUseCase(todoRepository);
 const getSubtaskTreeUseCase = new GetSubtaskTreeUseCase(todoRepository);
 const createTodoUseCase = new CreateTodoUseCase(todoRepository);
 
-// Retrieve the list of subtasks
+// サブタスクのリストを取得
 subtaskRoutes.get("/:id/subtasks", validate("param", IdParamSchema), async (c) => {
   const { id } = c.req.valid("param") as { id: string };
 
@@ -39,14 +39,14 @@ subtaskRoutes.get("/:id/subtasks", validate("param", IdParamSchema), async (c) =
   return c.json(responseBody);
 });
 
-// Retrieve the tree of subtasks
+// サブタスクのツリーを取得
 subtaskRoutes.get("/:id/subtask-tree", validate("param", IdParamSchema), async (c) => {
   const { id } = c.req.valid("param") as { id: string };
   const maxDepth = c.req.query("maxDepth") ? Number.parseInt(c.req.query("maxDepth") as string, 10) : undefined;
 
   const subtaskTree = await getSubtaskTreeUseCase.execute({ todoId: id, maxDepth });
 
-  // Define the type of subtask tree
+  // サブタスクツリーの型定義
   interface SubtaskWithIds {
     id: string;
     title: string;
@@ -70,7 +70,7 @@ subtaskRoutes.get("/:id/subtask-tree", validate("param", IdParamSchema), async (
     subtasks: SubtaskTreeNode[];
   }
 
-  // Conversion function for subtask tree (recursively structure subtasks)
+  // サブタスクツリーの変換関数（再帰的にサブタスクを構造化）
   const convertToTreeFormat = (subtasks: SubtaskWithIds[]): SubtaskTreeNode[] => {
     return subtasks.map((subtask) => {
       const { subtaskIds, ...rest } = subtask;
@@ -84,7 +84,7 @@ subtaskRoutes.get("/:id/subtask-tree", validate("param", IdParamSchema), async (
         dueDate?: string;
       };
 
-      // Search for subtasks by subtask ID and recursively convert
+      // サブタスクIDからサブタスクを検索して再帰的に変換
       if (subtask.subtaskIds && subtask.subtaskIds.length > 0) {
         const childSubtasks = subtasks.filter((s) => subtask.subtaskIds.includes(s.id));
         return {
@@ -112,7 +112,7 @@ subtaskRoutes.get("/:id/subtask-tree", validate("param", IdParamSchema), async (
     });
   };
 
-  // Convert Todo entity to SubtaskWithIds type
+  // TodoエンティティをSubtaskWithIds型に変換
   const subtaskTreeWithIds = subtaskTree.map((todo) => ({
     id: todo.id,
     title: todo.title,
@@ -128,7 +128,7 @@ subtaskRoutes.get("/:id/subtask-tree", validate("param", IdParamSchema), async (
   return c.json(responseBody);
 });
 
-// Add a subtask to a parent task
+// 親タスクにサブタスクを追加
 subtaskRoutes.post("/:id/subtasks/:subtaskId", validate("param", TodoSubtaskParamSchema), async (c) => {
   const { id, subtaskId } = c.req.valid("param") as { id: string; subtaskId: string };
 
@@ -136,7 +136,7 @@ subtaskRoutes.post("/:id/subtasks/:subtaskId", validate("param", TodoSubtaskPara
   return c.json({ success: true, message: "Subtask added successfully" }, 200);
 });
 
-// Remove a subtask from a parent task
+// 親タスクからサブタスクを削除
 subtaskRoutes.delete("/:id/subtasks/:subtaskId", validate("param", TodoSubtaskParamSchema), async (c) => {
   const { id, subtaskId } = c.req.valid("param") as { id: string; subtaskId: string };
 
@@ -144,7 +144,7 @@ subtaskRoutes.delete("/:id/subtasks/:subtaskId", validate("param", TodoSubtaskPa
   return c.json({ success: true, message: "Subtask removed successfully" }, 200);
 });
 
-// Create a new subtask and add it to a parent task
+// 新しいサブタスクを作成して親タスクに追加
 subtaskRoutes.post(
   "/:id/create-subtask",
   validate("param", IdParamSchema),
@@ -157,13 +157,13 @@ subtaskRoutes.post(
       priority: string | undefined;
     };
 
-    // Check if the parent task exists
+    // 親タスクが存在するか確認
     const parentTodo = await todoRepository.findById(id);
     if (!parentTodo) {
       return c.json({ error: `Todo with id ${id} not found` }, 404);
     }
 
-    // Convert string priority to PriorityLevel type
+    // 文字列の優先度をPriorityLevel型に変換
     let priorityLevel = undefined;
     if (priority) {
       switch (priority.toLowerCase()) {
@@ -181,7 +181,7 @@ subtaskRoutes.post(
       }
     }
 
-    // Create a new subtask
+    // 新しいサブタスクを作成
     const subtask = await createTodoUseCase.execute({
       title,
       description,
