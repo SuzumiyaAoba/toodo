@@ -15,7 +15,6 @@ import {
   TodoListSchema,
   TodoSchema,
   UpdateTodoSchema,
-  WorkTimeResponseSchema,
 } from "./schema";
 
 const app = new Hono();
@@ -275,84 +274,22 @@ app.post(
       return c.json({ error: "Todo not found" }, 404);
     }
 
-    // Calculate work time if applicable
-    let workTime = null;
-    const previousState = todo.workState;
-    let newWorkState = todo.workState;
-
-    // Calculate work time based on activity type and current state
-    if (type === "started") {
-      // Cannot start if already active or completed
-      if (todo.workState === "active") {
-        return c.json({ error: "Invalid state transition. TODO is already active" }, 400);
-      }
-      if (todo.workState === "completed") {
-        return c.json({ error: "Invalid state transition. Cannot start a completed TODO" }, 400);
-      }
-      newWorkState = "active";
-      workTime = 0; // Starting the work, so no time yet
-    } else if (type === "paused") {
-      // Can only pause if active
-      if (todo.workState !== "active") {
-        return c.json({ error: "Invalid state transition. Can only pause an active TODO" }, 400);
-      }
-      newWorkState = "paused";
-
-      // Calculate the elapsed time since the last state change
-      const now = new Date();
-      const elapsedSeconds = Math.floor((now.getTime() - todo.lastStateChangeAt.getTime()) / 1000);
-      workTime = elapsedSeconds;
-    } else if (type === "completed") {
-      // Can mark as completed from any state except already completed
-      if (todo.workState === "completed") {
-        return c.json({ error: "Invalid state transition. TODO is already completed" }, 400);
-      }
-      newWorkState = "completed";
-
-      // If active, calculate the elapsed time
-      if (todo.workState === "active") {
-        const now = new Date();
-        const elapsedSeconds = Math.floor((now.getTime() - todo.lastStateChangeAt.getTime()) / 1000);
-        workTime = elapsedSeconds;
-      } else {
-        workTime = 0; // No additional time if not active
-      }
-    } else if (type === "discarded") {
-      // Record the work time if active at time of discard
-      if (todo.workState === "active") {
-        const now = new Date();
-        const elapsedSeconds = Math.floor((now.getTime() - todo.lastStateChangeAt.getTime()) / 1000);
-        workTime = elapsedSeconds;
-      }
-    }
-
-    // Update the total work time for the TODO
-    let totalWorkTime = todo.totalWorkTime;
-    if (workTime && ["paused", "completed"].includes(type)) {
-      totalWorkTime += workTime;
-    }
-
-    // Create the activity record
+    // Create the activity
     const activity = await prisma.todoActivity.create({
       data: {
         todoId: id,
         type,
-        workTime,
-        previousState,
         note,
       },
     });
 
-    // Update the TODO status and work state
-    await prisma.todo.update({
-      where: { id },
-      data: {
-        status: type === "completed" ? "completed" : todo.status,
-        workState: newWorkState,
-        totalWorkTime,
-        lastStateChangeAt: new Date(),
-      },
-    });
+    // If the activity type is "completed", also update the TODO status
+    if (type === "completed") {
+      await prisma.todo.update({
+        where: { id },
+        data: { status: "completed" },
+      });
+    }
 
     return c.json(activity, 201);
   },
@@ -402,83 +339,5 @@ app.get(
     return c.json(activities);
   },
 );
-
-// Get TODO work time
-app.get(
-  "/todos/:id/work-time",
-  describeRoute({
-    description: "Get the total work time of a TODO",
-    responses: {
-      200: {
-        description: "Work time information",
-        content: {
-          "application/json": {
-            schema: resolver(WorkTimeResponseSchema, valibotConfig),
-          },
-        },
-      },
-      404: {
-        description: "TODO not found",
-        content: {
-          "application/json": {
-            schema: resolver(ErrorResponseSchema, valibotConfig),
-          },
-        },
-      },
-    },
-    validateResponse: true,
-  }),
-  vValidator("param", IdParamSchema),
-  async (c) => {
-    const { id } = c.req.valid("param");
-
-    // Check if the TODO exists
-    const todo = await prisma.todo.findUnique({ where: { id } });
-    if (!todo) {
-      return c.json({ error: "Todo not found" }, 404);
-    }
-
-    // Format the work time in a human-readable format
-    const formattedTime = formatWorkTime(todo.totalWorkTime);
-
-    return c.json({
-      id: todo.id,
-      totalWorkTime: todo.totalWorkTime,
-      workState: todo.workState,
-      formattedTime,
-    });
-  },
-);
-
-/**
- * Format work time in seconds to a human-readable string
- * @param seconds Total seconds
- * @returns Formatted time string (e.g., "2 hours, 30 minutes, 15 seconds")
- */
-function formatWorkTime(seconds: number): string {
-  if (seconds === 0) {
-    return "0 seconds";
-  }
-
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const remainingSeconds = seconds % 60;
-
-  const parts = [];
-
-  if (hours > 0) {
-    parts.push(`${hours} ${hours === 1 ? "hour" : "hours"}`);
-  }
-
-  if (minutes > 0) {
-    parts.push(`${minutes} ${minutes === 1 ? "minute" : "minutes"}`);
-  }
-
-  if (remainingSeconds > 0) {
-    parts.push(`${remainingSeconds} ${remainingSeconds === 1 ? "second" : "seconds"}`);
-  }
-
-  return parts.join(", ");
-}
 
 export default app;

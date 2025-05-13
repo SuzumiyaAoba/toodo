@@ -23,9 +23,6 @@ This document outlines the API endpoints for the TODO management system built wi
     "title": "Go shopping",
     "description": "Buy milk and bread",
     "status": "pending",
-    "workState": "idle",
-    "totalWorkTime": 0,
-    "lastStateChangeAt": "2025-04-20T12:34:56.789Z",
     "createdAt": "2025-04-20T12:34:56.789Z",
     "updatedAt": "2025-04-20T12:34:56.789Z"
   }
@@ -42,9 +39,6 @@ This document outlines the API endpoints for the TODO management system built wi
       "title": "Go shopping",
       "description": "Buy milk and bread",
       "status": "pending",
-      "workState": "idle",
-      "totalWorkTime": 0,
-      "lastStateChangeAt": "2025-04-20T12:34:56.789Z",
       "createdAt": "2025-04-20T12:34:56.789Z",
       "updatedAt": "2025-04-20T12:34:56.789Z"
     }
@@ -61,9 +55,6 @@ This document outlines the API endpoints for the TODO management system built wi
     "title": "Go shopping",
     "description": "Buy milk and bread",
     "status": "pending",
-    "workState": "active",
-    "totalWorkTime": 1200,
-    "lastStateChangeAt": "2025-04-20T12:34:56.789Z",
     "createdAt": "2025-04-20T12:34:56.789Z",
     "updatedAt": "2025-04-20T12:34:56.789Z"
   }
@@ -93,9 +84,6 @@ This document outlines the API endpoints for the TODO management system built wi
     "title": "Shopping list",
     "description": "Buy milk, bread, and eggs",
     "status": "completed",
-    "workState": "completed",
-    "totalWorkTime": 3600,
-    "lastStateChangeAt": "2025-04-20T13:45:12.345Z",
     "createdAt": "2025-04-20T12:34:56.789Z",
     "updatedAt": "2025-04-20T13:45:12.345Z"
   }
@@ -122,8 +110,6 @@ This document outlines the API endpoints for the TODO management system built wi
     "id": "7e9b91c5-77c5-4316-9ddc-6fdcaf2158eb",
     "todoId": "550e8400-e29b-41d4-a716-446655440000",
     "type": "started",
-    "workTime": 0,
-    "previousState": "idle",
     "note": "Starting work on this task",
     "createdAt": "2025-04-20T14:30:22.123Z"
   }
@@ -140,12 +126,6 @@ This document outlines the API endpoints for the TODO management system built wi
     "error": "Invalid activity type. Must be one of: started, paused, completed, discarded"
   }
   ```
-- **Error** (400 Bad Request):
-  ```json
-  {
-    "error": "Invalid state transition. Cannot transition from 'completed' to 'active'"
-  }
-  ```
 
 ### 2.7 Get TODO Activity History
 - **URL**: `/todos/{id}/activities`
@@ -157,8 +137,6 @@ This document outlines the API endpoints for the TODO management system built wi
       "id": "7e9b91c5-77c5-4316-9ddc-6fdcaf2158eb",
       "todoId": "550e8400-e29b-41d4-a716-446655440000",
       "type": "started",
-      "workTime": 0,
-      "previousState": "idle",
       "note": "Starting work on this task",
       "createdAt": "2025-04-20T14:30:22.123Z"
     },
@@ -166,8 +144,6 @@ This document outlines the API endpoints for the TODO management system built wi
       "id": "59f7a65e-867a-4235-b1dd-5bcd4bc6c82c",
       "todoId": "550e8400-e29b-41d4-a716-446655440000",
       "type": "paused",
-      "workTime": 4500,
-      "previousState": "active",
       "note": "Taking a break",
       "createdAt": "2025-04-20T15:45:30.456Z"
     },
@@ -175,31 +151,10 @@ This document outlines the API endpoints for the TODO management system built wi
       "id": "a2b4c6d8-e0f2-4681-8ace-024681357913",
       "todoId": "550e8400-e29b-41d4-a716-446655440000",
       "type": "completed",
-      "workTime": 2100,
-      "previousState": "active",
       "note": "Finished all items on the list",
       "createdAt": "2025-04-20T16:20:15.789Z"
     }
   ]
-  ```
-- **Error** (404 Not Found):
-  ```json
-  {
-    "error": "Todo not found"
-  }
-  ```
-
-### 2.8 Get TODO Work Time
-- **URL**: `/todos/{id}/work-time`
-- **Method**: `GET`
-- **Response** (200 OK):
-  ```json
-  {
-    "id": "550e8400-e29b-41d4-a716-446655440000",
-    "totalWorkTime": 6600,
-    "workState": "completed",
-    "formattedTime": "1 hour, 50 minutes"
-  }
   ```
 - **Error** (404 Not Found):
   ```json
