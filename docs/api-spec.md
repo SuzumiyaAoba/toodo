@@ -18,22 +18,16 @@ All endpoints can return the following error response:
 
 ```json
 {
-  "error": {
-    "code": "ERROR_CODE",
-    "message": "Error message"
-  }
+  "error": "Error message"
 }
 ```
 
 Common error codes:
-
 - `VALIDATION_ERROR` - Invalid input data (HTTP 400)
 - `NOT_FOUND` - Requested resource not found (HTTP 404)
 - `INTERNAL_ERROR` - Unexpected server error (HTTP 500)
 - `DEPENDENCY_CYCLE` - Dependency cycle detected (HTTP 400)
 - `INVALID_STATE` - Invalid state transition (HTTP 400)
-- `CONFLICT` - Resource conflict (HTTP 409)
-- `FORBIDDEN` - Action not allowed (HTTP 403)
 
 ## Endpoints
 
@@ -46,14 +40,12 @@ GET /todos
 ```
 
 Query parameters:
-
 - `status` - Filter by todo status (optional)
 - `priority` - Filter by priority level (optional)
 - `tag` - Filter by tag ID (optional)
 - `project` - Filter by project ID (optional)
 
 Response:
-
 ```json
 [
   {
@@ -69,7 +61,7 @@ Response:
     "priority": "low | medium | high",
     "projectId": "string | null",
     "dependencies": ["string"], // IDs of todos this todo depends on
-    "dependents": ["string"] // IDs of todos that depend on this todo
+    "dependents": ["string"]    // IDs of todos that depend on this todo
   }
 ]
 ```
@@ -81,7 +73,6 @@ GET /todos/:id
 ```
 
 Response:
-
 ```json
 {
   "id": "string",
@@ -96,7 +87,7 @@ Response:
   "priority": "low | medium | high",
   "projectId": "string | null",
   "dependencies": ["string"], // IDs of todos this todo depends on
-  "dependents": ["string"] // IDs of todos that depend on this todo
+  "dependents": ["string"]    // IDs of todos that depend on this todo
 }
 ```
 
@@ -107,12 +98,11 @@ POST /todos
 ```
 
 Request body:
-
 ```json
 {
   "title": "string",
   "description": "string | null",
-  "status": "pending | in_progress | completed", // Optional, default: "pending"
+  "status": "pending | completed", // Optional, default: "pending"
   "priority": "low | medium | high", // Optional, default: "medium"
   "projectId": "string | null" // Optional
 }
@@ -127,12 +117,11 @@ PUT /todos/:id
 ```
 
 Request body:
-
 ```json
 {
   "title": "string", // Optional
   "description": "string | null", // Optional
-  "status": "pending | in_progress | completed", // Optional
+  "status": "pending | completed", // Optional
   "priority": "low | medium | high" // Optional
 }
 ```
@@ -158,7 +147,6 @@ Adds a dependency relationship where the todo with ID `:id` depends on the todo 
 Response: 204 No Content
 
 Possible errors:
-
 - `DEPENDENCY_CYCLE` - Adding this dependency would create a cycle (HTTP 400)
 - `TODO_NOT_FOUND` - Todo or dependency todo not found (HTTP 404)
 - `SELF_DEPENDENCY` - Self-referential dependencies are not allowed (HTTP 400)
@@ -183,7 +171,6 @@ GET /todos/:id/dependencies
 Gets all todos that the specified todo depends on.
 
 Response:
-
 ```json
 {
   "dependencies": [
@@ -206,7 +193,6 @@ GET /todos/:id/dependents
 Gets all todos that depend on the specified todo.
 
 Response:
-
 ```json
 {
   "dependents": [
@@ -229,11 +215,9 @@ GET /todos/:id/dependency-tree
 Gets the specified todo and its dependencies in a hierarchical tree structure.
 
 Query parameters:
-
 - `maxDepth` - Maximum depth of the tree to retrieve (optional, default: unlimited)
 
 Response:
-
 ```json
 {
   "id": "string",
@@ -261,7 +245,6 @@ PUT /todos/:id/due-date
 ```
 
 Request body:
-
 ```json
 {
   "dueDate": "ISO date string | null"
@@ -279,7 +262,6 @@ GET /todos/overdue
 Gets all todos that are past their due date and not completed.
 
 Response:
-
 ```json
 [
   {
@@ -289,7 +271,7 @@ Response:
     "status": "pending | in_progress | completed",
     "workState": "idle | active | paused | completed",
     "priority": "low | medium | high",
-    "dueDate": "ISO date string"
+    "dueDate": "ISO date string",
     // other Todo properties
   }
 ]
@@ -304,11 +286,9 @@ GET /todos/due-soon
 Gets all todos that are due soon (within the specified number of days) and not completed.
 
 Query parameters:
-
 - `days` - Number of days to consider "soon" (optional, default: 2)
 
 Response:
-
 ```json
 [
   {
@@ -318,7 +298,7 @@ Response:
     "status": "pending | in_progress | completed",
     "workState": "idle | active | paused | completed",
     "priority": "low | medium | high",
-    "dueDate": "ISO date string"
+    "dueDate": "ISO date string",
     // other Todo properties
   }
 ]
@@ -333,12 +313,10 @@ GET /todos/by-due-date
 Gets all todos with due dates within the specified range.
 
 Query parameters:
-
 - `startDate` - Start date of the range (ISO date string, required)
 - `endDate` - End date of the range (ISO date string, required)
 
 Response:
-
 ```json
 [
   {
@@ -348,7 +326,7 @@ Response:
     "status": "pending | in_progress | completed",
     "workState": "idle | active | paused | completed",
     "priority": "low | medium | high",
-    "dueDate": "ISO date string"
+    "dueDate": "ISO date string",
     // other Todo properties
   }
 ]
@@ -363,7 +341,6 @@ GET /todos/:id/activities
 ```
 
 Response:
-
 ```json
 [
   {
@@ -385,7 +362,6 @@ POST /todos/:id/activities
 ```
 
 Request body:
-
 ```json
 {
   "type": "started | paused | completed | discarded",
@@ -396,7 +372,6 @@ Request body:
 Response: Created activity object (201 Created)
 
 Possible errors:
-
 - `TODO_NOT_FOUND` - The specified todo was not found (HTTP 404)
 - `INVALID_STATE_TRANSITION` - The transition from the current state to the specified activity type is invalid (HTTP 400)
 
@@ -409,7 +384,6 @@ GET /tags
 ```
 
 Response:
-
 ```json
 [
   {
@@ -429,7 +403,6 @@ GET /tags/:id
 ```
 
 Response:
-
 ```json
 {
   "id": "string",
@@ -447,7 +420,6 @@ POST /tags
 ```
 
 Request body:
-
 ```json
 {
   "name": "string",
@@ -464,7 +436,6 @@ PUT /tags/:id
 ```
 
 Request body:
-
 ```json
 {
   "name": "string",
@@ -491,7 +462,6 @@ GET /projects
 ```
 
 Response:
-
 ```json
 [
   {
@@ -513,7 +483,6 @@ GET /projects/:id
 ```
 
 Response:
-
 ```json
 {
   "id": "string",
@@ -533,7 +502,6 @@ POST /projects
 ```
 
 Request body:
-
 ```json
 {
   "name": "string",
@@ -552,7 +520,6 @@ PUT /projects/:id
 ```
 
 Request body:
-
 ```json
 {
   "name": "string",
@@ -571,125 +538,3 @@ DELETE /projects/:id
 ```
 
 Response: 204 No Content
-
-### Subtasks
-
-#### Get Todo Subtasks
-
-```
-GET /todos/:id/subtasks
-```
-
-Gets all direct subtasks of the specified todo.
-
-Response:
-
-```json
-[
-  {
-    "id": "string",
-    "title": "string",
-    "description": "string | null",
-    "status": "pending | in_progress | completed",
-    "workState": "idle | active | paused | completed",
-    "priority": "low | medium | high",
-    "dueDate": "ISO date string | null"
-    // other Todo properties
-  }
-]
-```
-
-#### Get Subtask Tree
-
-```
-GET /todos/:id/subtask-tree
-```
-
-Gets the specified todo's subtasks in a hierarchical tree structure.
-
-Query parameters:
-
-- `maxDepth` - Maximum depth of the tree to retrieve (optional, default: unlimited)
-
-Response:
-
-```json
-[
-  {
-    "id": "string",
-    "title": "string",
-    "description": "string | null",
-    "status": "pending | in_progress | completed",
-    "workState": "idle | active | paused | completed",
-    "priority": "low | medium | high",
-    "dueDate": "ISO date string | null",
-    "subtasks": [
-      // Recursive structure
-    ]
-  }
-]
-```
-
-#### Add Subtask
-
-```
-POST /todos/:id/subtasks/:subtaskId
-```
-
-Adds an existing todo as a subtask to the parent todo with ID `:id`.
-
-Response:
-
-```json
-{
-  "success": true,
-  "message": "Subtask added successfully"
-}
-```
-
-Possible errors:
-
-- `TODO_NOT_FOUND` - Parent or subtask todo not found (HTTP 404)
-- `DEPENDENCY_CYCLE` - Adding this subtask would create a cycle (HTTP 400)
-
-#### Remove Subtask
-
-```
-DELETE /todos/:id/subtasks/:subtaskId
-```
-
-Removes a subtask relationship between todos.
-
-Response:
-
-```json
-{
-  "success": true,
-  "message": "Subtask removed successfully"
-}
-```
-
-#### Create Subtask
-
-```
-POST /todos/:id/create-subtask
-```
-
-Creates a new todo and adds it as a subtask to the parent todo with ID `:id`.
-
-Request body:
-
-```json
-{
-  "title": "string",
-  "description": "string | null",
-  "priority": "low | medium | high" // Optional, default: "medium"
-}
-```
-
-Response: Created Todo object
-
-Possible errors:
-
-- `TODO_NOT_FOUND` - Parent todo not found (HTTP 404)
-- `VALIDATION_ERROR` - Invalid input data (HTTP 400)

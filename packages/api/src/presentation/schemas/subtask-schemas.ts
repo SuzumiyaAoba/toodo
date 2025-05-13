@@ -70,6 +70,7 @@ export type SubtaskTreeResponse = v.InferOutput<typeof SubtaskTreeSchema>;
  * Create subtask request schema
  */
 export const CreateSubtaskSchema = v.object({
+  parentId: CommonSchemas.uuid(),
   title: CommonSchemas.title(),
   description: CommonSchemas.description(),
   priority: v.optional(CommonSchemas.priorityLevel()), // Using CommonSchemas for consistency
