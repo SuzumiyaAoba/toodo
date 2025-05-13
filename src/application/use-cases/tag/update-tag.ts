@@ -54,7 +54,7 @@ export class UpdateTagUseCase {
       throw new TagNotFoundError(validated.id);
     }
 
-    // Check for duplicate name only if name is being changed
+    // 名前が変更されていて、かつ既存のタグと同じ名前でない場合のみ重複チェックを行う
     if (validated.name !== undefined && validated.name !== existingTag.name) {
       const tagWithSameName = await this.tagRepository.getTagByName(validated.name);
       if (tagWithSameName && tagWithSameName.id !== validated.id) {
@@ -62,11 +62,11 @@ export class UpdateTagUseCase {
       }
     }
 
-    // Update tag - preserve null values when explicitly set
+    // Update tag - nullの場合はundefinedに変換しない
     return this.tagRepository.updateTag(
       validated.id,
       validated.name ?? undefined,
-      "color" in input ? validated.color : undefined,
+      "color" in input ? validated.color : undefined, // nullの場合はnullのまま
     );
   }
 }
