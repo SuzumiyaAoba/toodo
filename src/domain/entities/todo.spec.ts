@@ -1,5 +1,4 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { createTestTodo, jest } from "./test-helpers";
 import { PriorityLevel, Todo, TodoStatus, WorkState, mapToDomainTodo } from "./todo";
 
 describe("Todo Entity", () => {
