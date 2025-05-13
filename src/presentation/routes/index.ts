@@ -647,12 +647,7 @@ export function setupRoutes<E extends Env = Env>(
           description: "Tag not found",
           content: {
             "application/json": {
-              schema: {
-                type: "object",
-                properties: {
-                  message: { type: "string" },
-                },
-              },
+              schema: resolver(ErrorResponseSchema, valibotConfig),
             },
           },
         },
@@ -960,7 +955,15 @@ export function setupRoutes<E extends Env = Env>(
       summary: "Get a specific tag",
       description: "Retrieve a tag by its ID",
       request: {
-        params: resolver(IdParamSchema, valibotConfig),
+        params: {
+          schema: {
+            type: "object",
+            properties: {
+              id: { type: "string", format: "uuid" },
+            },
+            required: ["id"],
+          },
+        },
       },
       responses: {
         200: {
@@ -986,7 +989,6 @@ export function setupRoutes<E extends Env = Env>(
         },
       },
     }),
-    vValidator("param", IdParamSchema),
     async (c) => {
       const id = c.req.param("id");
       const useCase = new GetTagByIdUseCase(tagRepository);
@@ -1008,7 +1010,15 @@ export function setupRoutes<E extends Env = Env>(
       summary: "Update a tag",
       description: "Update an existing tag with new information",
       request: {
-        params: resolver(IdParamSchema, valibotConfig),
+        params: {
+          schema: {
+            type: "object",
+            properties: {
+              id: { type: "string", format: "uuid" },
+            },
+            required: ["id"],
+          },
+        },
         body: {
           required: true,
           content: {
@@ -1042,7 +1052,6 @@ export function setupRoutes<E extends Env = Env>(
         },
       },
     }),
-    vValidator("param", IdParamSchema),
     vValidator("json", UpdateTagSchema),
     async (c) => {
       const id = c.req.param("id");
@@ -1069,7 +1078,15 @@ export function setupRoutes<E extends Env = Env>(
       summary: "Delete a tag",
       description: "Delete a tag by its ID",
       request: {
-        params: resolver(IdParamSchema, valibotConfig),
+        params: {
+          schema: {
+            type: "object",
+            properties: {
+              id: { type: "string", format: "uuid" },
+            },
+            required: ["id"],
+          },
+        },
       },
       responses: {
         204: {
@@ -1079,15 +1096,19 @@ export function setupRoutes<E extends Env = Env>(
           description: "Tag not found",
           content: {
             "application/json": {
-              schema: resolver(ErrorResponseSchema, valibotConfig),
+              schema: {
+                type: "object",
+                properties: {
+                  error: { type: "string" },
+                },
+              },
             },
           },
         },
       },
     }),
-    vValidator("param", IdParamSchema),
     async (c) => {
-      const { id } = c.req.valid("param");
+      const id = c.req.param("id");
       const useCase = new DeleteTagUseCase(tagRepository);
 
       try {
@@ -1110,7 +1131,15 @@ export function setupRoutes<E extends Env = Env>(
       summary: "Get todos by tag",
       description: "Retrieve all todo items that have a specific tag",
       request: {
-        params: resolver(IdParamSchema, valibotConfig),
+        params: {
+          schema: {
+            type: "object",
+            properties: {
+              id: { type: "string", format: "uuid", description: "The tag ID" },
+            },
+            required: ["id"],
+          },
+        },
       },
       responses: {
         200: {
@@ -1125,15 +1154,19 @@ export function setupRoutes<E extends Env = Env>(
           description: "Tag not found",
           content: {
             "application/json": {
-              schema: resolver(ErrorResponseSchema, valibotConfig),
+              schema: {
+                type: "object",
+                properties: {
+                  message: { type: "string" },
+                },
+              },
             },
           },
         },
       },
     }),
-    vValidator("param", IdParamSchema),
     async (c) => {
-      const { id: tagId } = c.req.valid("param");
+      const tagId = c.req.param("id");
       const useCase = new GetTodosByTagUseCase(tagRepository, todoRepository);
 
       try {
@@ -1168,7 +1201,15 @@ export function setupRoutes<E extends Env = Env>(
       summary: "Bulk assign a tag to todos",
       description: "Assign a tag to multiple todo items at once",
       request: {
-        params: resolver(IdParamSchema, valibotConfig),
+        params: {
+          schema: {
+            type: "object",
+            properties: {
+              id: { type: "string", format: "uuid", description: "The tag ID" },
+            },
+            required: ["id"],
+          },
+        },
         body: {
           required: true,
           content: {
@@ -1197,16 +1238,20 @@ export function setupRoutes<E extends Env = Env>(
           description: "Tag not found",
           content: {
             "application/json": {
-              schema: resolver(ErrorResponseSchema, valibotConfig),
+              schema: {
+                type: "object",
+                properties: {
+                  message: { type: "string" },
+                },
+              },
             },
           },
         },
       },
     }),
-    vValidator("param", IdParamSchema),
     vValidator("json", BulkTagOperationSchema),
     async (c) => {
-      const { id: tagId } = c.req.valid("param");
+      const tagId = c.req.param("id");
       const data = c.req.valid("json");
       const useCase = new BulkAssignTagUseCase(tagRepository, todoRepository);
 
@@ -1234,7 +1279,15 @@ export function setupRoutes<E extends Env = Env>(
       summary: "Bulk remove a tag from todos",
       description: "Remove a tag from multiple todo items at once",
       request: {
-        params: resolver(IdParamSchema, valibotConfig),
+        params: {
+          schema: {
+            type: "object",
+            properties: {
+              id: { type: "string", format: "uuid", description: "The tag ID" },
+            },
+            required: ["id"],
+          },
+        },
         body: {
           required: true,
           content: {
@@ -1266,16 +1319,20 @@ export function setupRoutes<E extends Env = Env>(
           description: "Tag not found",
           content: {
             "application/json": {
-              schema: resolver(ErrorResponseSchema, valibotConfig),
+              schema: {
+                type: "object",
+                properties: {
+                  message: { type: "string" },
+                },
+              },
             },
           },
         },
       },
     }),
-    vValidator("param", IdParamSchema),
     vValidator("json", BulkTagOperationSchema),
     async (c) => {
-      const { id: tagId } = c.req.valid("param");
+      const tagId = c.req.param("id");
       const data = c.req.valid("json");
       const useCase = new BulkRemoveTagUseCase(tagRepository, todoRepository);
 
@@ -1418,14 +1475,36 @@ export function setupRoutes<E extends Env = Env>(
       summary: "Get a specific project",
       description: "Retrieve a project by its ID",
       request: {
-        params: resolver(IdParamSchema, valibotConfig),
+        params: {
+          schema: {
+            type: "object",
+            properties: {
+              id: { type: "string", format: "uuid" },
+            },
+            required: ["id"],
+          },
+        },
       },
       responses: {
         200: {
           description: "Project details",
           content: {
             "application/json": {
-              schema: resolver(ProjectSchema, valibotConfig),
+              schema: {
+                type: "object",
+                properties: {
+                  project: {
+                    type: "object",
+                    properties: {
+                      id: { type: "string", format: "uuid" },
+                      name: { type: "string" },
+                      description: { type: "string", nullable: true },
+                      createdAt: { type: "string", format: "date-time" },
+                      updatedAt: { type: "string", format: "date-time" },
+                    },
+                  },
+                },
+              },
             },
           },
         },
@@ -1433,19 +1512,23 @@ export function setupRoutes<E extends Env = Env>(
           description: "Project not found",
           content: {
             "application/json": {
-              schema: resolver(ErrorResponseSchema, valibotConfig),
+              schema: {
+                type: "object",
+                properties: {
+                  error: { type: "string" },
+                },
+              },
             },
           },
         },
       },
     }),
-    vValidator("param", IdParamSchema),
     async (c) => {
-      const { id } = c.req.valid("param");
+      const projectId = c.req.param("id");
       const getProject = new GetProject(projectRepository);
 
       try {
-        const project = await getProject.execute(id);
+        const project = await getProject.execute(projectId);
         return c.json({ project });
       } catch (error) {
         if (error instanceof ProjectNotFoundError) {
@@ -1463,7 +1546,15 @@ export function setupRoutes<E extends Env = Env>(
       summary: "Update a project",
       description: "Update a project with the provided data",
       request: {
-        params: resolver(IdParamSchema, valibotConfig),
+        params: {
+          schema: {
+            type: "object",
+            properties: {
+              id: { type: "string", format: "uuid" },
+            },
+            required: ["id"],
+          },
+        },
         body: {
           required: true,
           content: {
@@ -1478,7 +1569,21 @@ export function setupRoutes<E extends Env = Env>(
           description: "Project updated successfully",
           content: {
             "application/json": {
-              schema: resolver(ProjectSchema, valibotConfig),
+              schema: {
+                type: "object",
+                properties: {
+                  project: {
+                    type: "object",
+                    properties: {
+                      id: { type: "string", format: "uuid" },
+                      name: { type: "string" },
+                      description: { type: "string", nullable: true },
+                      createdAt: { type: "string", format: "date-time" },
+                      updatedAt: { type: "string", format: "date-time" },
+                    },
+                  },
+                },
+              },
             },
           },
         },
@@ -1486,7 +1591,12 @@ export function setupRoutes<E extends Env = Env>(
           description: "Project not found",
           content: {
             "application/json": {
-              schema: resolver(ErrorResponseSchema, valibotConfig),
+              schema: {
+                type: "object",
+                properties: {
+                  error: { type: "string" },
+                },
+              },
             },
           },
         },
@@ -1494,22 +1604,26 @@ export function setupRoutes<E extends Env = Env>(
           description: "Project name already exists",
           content: {
             "application/json": {
-              schema: resolver(ErrorResponseSchema, valibotConfig),
+              schema: {
+                type: "object",
+                properties: {
+                  error: { type: "string" },
+                },
+              },
             },
           },
         },
       },
     }),
-    vValidator("param", IdParamSchema),
     vValidator("json", updateProjectRequestSchema),
     async (c) => {
-      const { id } = c.req.valid("param");
+      const projectId = c.req.param("id");
       const input = c.req.valid("json");
       const updateProject = new UpdateProject(projectRepository);
 
       try {
         const project = await updateProject.execute({
-          id,
+          id: projectId,
           ...input,
         });
         return c.json({ project });
