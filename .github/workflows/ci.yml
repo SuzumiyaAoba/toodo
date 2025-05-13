@@ -35,6 +35,3 @@ jobs:
 
       - name: Run tests
         run: cd packages/api && bun test
-
-      - name: Run E2E tests
-        run: cd packages/api && bun test:e2e

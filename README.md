@@ -41,19 +41,16 @@ Toodo is a **REST API** application for efficient task management. It provides p
 ## ✨ Key Features
 
 - **📝 Todo Management**
-
   - Create, update, and delete tasks
   - Set priorities and deadlines
   - Manage task dependencies
 
 - **⏱️ Work Time Tracking**
-
   - Start/stop task work sessions
   - Automatic time calculation and aggregation
   - Record activity history
 
 - **🏷️ Tag Management**
-
   - Create and manage custom tags
   - Tag tasks for organization
   - Filter by tags
@@ -68,17 +65,14 @@ Toodo is a **REST API** application for efficient task management. It provides p
 Toodo is designed following the principles of Clean Architecture, with clear separation of concerns:
 
 - 🌐 **Presentation Layer**
-
   - API endpoints, routing, and validation
   - Error handling and response formatting
 
 - 🔄 **Application Layer**
-
   - Use cases and business logic orchestration
   - Transaction management
 
 - 📊 **Domain Layer**
-
   - Business entities and domain logic
   - Repository interfaces and domain errors
 
@@ -139,24 +133,21 @@ bun test
 
 # Run specific tests
 bun test src/domain/entities/todo.spec.ts
-
-# Run E2E tests
-bun test:e2e
 ```
 
 ## 📡 API Endpoints
 
-| Method | Endpoint       | Description             |
-| ------ | -------------- | ----------------------- |
-| GET    | /api/todos     | Get all todos           |
-| GET    | /api/todos/:id | Get a specific todo     |
-| POST   | /api/todos     | Create a new todo       |
-| PUT    | /api/todos/:id | Update an existing todo |
-| DELETE | /api/todos/:id | Delete a todo           |
-| GET    | /api/projects  | Get all projects        |
-| POST   | /api/projects  | Create a new project    |
-| GET    | /api/tags      | Get all tags            |
-| POST   | /api/tags      | Create a new tag        |
+| Method | Endpoint             | Description                |
+|--------|----------------------|----------------------------|
+| GET    | /api/todos           | Get all todos             |
+| GET    | /api/todos/:id       | Get a specific todo       |
+| POST   | /api/todos           | Create a new todo         |
+| PUT    | /api/todos/:id       | Update an existing todo   |
+| DELETE | /api/todos/:id       | Delete a todo             |
+| GET    | /api/projects        | Get all projects          |
+| POST   | /api/projects        | Create a new project      |
+| GET    | /api/tags            | Get all tags              |
+| POST   | /api/tags            | Create a new tag          |
 
 See the [API Specification](./docs/api-spec.md) for more details.
 

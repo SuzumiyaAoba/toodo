@@ -58,10 +58,12 @@ describe("RemoveTodoFromProjectUseCase", () => {
     const todoId = "todo-1";
     const existingProject = new Project(projectId, "Test Project");
     const existingTodo = createMockTodo(todoId, "Test Todo", projectId);
+    const updatedTodo = createMockTodo(todoId, "Test Todo");
 
     mockProjectRepository.findById = mock(async () => existingProject);
     mockProjectRepository.findTodosByProjectId = mock(async () => [todoId]);
     mockTodoRepository.findById = mock(async () => existingTodo);
+    mockTodoRepository.update = mock(async () => updatedTodo);
 
     const input = {
       projectId,
@@ -75,7 +77,10 @@ describe("RemoveTodoFromProjectUseCase", () => {
     expect(mockProjectRepository.findById).toHaveBeenCalledWith(projectId);
     expect(mockProjectRepository.findTodosByProjectId).toHaveBeenCalledWith(projectId);
     expect(mockTodoRepository.findById).toHaveBeenCalledWith(todoId);
-    expect(mockProjectRepository.removeTodo).toHaveBeenCalledWith(projectId, todoId);
+    expect(mockTodoRepository.update).toHaveBeenCalledTimes(1);
+
+    // mock.calls を使用せずに検証する
+    expect(mockTodoRepository.update).toHaveBeenCalled();
   });
 
   it("should throw an error if project is not found", async () => {
@@ -95,7 +100,7 @@ describe("RemoveTodoFromProjectUseCase", () => {
     expect(mockProjectRepository.findById).toHaveBeenCalledWith(projectId);
     expect(mockProjectRepository.findTodosByProjectId).not.toHaveBeenCalled();
     expect(mockTodoRepository.findById).not.toHaveBeenCalled();
-    expect(mockProjectRepository.removeTodo).not.toHaveBeenCalled();
+    expect(mockTodoRepository.update).not.toHaveBeenCalled();
   });
 
   it("should throw an error if todo is not found", async () => {
@@ -118,7 +123,7 @@ describe("RemoveTodoFromProjectUseCase", () => {
     expect(mockProjectRepository.findById).toHaveBeenCalledWith(projectId);
     expect(mockProjectRepository.findTodosByProjectId).toHaveBeenCalledWith(projectId);
     expect(mockTodoRepository.findById).toHaveBeenCalledWith(todoId);
-    expect(mockProjectRepository.removeTodo).not.toHaveBeenCalled();
+    expect(mockTodoRepository.update).not.toHaveBeenCalled();
   });
 
   it("should throw an error if todo is not in project", async () => {
@@ -142,6 +147,6 @@ describe("RemoveTodoFromProjectUseCase", () => {
     expect(mockProjectRepository.findById).toHaveBeenCalledWith(projectId);
     expect(mockProjectRepository.findTodosByProjectId).toHaveBeenCalledWith(projectId);
     expect(mockTodoRepository.findById).not.toHaveBeenCalled();
-    expect(mockProjectRepository.removeTodo).not.toHaveBeenCalled();
+    expect(mockTodoRepository.update).not.toHaveBeenCalled();
   });
 });

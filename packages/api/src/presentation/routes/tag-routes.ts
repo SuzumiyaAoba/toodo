@@ -401,8 +401,7 @@ export function setupTagRoutes<E extends Env = Env, S extends Schema = Schema>(
 
       try {
         await useCase.execute({ todoId, tagId });
-        c.status(204);
-        return c.body(null);
+        return c.status(204);
       } catch (error) {
         if (error instanceof Error) {
           if (error.message.includes("not found")) {
@@ -412,7 +411,7 @@ export function setupTagRoutes<E extends Env = Env, S extends Schema = Schema>(
             return c.json({ message: error.message }, 400);
           }
         }
-        return c.json({ message: "An unexpected error occurred" }, 500);
+        throw error;
       }
     },
   );
@@ -565,11 +564,10 @@ export function setupTagRoutes<E extends Env = Env, S extends Schema = Schema>(
 
       try {
         await useCase.execute({ id });
-        c.status(204);
-        return c.body(null);
+        return c.status(204);
       } catch (error) {
         if (error instanceof Error && error.message.includes("not found")) {
-          return c.json({ message: error.message }, 404);
+          return c.json({ error: error.message }, 404);
         }
         throw error;
       }
@@ -660,14 +658,8 @@ export function setupTagRoutes<E extends Env = Env, S extends Schema = Schema>(
               schema: {
                 type: "object",
                 properties: {
-                  successCount: {
-                    type: "number",
-                    description: "Number of todos that were successfully tagged",
-                  },
-                  failedCount: {
-                    type: "number",
-                    description: "Number of todos that failed to be tagged",
-                  },
+                  successCount: { type: "number", description: "Number of todos that were successfully tagged" },
+                  failedCount: { type: "number", description: "Number of todos that failed to be tagged" },
                 },
               },
             },
@@ -736,10 +728,7 @@ export function setupTagRoutes<E extends Env = Env, S extends Schema = Schema>(
                     type: "number",
                     description: "Number of todos the tag was successfully removed from",
                   },
-                  failedCount: {
-                    type: "number",
-                    description: "Number of todos that failed tag removal",
-                  },
+                  failedCount: { type: "number", description: "Number of todos that failed tag removal" },
                 },
               },
             },
