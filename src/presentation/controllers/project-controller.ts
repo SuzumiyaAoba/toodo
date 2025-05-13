@@ -22,7 +22,7 @@ import {
   updateProjectRequestSchema,
 } from "../schemas/project-schemas";
 
-// Validated context type for Hono
+// Honoのバリデーション済みコンテキスト型
 type ValidatedContext<T, P extends string = string> = Omit<Context, "req"> & {
   req: HonoRequest & {
     valid: (target: "json") => T;
@@ -79,7 +79,7 @@ export class ProjectController {
 
     try {
       const project = await updateProject.execute({
-        id: projectId as string, // treat param as string type
+        id: projectId as string, // paramはstring型として扱う
         ...input,
       });
       return c.json({ project });
@@ -171,7 +171,7 @@ export class ProjectController {
   }
 
   setupRoutes<E extends Env = Env, S extends HonoSchema = HonoSchema>(app: Hono<E, S>) {
-    // Using type casting to properly handle context after validation
+    // 型キャストを使用して、バリデーション後のコンテキストを適切に処理
     app.post("/projects", vValidator("json", createProjectRequestSchema), (c) =>
       this.createProject(c as unknown as ValidatedContext<CreateProjectRequest>),
     );
