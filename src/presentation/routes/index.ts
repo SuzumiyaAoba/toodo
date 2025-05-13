@@ -520,762 +520,231 @@ export function setupRoutes<E extends Env = Env>(
   };
 
   // Get all tags
-  app.get(
-    "/tags",
-    describeRoute({
-      tags: ["Tags"],
-      summary: "Get all tags",
-      description: "Retrieve a list of all tags in the system",
-      responses: {
-        200: {
-          description: "List of tags",
-          content: {
-            "application/json": {
-              schema: {
-                type: "array",
-                items: resolver(TagSchema, valibotConfig),
-              },
-            },
-          },
-        },
-      },
-    }),
-    async (c) => {
-      const useCase = new GetAllTagsUseCase(tagRepository);
-      const tags = await useCase.execute();
-      return c.json(tags.map((tag) => mapTagToResponse(tag)));
-    },
-  );
+  app.get("/tags", async (c) => {
+    const useCase = new GetAllTagsUseCase(tagRepository);
+    const tags = await useCase.execute();
+    return c.json(tags.map((tag) => mapTagToResponse(tag)));
+  });
 
   // Get tag usage statistics
-  app.get(
-    "/tags/stats",
-    describeRoute({
-      tags: ["Tags", "Statistics"],
-      summary: "Get tag usage statistics",
-      description: "Retrieve statistics about tag usage including count of todos per tag",
-      responses: {
-        200: {
-          description: "Tag statistics",
-          content: {
-            "application/json": {
-              schema: {
-                type: "array",
-                items: {
-                  type: "object",
-                  properties: {
-                    id: { type: "string", format: "uuid" },
-                    name: { type: "string" },
-                    color: { type: "string", nullable: true },
-                    usageCount: { type: "number" },
-                    pendingTodoCount: { type: "number" },
-                    completedTodoCount: { type: "number" },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    }),
-    async (c) => {
-      const useCase = new GetTagStatisticsUseCase(tagRepository);
-      const statistics = await useCase.execute();
-      return c.json(statistics);
-    },
-  );
+  app.get("/tags/stats", async (c) => {
+    const useCase = new GetTagStatisticsUseCase(tagRepository);
+    const statistics = await useCase.execute();
+    return c.json(statistics);
+  });
 
   // Get todos by multiple tags
-  app.get(
-    "/todos/by-tags",
-    describeRoute({
-      tags: ["Todos", "Tags"],
-      summary: "Get todos by multiple tags",
-      description: "Retrieve todos that have all or any of the specified tags",
-      request: {
-        query: {
-          schema: {
-            type: "object",
-            properties: {
-              tagIds: {
-                type: "string",
-                description: "Comma-separated list of tag IDs",
-              },
-              mode: {
-                type: "string",
-                enum: ["all", "any"],
-                default: "all",
-                description:
-                  "Filter mode: 'all' (todos with all specified tags) or 'any' (todos with any of the specified tags)",
-              },
-            },
-            required: ["tagIds"],
-          },
-        },
-      },
-      responses: {
-        200: {
-          description: "List of todos with the specified tags",
-          content: {
-            "application/json": {
-              schema: resolver(TodoListSchema, valibotConfig),
-            },
-          },
-        },
-        404: {
-          description: "Tag not found",
-          content: {
-            "application/json": {
-              schema: resolver(ErrorResponseSchema, valibotConfig),
-            },
-          },
-        },
-      },
-    }),
-    async (c) => {
-      try {
-        const queryParams = {
-          tagIds: c.req.query("tagIds") || "",
-          mode: c.req.query("mode") || "all",
-        };
+  app.get("/todos/by-tags", async (c) => {
+    try {
+      const queryParams = {
+        tagIds: c.req.query("tagIds") || "",
+        mode: c.req.query("mode") || "all",
+      };
 
-        const parsedParams = parse(MultipleTagQuerySchema, queryParams);
-        const useCase = new GetTodosByMultipleTagsUseCase(tagRepository, todoRepository);
+      const parsedParams = parse(MultipleTagQuerySchema, queryParams);
+      const useCase = new GetTodosByMultipleTagsUseCase(tagRepository, todoRepository);
 
-        const todos = await useCase.execute({
-          tagIds: parsedParams.tagIds,
-          mode: parsedParams.mode,
-        });
+      const todos = await useCase.execute({
+        tagIds: parsedParams.tagIds,
+        mode: parsedParams.mode,
+      });
 
-        return c.json(
-          todos.map((todo) => ({
-            id: todo.id,
-            title: todo.title,
-            description: todo.description,
-            status: todo.status,
-            workState: todo.workState,
-            totalWorkTime: todo.totalWorkTime,
-            lastStateChangeAt: todo.lastStateChangeAt.toISOString(),
-            createdAt: todo.createdAt.toISOString(),
-            updatedAt: todo.updatedAt.toISOString(),
-          })),
-        );
-      } catch (error) {
-        if (error instanceof Error && error.message.includes("not found")) {
-          return c.json({ message: error.message }, 404);
-        }
-        throw error;
+      return c.json(
+        todos.map((todo) => ({
+          id: todo.id,
+          title: todo.title,
+          description: todo.description,
+          status: todo.status,
+          workState: todo.workState,
+          totalWorkTime: todo.totalWorkTime,
+          lastStateChangeAt: todo.lastStateChangeAt.toISOString(),
+          createdAt: todo.createdAt.toISOString(),
+          updatedAt: todo.updatedAt.toISOString(),
+        })),
+      );
+    } catch (error) {
+      if (error instanceof Error && error.message.includes("not found")) {
+        return c.json({ message: error.message }, 404);
       }
-    },
-  );
+      throw error;
+    }
+  });
 
   // Get tags for a todo
-  app.get(
-    "/todos/:id/tags",
-    describeRoute({
-      tags: ["Todos", "Tags"],
-      summary: "Get tags for a todo",
-      description: "Retrieve all tags associated with a specific todo",
-      request: {
-        params: resolver(IdParamSchema, valibotConfig),
-      },
-      responses: {
-        200: {
-          description: "List of tags",
-          content: {
-            "application/json": {
-              schema: {
-                type: "array",
-                items: resolver(TagSchema, valibotConfig),
-              },
-            },
-          },
-        },
-        404: {
-          description: "Todo not found",
-          content: {
-            "application/json": {
-              schema: {
-                type: "object",
-                properties: {
-                  message: { type: "string" },
-                },
-              },
-            },
-          },
-        },
-      },
-    }),
-    vValidator("param", IdParamSchema),
-    async (c) => {
-      const todoId = c.req.param("id");
-      const useCase = new GetTagsForTodoUseCase(tagRepository, todoRepository);
+  app.get("/todos/:id/tags", vValidator("param", IdParamSchema), async (c) => {
+    const todoId = c.req.param("id");
+    const useCase = new GetTagsForTodoUseCase(tagRepository, todoRepository);
 
-      try {
-        const tags = await useCase.execute({ todoId });
-        return c.json(tags);
-      } catch (error) {
-        if (error instanceof Error && error.message.includes("not found")) {
-          return c.json({ message: error.message }, 404);
-        }
-        throw error;
+    try {
+      const tags = await useCase.execute({ todoId });
+      return c.json(tags);
+    } catch (error) {
+      if (error instanceof Error && error.message.includes("not found")) {
+        return c.json({ message: error.message }, 404);
       }
-    },
-  );
+      throw error;
+    }
+  });
 
   // Assign a tag to a todo
-  app.post(
-    "/todos/:id/tags",
-    describeRoute({
-      tags: ["Todos", "Tags"],
-      summary: "Assign a tag to a todo",
-      description: "Assign an existing tag to a specific todo",
-      request: {
-        params: resolver(IdParamSchema, valibotConfig),
-        body: {
-          required: true,
-          content: {
-            "application/json": {
-              schema: resolver(TagIdParamSchema, valibotConfig),
-            },
-          },
-        },
-      },
-      responses: {
-        201: {
-          description: "Tag assigned successfully",
-          content: {
-            "application/json": {
-              schema: {
-                type: "object",
-                properties: {
-                  message: { type: "string" },
-                },
-              },
-            },
-          },
-        },
-        400: {
-          description: "Tag already assigned to todo",
-          content: {
-            "application/json": {
-              schema: {
-                type: "object",
-                properties: {
-                  message: { type: "string" },
-                },
-              },
-            },
-          },
-        },
-        404: {
-          description: "Todo or tag not found",
-          content: {
-            "application/json": {
-              schema: {
-                type: "object",
-                properties: {
-                  message: { type: "string" },
-                },
-              },
-            },
-          },
-        },
-      },
-    }),
-    vValidator("param", IdParamSchema),
-    vValidator("json", TagIdParamSchema),
-    async (c) => {
-      const todoId = c.req.param("id");
-      const { tagId } = c.req.valid("json");
-      const useCase = new AssignTagToTodoUseCase(tagRepository, todoRepository);
+  app.post("/todos/:id/tags", vValidator("param", IdParamSchema), vValidator("json", TagIdParamSchema), async (c) => {
+    const todoId = c.req.param("id");
+    const { tagId } = c.req.valid("json");
+    const useCase = new AssignTagToTodoUseCase(tagRepository, todoRepository);
 
-      try {
-        await useCase.execute({ todoId, tagId });
-        return c.json({ message: "Tag assigned successfully" }, 201);
-      } catch (error) {
-        if (error instanceof Error) {
-          if (error.message.includes("not found")) {
-            return c.json({ message: error.message }, 404);
-          }
-          if (error.message.includes("already assigned")) {
-            return c.json({ message: error.message }, 400);
-          }
+    try {
+      await useCase.execute({ todoId, tagId });
+      return c.json({ message: "Tag assigned successfully" }, 201);
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message.includes("not found")) {
+          return c.json({ message: error.message }, 404);
         }
-        throw error;
+        if (error.message.includes("already assigned")) {
+          return c.json({ message: error.message }, 400);
+        }
       }
-    },
-  );
+      throw error;
+    }
+  });
 
   // Remove a tag from a todo
-  app.delete(
-    "/todos/:id/tags/:tagId",
-    describeRoute({
-      tags: ["Todos", "Tags"],
-      summary: "Remove a tag from a todo",
-      description: "Remove a tag association from a todo",
-      request: {
-        params: resolver(TodoTagParamSchema, valibotConfig),
-      },
-      responses: {
-        204: {
-          description: "Tag removed successfully",
-        },
-        400: {
-          description: "Tag not assigned to todo",
-          content: {
-            "application/json": {
-              schema: {
-                type: "object",
-                properties: {
-                  message: { type: "string" },
-                },
-              },
-            },
-          },
-        },
-        404: {
-          description: "Todo or tag not found",
-          content: {
-            "application/json": {
-              schema: {
-                type: "object",
-                properties: {
-                  message: { type: "string" },
-                },
-              },
-            },
-          },
-        },
-      },
-    }),
-    vValidator("param", TodoTagParamSchema),
-    async (c) => {
-      const todoId = c.req.param("id");
-      const tagId = c.req.param("tagId");
-      const useCase = new RemoveTagFromTodoUseCase(tagRepository, todoRepository);
+  app.delete("/todos/:id/tags/:tagId", vValidator("param", TodoTagParamSchema), async (c) => {
+    const todoId = c.req.param("id");
+    const tagId = c.req.param("tagId");
+    const useCase = new RemoveTagFromTodoUseCase(tagRepository, todoRepository);
 
-      try {
-        await useCase.execute({ todoId, tagId });
-        return c.status(204);
-      } catch (error) {
-        if (error instanceof Error) {
-          if (error.message.includes("not found")) {
-            return c.json({ message: error.message }, 404);
-          }
-          if (error.message.includes("not assigned")) {
-            return c.json({ message: error.message }, 400);
-          }
+    try {
+      await useCase.execute({ todoId, tagId });
+      return c.status(204);
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message.includes("not found")) {
+          return c.json({ message: error.message }, 404);
         }
-        throw error;
+        if (error.message.includes("not assigned")) {
+          return c.json({ message: error.message }, 400);
+        }
       }
-    },
-  );
+      throw error;
+    }
+  });
 
   // Get a specific tag
-  app.get(
-    "/tags/:id",
-    describeRoute({
-      tags: ["Tags"],
-      summary: "Get a specific tag",
-      description: "Retrieve a tag by its ID",
-      request: {
-        params: {
-          schema: {
-            type: "object",
-            properties: {
-              id: { type: "string", format: "uuid" },
-            },
-            required: ["id"],
-          },
-        },
-      },
-      responses: {
-        200: {
-          description: "Tag details",
-          content: {
-            "application/json": {
-              schema: resolver(TagSchema, valibotConfig),
-            },
-          },
-        },
-        404: {
-          description: "Tag not found",
-          content: {
-            "application/json": {
-              schema: {
-                type: "object",
-                properties: {
-                  message: { type: "string" },
-                },
-              },
-            },
-          },
-        },
-      },
-    }),
-    async (c) => {
-      const id = c.req.param("id");
-      const useCase = new GetTagByIdUseCase(tagRepository);
-      const tag = await useCase.execute({ id });
+  app.get("/tags/:id", async (c) => {
+    const id = c.req.param("id");
+    const useCase = new GetTagByIdUseCase(tagRepository);
+    const tag = await useCase.execute({ id });
 
-      if (!tag) {
-        return c.json({ message: `Tag with ID '${id}' not found` }, 404);
-      }
+    if (!tag) {
+      return c.json({ message: `Tag with ID '${id}' not found` }, 404);
+    }
 
-      return c.json(mapTagToResponse(tag));
-    },
-  );
+    return c.json(mapTagToResponse(tag));
+  });
 
   // Update a tag
-  app.put(
-    "/tags/:id",
-    describeRoute({
-      tags: ["Tags"],
-      summary: "Update a tag",
-      description: "Update an existing tag with new information",
-      request: {
-        params: {
-          schema: {
-            type: "object",
-            properties: {
-              id: { type: "string", format: "uuid" },
-            },
-            required: ["id"],
-          },
-        },
-        body: {
-          required: true,
-          content: {
-            "application/json": {
-              schema: resolver(UpdateTagSchema, valibotConfig),
-            },
-          },
-        },
-      },
-      responses: {
-        200: {
-          description: "Tag updated successfully",
-          content: {
-            "application/json": {
-              schema: resolver(TagSchema, valibotConfig),
-            },
-          },
-        },
-        404: {
-          description: "Tag not found",
-          content: {
-            "application/json": {
-              schema: {
-                type: "object",
-                properties: {
-                  message: { type: "string" },
-                },
-              },
-            },
-          },
-        },
-      },
-    }),
-    vValidator("json", UpdateTagSchema),
-    async (c) => {
-      const id = c.req.param("id");
-      const data = c.req.valid("json");
-      const useCase = new UpdateTagUseCase(tagRepository);
+  app.put("/tags/:id", vValidator("json", UpdateTagSchema), async (c) => {
+    const id = c.req.param("id");
+    const data = c.req.valid("json");
+    const useCase = new UpdateTagUseCase(tagRepository);
 
-      try {
-        const tag = await useCase.execute({ id, ...data });
-        return c.json(mapTagToResponse(tag));
-      } catch (error) {
-        if (error instanceof Error && error.message.includes("not found")) {
-          return c.json({ message: error.message }, 404);
-        }
-        throw error;
+    try {
+      const tag = await useCase.execute({ id, ...data });
+      return c.json(mapTagToResponse(tag));
+    } catch (error) {
+      if (error instanceof Error && error.message.includes("not found")) {
+        return c.json({ message: error.message }, 404);
       }
-    },
-  );
+      throw error;
+    }
+  });
 
   // Delete a tag
-  app.delete(
-    "/tags/:id",
-    describeRoute({
-      tags: ["Tags"],
-      summary: "Delete a tag",
-      description: "Delete a tag by its ID",
-      request: {
-        params: {
-          schema: {
-            type: "object",
-            properties: {
-              id: { type: "string", format: "uuid" },
-            },
-            required: ["id"],
-          },
-        },
-      },
-      responses: {
-        204: {
-          description: "Tag deleted successfully",
-        },
-        404: {
-          description: "Tag not found",
-          content: {
-            "application/json": {
-              schema: {
-                type: "object",
-                properties: {
-                  message: { type: "string" },
-                },
-              },
-            },
-          },
-        },
-      },
-    }),
-    async (c) => {
-      const id = c.req.param("id");
-      const useCase = new DeleteTagUseCase(tagRepository);
+  app.delete("/tags/:id", async (c) => {
+    const id = c.req.param("id");
+    const useCase = new DeleteTagUseCase(tagRepository);
 
-      try {
-        await useCase.execute({ id });
-        return c.status(204);
-      } catch (error) {
-        if (error instanceof Error && error.message.includes("not found")) {
-          return c.json({ message: error.message }, 404);
-        }
-        throw error;
+    try {
+      await useCase.execute({ id });
+      return c.status(204);
+    } catch (error) {
+      if (error instanceof Error && error.message.includes("not found")) {
+        return c.json({ message: error.message }, 404);
       }
-    },
-  );
+      throw error;
+    }
+  });
 
   // Get todos by tag
-  app.get(
-    "/tags/:id/todos",
-    describeRoute({
-      tags: ["Tags", "Todos"],
-      summary: "Get todos by tag",
-      description: "Retrieve all todo items that have a specific tag",
-      request: {
-        params: {
-          schema: {
-            type: "object",
-            properties: {
-              id: { type: "string", format: "uuid", description: "The tag ID" },
-            },
-            required: ["id"],
-          },
-        },
-      },
-      responses: {
-        200: {
-          description: "List of todos with the specified tag",
-          content: {
-            "application/json": {
-              schema: resolver(TodoListSchema, valibotConfig),
-            },
-          },
-        },
-        404: {
-          description: "Tag not found",
-          content: {
-            "application/json": {
-              schema: {
-                type: "object",
-                properties: {
-                  message: { type: "string" },
-                },
-              },
-            },
-          },
-        },
-      },
-    }),
-    async (c) => {
-      const tagId = c.req.param("id");
-      const useCase = new GetTodosByTagUseCase(tagRepository, todoRepository);
+  app.get("/tags/:id/todos", async (c) => {
+    const tagId = c.req.param("id");
+    const useCase = new GetTodosByTagUseCase(tagRepository, todoRepository);
 
-      try {
-        const todos = await useCase.execute({ tagId });
-        return c.json(
-          todos.map((todo) => ({
-            id: todo.id,
-            title: todo.title,
-            description: todo.description,
-            status: todo.status,
-            workState: todo.workState,
-            totalWorkTime: todo.totalWorkTime,
-            lastStateChangeAt: todo.lastStateChangeAt.toISOString(),
-            createdAt: todo.createdAt.toISOString(),
-            updatedAt: todo.updatedAt.toISOString(),
-          })),
-        );
-      } catch (error) {
-        if (error instanceof Error && error.message.includes("not found")) {
-          return c.json({ message: error.message }, 404);
-        }
-        throw error;
+    try {
+      const todos = await useCase.execute({ tagId });
+      return c.json(
+        todos.map((todo) => ({
+          id: todo.id,
+          title: todo.title,
+          description: todo.description,
+          status: todo.status,
+          workState: todo.workState,
+          totalWorkTime: todo.totalWorkTime,
+          lastStateChangeAt: todo.lastStateChangeAt.toISOString(),
+          createdAt: todo.createdAt.toISOString(),
+          updatedAt: todo.updatedAt.toISOString(),
+        })),
+      );
+    } catch (error) {
+      if (error instanceof Error && error.message.includes("not found")) {
+        return c.json({ message: error.message }, 404);
       }
-    },
-  );
+      throw error;
+    }
+  });
 
   // Bulk assign a tag to multiple todos
-  app.post(
-    "/tags/:id/bulk-assign",
-    describeRoute({
-      tags: ["Tags", "Bulk Operations"],
-      summary: "Bulk assign a tag to todos",
-      description: "Assign a tag to multiple todo items at once",
-      request: {
-        params: {
-          schema: {
-            type: "object",
-            properties: {
-              id: { type: "string", format: "uuid", description: "The tag ID" },
-            },
-            required: ["id"],
-          },
-        },
-        body: {
-          required: true,
-          content: {
-            "application/json": {
-              schema: resolver(BulkTagOperationSchema, valibotConfig),
-            },
-          },
-        },
-      },
-      responses: {
-        200: {
-          description: "Result of bulk assignment operation",
-          content: {
-            "application/json": {
-              schema: {
-                type: "object",
-                properties: {
-                  successCount: { type: "number", description: "Number of todos that were successfully tagged" },
-                  failedCount: { type: "number", description: "Number of todos that failed to be tagged" },
-                },
-              },
-            },
-          },
-        },
-        404: {
-          description: "Tag not found",
-          content: {
-            "application/json": {
-              schema: {
-                type: "object",
-                properties: {
-                  message: { type: "string" },
-                },
-              },
-            },
-          },
-        },
-      },
-    }),
-    vValidator("json", BulkTagOperationSchema),
-    async (c) => {
-      const tagId = c.req.param("id");
-      const data = c.req.valid("json");
-      const useCase = new BulkAssignTagUseCase(tagRepository, todoRepository);
+  app.post("/tags/:id/bulk-assign", vValidator("json", BulkTagOperationSchema), async (c) => {
+    const tagId = c.req.param("id");
+    const data = c.req.valid("json");
+    const useCase = new BulkAssignTagUseCase(tagRepository, todoRepository);
 
-      try {
-        const result = await useCase.execute({
-          tagId,
-          todoIds: data.todoIds,
-        });
+    try {
+      const result = await useCase.execute({
+        tagId,
+        todoIds: data.todoIds,
+      });
 
-        return c.json(result);
-      } catch (error) {
-        if (error instanceof Error && error.message.includes("not found")) {
-          return c.json({ message: error.message }, 404);
-        }
-        throw error;
+      return c.json(result);
+    } catch (error) {
+      if (error instanceof Error && error.message.includes("not found")) {
+        return c.json({ message: error.message }, 404);
       }
-    },
-  );
+      throw error;
+    }
+  });
 
   // Bulk remove a tag from multiple todos
-  app.delete(
-    "/tags/:id/bulk-remove",
-    describeRoute({
-      tags: ["Tags", "Bulk Operations"],
-      summary: "Bulk remove a tag from todos",
-      description: "Remove a tag from multiple todo items at once",
-      request: {
-        params: {
-          schema: {
-            type: "object",
-            properties: {
-              id: { type: "string", format: "uuid", description: "The tag ID" },
-            },
-            required: ["id"],
-          },
-        },
-        body: {
-          required: true,
-          content: {
-            "application/json": {
-              schema: resolver(BulkTagOperationSchema, valibotConfig),
-            },
-          },
-        },
-      },
-      responses: {
-        200: {
-          description: "Result of bulk removal operation",
-          content: {
-            "application/json": {
-              schema: {
-                type: "object",
-                properties: {
-                  successCount: {
-                    type: "number",
-                    description: "Number of todos the tag was successfully removed from",
-                  },
-                  failedCount: { type: "number", description: "Number of todos that failed tag removal" },
-                },
-              },
-            },
-          },
-        },
-        404: {
-          description: "Tag not found",
-          content: {
-            "application/json": {
-              schema: {
-                type: "object",
-                properties: {
-                  message: { type: "string" },
-                },
-              },
-            },
-          },
-        },
-      },
-    }),
-    vValidator("json", BulkTagOperationSchema),
-    async (c) => {
-      const tagId = c.req.param("id");
-      const data = c.req.valid("json");
-      const useCase = new BulkRemoveTagUseCase(tagRepository, todoRepository);
+  app.delete("/tags/:id/bulk-remove", vValidator("json", BulkTagOperationSchema), async (c) => {
+    const tagId = c.req.param("id");
+    const data = c.req.valid("json");
+    const useCase = new BulkRemoveTagUseCase(tagRepository, todoRepository);
 
-      try {
-        const result = await useCase.execute({
-          tagId,
-          todoIds: data.todoIds,
-        });
+    try {
+      const result = await useCase.execute({
+        tagId,
+        todoIds: data.todoIds,
+      });
 
-        return c.json(result);
-      } catch (error) {
-        if (error instanceof Error && error.message.includes("not found")) {
-          return c.json({ message: error.message }, 404);
-        }
-        throw error;
+      return c.json(result);
+    } catch (error) {
+      if (error instanceof Error && error.message.includes("not found")) {
+        return c.json({ message: error.message }, 404);
       }
-    },
-  );
+      throw error;
+    }
+  });
 
   return app;
 }
