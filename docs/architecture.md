@@ -141,9 +141,7 @@ export class Todo {
     public readonly projectId?: ProjectId,
     public readonly dependencies: TodoId[] = [],
     public readonly dependents: TodoId[] = [],
-    public readonly dueDate?: Date,
-    public readonly parentId?: TodoId,
-    public readonly subtaskIds: TodoId[] = []
+    public readonly dueDate?: Date
   ) {}
 
   // Domain methods - all return new Todo instances
@@ -172,14 +170,6 @@ export class Todo {
   // Due date methods
   isOverdue(currentDate: Date = new Date()): boolean { /* implementation */ }
   daysUntilDue(currentDate: Date = new Date()): number | null { /* implementation */ }
-  
-  // Subtask management methods
-  addSubtask(subtaskId: TodoId): Todo { /* implementation */ }
-  removeSubtask(subtaskId: TodoId): Todo { /* implementation */ }
-  setParent(parentId: TodoId): Todo { /* implementation */ }
-  removeParent(): Todo { /* implementation */ }
-  hasSubtask(subtaskId: TodoId): boolean { /* implementation */ }
-  isChildOf(parentId: TodoId): boolean { /* implementation */ }
 }
 ```
 
@@ -478,8 +468,6 @@ export const CommonSchemas = {
   workState: () => v.picklist([WorkState.IDLE, WorkState.ACTIVE, WorkState.PAUSED, WorkState.COMPLETED]),
   activityType: () =>
     v.picklist([ActivityType.STARTED, ActivityType.PAUSED, ActivityType.COMPLETED, ActivityType.DISCARDED]),
-  priorityLevel: () => v.picklist([PriorityLevel.LOW, PriorityLevel.MEDIUM, PriorityLevel.HIGH]),
-  dueDate: () => v.optional(DateSchema),
 };
 
 /**
@@ -502,17 +490,19 @@ export const TodoSchema = v.object({
   workState: CommonSchemas.workState(),
   totalWorkTime: v.number(),
   lastStateChangeAt: DateSchema,
-  dueDate: CommonSchemas.dueDate(),
   createdAt: DateSchema,
   updatedAt: DateSchema,
-  priority: CommonSchemas.priorityLevel(),
+  priority: v.string(),
   projectId: v.optional(CommonSchemas.uuid()),
-  dependencies: v.optional(v.array(CommonSchemas.uuid())), // 依存するTodoのIDリスト
-  dependents: v.optional(v.array(CommonSchemas.uuid())), // このTodoに依存するTodoのIDリスト
-  parentId: v.optional(CommonSchemas.uuid()), // 親タスクのID
-  subtaskIds: v.optional(v.array(CommonSchemas.uuid())), // サブタスクのIDリスト
+  dependencies: v.optional(v.array(CommonSchemas.uuid())),
+  dependents: v.optional(v.array(CommonSchemas.uuid())),
 });
 ```
+
+This approach of using common schema components improves maintainability by:
+1. Reducing code duplication across schema definitions
+2. Centralizing validation rules
+3. Providing consistent data validation across the API
 
 ## 5. Dependency Injection
 

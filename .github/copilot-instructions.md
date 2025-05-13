@@ -4,7 +4,7 @@
 
 ## Languages
 
-- Write source code and documents in English.
+- Use English in source code and documents.
 - Use Japanese in Chat.
 
 ## Unit tests

@@ -26,7 +26,6 @@ export const CommonSchemas = {
   activityType: () =>
     v.picklist([ActivityType.STARTED, ActivityType.PAUSED, ActivityType.COMPLETED, ActivityType.DISCARDED]),
   dueDate: () => v.optional(DateSchema),
-  priorityLevel: () => v.picklist([PriorityLevel.LOW, PriorityLevel.MEDIUM, PriorityLevel.HIGH]),
 };
 
 /**
@@ -52,7 +51,7 @@ export const TodoSchema = v.object({
   dueDate: CommonSchemas.dueDate(),
   createdAt: DateSchema,
   updatedAt: DateSchema,
-  priority: CommonSchemas.priorityLevel(), // 共通のスキーマを使用
+  priority: v.string(),
   projectId: v.optional(CommonSchemas.uuid()),
   dependencies: v.optional(v.array(CommonSchemas.uuid())), // 依存するTodoのIDリスト
   dependents: v.optional(v.array(CommonSchemas.uuid())), // このTodoに依存するTodoのIDリスト
@@ -71,7 +70,7 @@ export const CreateTodoSchema = v.object({
   description: CommonSchemas.description(),
   status: v.optional(v.picklist([TodoStatus.PENDING, TodoStatus.COMPLETED])),
   workState: v.optional(CommonSchemas.workState()),
-  priority: v.optional(CommonSchemas.priorityLevel()), // 共通のスキーマを使用
+  priority: v.optional(v.string()),
   dueDate: CommonSchemas.dueDate(),
   projectId: v.optional(CommonSchemas.uuid()),
 });
@@ -89,7 +88,7 @@ export const UpdateTodoSchema = v.object({
   description: CommonSchemas.description(),
   status: v.optional(v.picklist([TodoStatus.PENDING, TodoStatus.COMPLETED])),
   workState: v.optional(CommonSchemas.workState()),
-  priority: v.optional(CommonSchemas.priorityLevel()), // 共通のスキーマを使用
+  priority: v.optional(v.string()),
   dueDate: CommonSchemas.dueDate(),
   projectId: v.optional(CommonSchemas.uuid()),
 });
@@ -235,14 +234,51 @@ export const BasicTodoInfoSchema = v.object({
   id: CommonSchemas.uuid(),
   title: v.string(),
   status: CommonSchemas.todoStatus(),
-  priority: CommonSchemas.priorityLevel(), // 共通のスキーマを使用
+  priority: v.string(),
 });
+
+/**
+ * Schema for Todo dependency list response
+ */
+export const TodoDependencyListSchema = v.object({
+  dependencies: v.array(BasicTodoInfoSchema),
+});
+
+/**
+ * Type for Todo dependency list response
+ */
+export type TodoDependencyListResponse = v.InferOutput<typeof TodoDependencyListSchema>;
+
+/**
+ * Schema for Todo dependents list response
+ */
+export const TodoDependentListSchema = v.object({
+  dependents: v.array(BasicTodoInfoSchema),
+});
+
+/**
+ * Type for Todo dependents list response
+ */
+export type TodoDependentListResponse = v.InferOutput<typeof TodoDependentListSchema>;
+
+/**
+ * Schema for Project and Todo ID path parameters
+ */
+export const ProjectTodoParamSchema = v.object({
+  id: CommonSchemas.uuid(),
+  todoId: CommonSchemas.uuid(),
+});
+
+/**
+ * Type for Project and Todo ID path parameters
+ */
+export type ProjectTodoParam = v.InferOutput<typeof ProjectTodoParamSchema>;
 
 type TodoDependencyNode = {
   id: string;
   title: string;
   status: TodoStatus;
-  priority: PriorityLevel | null; // number型からPriorityLevel型に変更
+  priority: number | null;
   dependencies: TodoDependencyNode[];
 };
 
@@ -253,7 +289,7 @@ export const TodoDependencyNodeSchema: v.GenericSchema<TodoDependencyNode> = v.o
   id: CommonSchemas.uuid(),
   title: v.string(),
   status: CommonSchemas.todoStatus(),
-  priority: v.nullable(CommonSchemas.priorityLevel()), // 共通のスキーマを使用
+  priority: v.nullable(v.number()),
   dependencies: v.array(v.lazy(() => TodoDependencyNodeSchema)),
 });
 
@@ -331,40 +367,3 @@ export const BulkDueDateUpdateSchema = v.object({
  * Type for bulk due date update request
  */
 export type BulkDueDateUpdate = v.InferOutput<typeof BulkDueDateUpdateSchema>;
-
-/**
- * Schema for Project and Todo ID path parameters
- */
-export const ProjectTodoParamSchema = v.object({
-  id: CommonSchemas.uuid(),
-  todoId: CommonSchemas.uuid(),
-});
-
-/**
- * Type for Project and Todo ID path parameters
- */
-export type ProjectTodoParam = v.InferOutput<typeof ProjectTodoParamSchema>;
-
-/**
- * Schema for Todo dependency list response
- */
-export const TodoDependencyListSchema = v.object({
-  dependencies: v.array(BasicTodoInfoSchema),
-});
-
-/**
- * Type for Todo dependency list response
- */
-export type TodoDependencyListResponse = v.InferOutput<typeof TodoDependencyListSchema>;
-
-/**
- * Schema for Todo dependents list response
- */
-export const TodoDependentListSchema = v.object({
-  dependents: v.array(BasicTodoInfoSchema),
-});
-
-/**
- * Type for Todo dependents list response
- */
-export type TodoDependentListResponse = v.InferOutput<typeof TodoDependentListSchema>;

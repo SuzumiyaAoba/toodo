@@ -37,7 +37,7 @@ type SubtaskTreeNode = {
   description?: string;
   status: string;
   workState: string;
-  priority: string; // 整合性のため、string型を維持
+  priority: string;
   dueDate?: string; // Date型からstring型に変更
   subtasks: SubtaskTreeNode[];
 };
@@ -51,7 +51,7 @@ export const SubtaskTreeNodeSchema: v.BaseSchema<unknown, SubtaskTreeNode, v.Bas
   description: CommonSchemas.description(),
   status: CommonSchemas.todoStatus(),
   workState: CommonSchemas.workState(),
-  priority: CommonSchemas.priorityLevel(), // CommonSchemasを使用して一貫性を保つ
+  priority: v.string(),
   dueDate: v.optional(v.string()), // Date型からstring型に変更
   subtasks: v.array(v.lazy(() => SubtaskTreeNodeSchema)),
 });
@@ -73,7 +73,7 @@ export const CreateSubtaskSchema = v.object({
   parentId: CommonSchemas.uuid(),
   title: CommonSchemas.title(),
   description: CommonSchemas.description(),
-  priority: v.optional(CommonSchemas.priorityLevel()), // CommonSchemasを使用して一貫性を保つ
+  priority: v.optional(v.string()),
 });
 
 /**
