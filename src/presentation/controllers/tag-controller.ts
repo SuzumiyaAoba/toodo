@@ -4,7 +4,8 @@ import { parse } from "valibot";
 import { CreateTagUseCase } from "../../application/use-cases/tag/create-tag";
 import { DeleteTagUseCase } from "../../application/use-cases/tag/delete-tag";
 import { GetAllTagsUseCase, GetTagByIdUseCase } from "../../application/use-cases/tag/get-tag";
-import { GetTodosByTagUseCase } from "../../application/use-cases/tag/todo-tag-operations";
+import { AssignTagToTodoUseCase, GetTagsForTodoUseCase } from "../../application/use-cases/tag/todo-tag";
+import { GetTodosByTagUseCase, RemoveTagFromTodoUseCase } from "../../application/use-cases/tag/todo-tag-operations";
 import { UpdateTagUseCase } from "../../application/use-cases/tag/update-tag";
 import type { Tag } from "../../domain/entities/tag";
 import type { TagRepository } from "../../domain/repositories/tag-repository";
@@ -108,9 +109,69 @@ export class TagController {
       }
     });
 
+    // Assign a tag to a todo
+    this.app.post("/todos/:todoId/tags", vValidator("json", TagIdParamSchema), async (c) => {
+      const todoId = c.req.param("todoId");
+      const { tagId } = c.req.valid("json");
+      const useCase = new AssignTagToTodoUseCase(this.tagRepository, this.todoRepository);
+
+      try {
+        await useCase.execute({ todoId, tagId });
+        return c.json({ message: "Tag assigned successfully" }, 201);
+      } catch (error) {
+        if (error instanceof Error) {
+          if (error.message.includes("not found")) {
+            return c.json({ message: error.message }, 404);
+          }
+          if (error.message.includes("already assigned")) {
+            return c.json({ message: error.message }, 400);
+          }
+        }
+        throw error;
+      }
+    });
+
+    // Get tags for a todo
+    this.app.get("/todos/:todoId/tags", async (c) => {
+      const todoId = c.req.param("todoId");
+      const useCase = new GetTagsForTodoUseCase(this.tagRepository, this.todoRepository);
+
+      try {
+        const tags = await useCase.execute({ todoId });
+        return c.json(tags.map((tag) => this.mapTagToResponse(tag)));
+      } catch (error) {
+        if (error instanceof Error && error.message.includes("not found")) {
+          return c.json({ message: error.message }, 404);
+        }
+        throw error;
+      }
+    });
+
+    // Remove a tag from a todo
+    this.app.delete("/todos/:todoId/tags/:tagId", async (c) => {
+      const todoId = c.req.param("todoId");
+      const tagId = c.req.param("tagId");
+      const useCase = new RemoveTagFromTodoUseCase(this.tagRepository, this.todoRepository);
+
+      try {
+        await useCase.execute({ todoId, tagId });
+        return c.status(204);
+      } catch (error) {
+        if (error instanceof Error) {
+          if (error.message.includes("not found")) {
+            return c.json({ message: error.message }, 404);
+          }
+          if (error.message.includes("not assigned")) {
+            return c.json({ message: error.message }, 400);
+          }
+        }
+        throw error;
+      }
+    });
+
     // Get todos by tag
-    this.app.get("/:id/todos", async (c) => {
-      const tagId = c.req.param("id");
+    this.app.get("/todos/by-tag/:tagId", async (c) => {
+      const tagId = c.req.param("tagId");
       const useCase = new GetTodosByTagUseCase(this.tagRepository, this.todoRepository);
 
       try {

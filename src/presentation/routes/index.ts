@@ -18,7 +18,6 @@ import {
 } from "../../domain/errors/todo-errors";
 import type { PrismaClient } from "../../generated/prisma";
 import { TagController } from "../controllers/tag-controller";
-import { TodoTagController } from "../controllers/todo-tag-controller";
 import {
   CreateTodoActivitySchema,
   CreateTodoSchema,
@@ -51,7 +50,7 @@ export function setupRoutes(
   createTodoActivityUseCase: CreateTodoActivityUseCase,
   getTodoActivityListUseCase: GetTodoActivityListUseCase,
   deleteTodoActivityUseCase: DeleteTodoActivityUseCase,
-  // PrismaClient for controllers
+  // PrismaClient for Tag controller
   prisma: PrismaClient,
 ): Hono {
   // Todo routes
@@ -474,10 +473,6 @@ export function setupRoutes(
   // Tag routes
   const tagController = new TagController(prisma);
   app.route("/tags", tagController.getApp());
-
-  // Todo-Tag relationship routes
-  const todoTagController = new TodoTagController(prisma);
-  app.route("/todos", todoTagController.getApp());
 
   return app;
 }
