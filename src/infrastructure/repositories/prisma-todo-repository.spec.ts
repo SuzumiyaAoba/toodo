@@ -1,55 +1,68 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
-import { PriorityLevel, Todo, TodoStatus, WorkState } from "../../domain/entities/todo";
+import { PriorityLevel, type Todo, TodoStatus, WorkState } from "../../domain/entities/todo";
 import { TodoNotFoundError } from "../../domain/errors/todo-errors";
 import type { Prisma, PrismaClient } from "../../generated/prisma";
-import type { DefaultArgs } from "../../generated/prisma/runtime/library";
-import { MockedFunction } from "../../test/types";
+import type { DefaultArgs, PrismaClientOptions } from "../../generated/prisma/runtime/library";
 import { PrismaTodoRepository } from "./prisma-todo-repository";
 
-// Prismaの型定義
-type TodoCreateInput = Prisma.TodoCreateInput;
-type TodoUpdateInput = Prisma.TodoUpdateInput;
-type TodoFindUniqueArgs = Prisma.TodoFindUniqueArgs;
-type TodoFindManyArgs = Prisma.TodoFindManyArgs;
-type TodoWhereUniqueInput = Prisma.TodoWhereUniqueInput;
-type TodoWhereInput = Prisma.TodoWhereInput;
-type TodoDeleteArgs = Prisma.TodoDeleteArgs;
-
-// モックデータ型定義
-type MockTodoData = {
-  id: string;
-  title: string;
-  description: string | null;
-  status: string;
-  workState: string;
-  totalWorkTime: number;
-  lastStateChangeAt: Date;
-  createdAt: Date;
-  updatedAt: Date;
-  priority: string;
-  projectId: string | null;
-};
+// モック関数の型を拡張
+type MockedFunction<T extends (...args: any) => any> = {
+  [K in keyof ReturnType<typeof mock<T>>]: ReturnType<typeof mock<T>>[K];
+} & T;
 
 // モック化されたPrismaClientの型
 interface MockedPrismaClient {
   todo: {
-    findMany: MockedFunction<(args?: TodoFindManyArgs) => Promise<MockTodoData[]>>;
-    findUnique: MockedFunction<(args: TodoFindUniqueArgs) => Promise<MockTodoData | null>>;
-    create: MockedFunction<(args: { data: TodoCreateInput }) => Promise<MockTodoData>>;
-    update: MockedFunction<(args: { where: TodoWhereUniqueInput; data: TodoUpdateInput }) => Promise<MockTodoData>>;
-    delete: MockedFunction<(args: TodoDeleteArgs) => Promise<MockTodoData>>;
+    findMany: MockedFunction<() => Promise<any[]>>;
+    findUnique: MockedFunction<(args: any) => Promise<any | null>>;
+    create: MockedFunction<(args: any) => Promise<any>>;
+    update: MockedFunction<(args: any) => Promise<any>>;
+    delete: MockedFunction<(args: any) => Promise<any>>;
+    findUniqueOrThrow: MockedFunction<(args: any) => Promise<any>>;
+    findFirst: MockedFunction<(args: any) => Promise<any | null>>;
+    findFirstOrThrow: MockedFunction<(args: any) => Promise<any>>;
+    createMany: MockedFunction<(args: any) => Promise<any>>;
+    updateMany: MockedFunction<(args: any) => Promise<any>>;
+    deleteMany: MockedFunction<(args: any) => Promise<any>>;
+    count: MockedFunction<(args: any) => Promise<number>>;
+    aggregate: MockedFunction<(args: any) => Promise<any>>;
+    groupBy: MockedFunction<(args: any) => Promise<any>>;
+  };
+  todoActivity: {
+    findMany: MockedFunction<(args: any) => Promise<any[]>>;
+    findUnique: MockedFunction<(args: any) => Promise<any | null>>;
+    create: MockedFunction<(args: any) => Promise<any>>;
+    delete: MockedFunction<(args: any) => Promise<any>>;
+    update: MockedFunction<(args: any) => Promise<any>>;
+    findUniqueOrThrow: MockedFunction<(args: any) => Promise<any>>;
+    findFirst: MockedFunction<(args: any) => Promise<any | null>>;
+    findFirstOrThrow: MockedFunction<(args: any) => Promise<any>>;
+    createMany: MockedFunction<(args: any) => Promise<any>>;
+    updateMany: MockedFunction<(args: any) => Promise<any>>;
+    deleteMany: MockedFunction<(args: any) => Promise<any>>;
+    count: MockedFunction<(args: any) => Promise<number>>;
+    aggregate: MockedFunction<(args: any) => Promise<any>>;
+    groupBy: MockedFunction<(args: any) => Promise<any>>;
   };
   $connect: () => Promise<void>;
   $disconnect: () => Promise<void>;
+  $transaction: <T>(fn: (prisma: PrismaClient) => Promise<T>) => Promise<T>;
+  $on: (eventType: string, callback: (event: any) => void) => void;
+  $use: (callback: (params: any, next: (params: any) => Promise<any>) => Promise<any>) => void;
+  $executeRaw: (query: any, ...values: any[]) => Promise<number>;
+  $executeRawUnsafe: (query: string, ...values: any[]) => Promise<number>;
+  $queryRaw: (query: any, ...values: any[]) => Promise<any>;
+  $queryRawUnsafe: (query: string, ...values: any[]) => Promise<any>;
+  $extends: any;
 }
 
 describe("PrismaTodoRepository", () => {
   // Mock Prisma client with better typing
-  const findMany = mock<(args?: TodoFindManyArgs) => Promise<MockTodoData[]>>();
-  const findUnique = mock<(args: TodoFindUniqueArgs) => Promise<MockTodoData | null>>();
-  const create = mock<(args: { data: TodoCreateInput }) => Promise<MockTodoData>>();
-  const update = mock<(args: { where: TodoWhereUniqueInput; data: TodoUpdateInput }) => Promise<MockTodoData>>();
-  const deleteMethod = mock<(args: TodoDeleteArgs) => Promise<MockTodoData>>();
+  const findMany = mock<() => Promise<any[]>>();
+  const findUnique = mock<(args: any) => Promise<any | null>>();
+  const create = mock<(args: any) => Promise<any>>();
+  const update = mock<(args: any) => Promise<any>>();
+  const deleteMethod = mock<(args: any) => Promise<any>>();
 
   const mockPrisma = {
     todo: {
@@ -77,7 +90,7 @@ describe("PrismaTodoRepository", () => {
     test("should return all todos", async () => {
       // Arrange
       const now = new Date();
-      const mockTodos: MockTodoData[] = [
+      const mockTodos = [
         {
           id: "todo-1",
           title: "Todo 1",
@@ -89,7 +102,6 @@ describe("PrismaTodoRepository", () => {
           createdAt: now,
           updatedAt: now,
           priority: "medium",
-          projectId: null,
         },
         {
           id: "todo-2",
@@ -102,7 +114,6 @@ describe("PrismaTodoRepository", () => {
           createdAt: now,
           updatedAt: now,
           priority: "high",
-          projectId: null,
         },
       ];
       findMany.mockImplementationOnce(async () => Promise.resolve(mockTodos));
@@ -126,7 +137,7 @@ describe("PrismaTodoRepository", () => {
     test("should return todo by id", async () => {
       // Arrange
       const now = new Date();
-      const mockTodo: MockTodoData = {
+      const mockTodo = {
         id: "todo-1",
         title: "Todo 1",
         description: "Description 1",
@@ -137,7 +148,6 @@ describe("PrismaTodoRepository", () => {
         createdAt: now,
         updatedAt: now,
         priority: "low",
-        projectId: null,
       };
       findUnique.mockImplementationOnce(async () => Promise.resolve(mockTodo));
 
@@ -169,7 +179,7 @@ describe("PrismaTodoRepository", () => {
     test("should create new todo", async () => {
       // Arrange
       const now = new Date();
-      const newTodo = Todo.createNew({
+      const newTodo = {
         title: "New Todo",
         description: "New Description",
         status: TodoStatus.PENDING,
@@ -177,7 +187,7 @@ describe("PrismaTodoRepository", () => {
         totalWorkTime: 0,
         lastStateChangeAt: now,
         priority: PriorityLevel.HIGH,
-      });
+      };
 
       const createdTodo = {
         id: "new-todo-id",
@@ -190,7 +200,6 @@ describe("PrismaTodoRepository", () => {
         createdAt: now,
         updatedAt: now,
         priority: "high",
-        projectId: null,
       };
 
       create.mockImplementationOnce(async () => Promise.resolve(createdTodo));
@@ -238,7 +247,6 @@ describe("PrismaTodoRepository", () => {
         createdAt: now,
         updatedAt: now,
         priority: "low",
-        projectId: null,
       };
 
       const updatedTodo = {
@@ -282,19 +290,9 @@ describe("PrismaTodoRepository", () => {
     test("should delete todo", async () => {
       // Arrange
       const todoId = "todo-1";
-      const now = new Date();
-      const existingTodo: MockTodoData = {
+      const existingTodo = {
         id: todoId,
         title: "Todo to delete",
-        description: null,
-        status: "pending",
-        workState: "idle",
-        totalWorkTime: 0,
-        lastStateChangeAt: now,
-        createdAt: now,
-        updatedAt: now,
-        priority: "medium",
-        projectId: null,
       };
 
       findUnique.mockImplementationOnce(async () => Promise.resolve(existingTodo));

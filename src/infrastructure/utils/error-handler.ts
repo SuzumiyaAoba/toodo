@@ -1,5 +1,4 @@
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
-import { ProjectNameExistsError, ProjectNotFoundError } from "../../domain/errors/project-errors";
 import { TagNameExistsError, TagNotFoundError } from "../../domain/errors/tag-errors";
 import {
   TodoActivityNotFoundError,
@@ -7,7 +6,7 @@ import {
   UnauthorizedActivityDeletionError,
 } from "../../domain/errors/todo-errors";
 
-type EntityType = "Todo" | "TodoActivity" | "Tag" | "Project";
+type EntityType = "Todo" | "TodoActivity" | "Tag";
 
 /**
  * Converts Prisma errors to domain-specific errors
@@ -28,8 +27,6 @@ export function handlePrismaError(error: unknown, entityType: EntityType, entity
           throw new TodoActivityNotFoundError(entityId || "unknown");
         case "Tag":
           throw new TagNotFoundError(entityId || "unknown");
-        case "Project":
-          throw new ProjectNotFoundError(entityId || "unknown");
       }
     }
 
@@ -40,11 +37,6 @@ export function handlePrismaError(error: unknown, entityType: EntityType, entity
         // Extract the value that caused the violation from the error message or meta
         const nameValue = typeof error.meta?.target === "string" ? error.meta.target : "unknown";
         throw new TagNameExistsError(nameValue);
-      }
-      if (entityType === "Project" && target?.includes("name")) {
-        // Extract the value that caused the violation from the error message or meta
-        const nameValue = typeof error.meta?.target === "string" ? error.meta.target : "unknown";
-        throw new ProjectNameExistsError(nameValue);
       }
     }
   }

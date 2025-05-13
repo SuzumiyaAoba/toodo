@@ -19,10 +19,8 @@ model Todo {
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
   priority          String         @default("medium") // Added priority field
-  projectId         String?        // Reference to project
   activities        TodoActivity[]
   tags              TodoTag[]
-  project           Project?       @relation(fields: [projectId], references: [id])
 }
 
 model TodoActivity {
@@ -53,15 +51,4 @@ model TodoTag {
   todo       Todo     @relation(fields: [todoId], references: [id], onDelete: Cascade)
 
   @@id([todoId, tagId])
-}
-
-model Project {
-  id          String   @id @default(uuid())
-  name        String
-  description String?
-  color       String?
-  status      String   @default("active")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  todos       Todo[]
 }

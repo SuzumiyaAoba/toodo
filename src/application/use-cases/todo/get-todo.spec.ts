@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
-import { createTestTodo } from "../../../domain/entities/test-helpers";
-import { PriorityLevel, Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
+import { PriorityLevel, type Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
 import { TodoNotFoundError } from "../../../domain/errors/todo-errors";
 import type { TodoRepository } from "../../../domain/repositories/todo-repository";
 import { GetTodoUseCase } from "./get-todo";
@@ -42,7 +41,7 @@ describe("GetTodoUseCase", () => {
     // Arrange
     const todoId = "todo-id";
     const now = new Date();
-    const mockTodo = createTestTodo({
+    const mockTodo = {
       id: todoId,
       title: "Test Todo",
       description: "Test Description",
@@ -53,7 +52,7 @@ describe("GetTodoUseCase", () => {
       createdAt: now,
       updatedAt: now,
       priority: PriorityLevel.MEDIUM,
-    });
+    };
 
     mockTodoRepository.findById.mockImplementationOnce(async () => Promise.resolve(mockTodo));
 

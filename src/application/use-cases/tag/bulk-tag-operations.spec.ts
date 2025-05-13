@@ -1,5 +1,4 @@
 import { describe, expect, it, mock } from "bun:test";
-import { createTestTodo } from "../../../domain/entities/test-helpers";
 import { PriorityLevel, TodoStatus, WorkState } from "../../../domain/entities/todo";
 import { BulkAssignTagUseCase, BulkRemoveTagUseCase } from "./bulk-tag-operations";
 
@@ -44,10 +43,25 @@ describe("BulkTagOperations", () => {
 
   const createMockTodoRepository = () => ({
     create: mock(() =>
-      Promise.resolve(
-        createTestTodo({
-          id: "new-todo-id",
-          title: "New Todo",
+      Promise.resolve({
+        id: "new-todo-id",
+        title: "New Todo",
+        description: undefined,
+        status: TodoStatus.PENDING,
+        workState: WorkState.IDLE,
+        totalWorkTime: 0,
+        lastStateChangeAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        priority: PriorityLevel.MEDIUM,
+      }),
+    ),
+    findById: mock((id: string) => {
+      if (validTodoIds.includes(id)) {
+        return Promise.resolve({
+          id,
+          title: `Todo ${id.slice(0, 8)}`,
+          description: undefined, // nullではなくundefinedに変更
           status: TodoStatus.PENDING,
           workState: WorkState.IDLE,
           totalWorkTime: 0,
@@ -55,73 +69,53 @@ describe("BulkTagOperations", () => {
           createdAt: new Date(),
           updatedAt: new Date(),
           priority: PriorityLevel.MEDIUM,
-        }),
-      ),
-    ),
-    findById: mock((id: string) => {
-      if (validTodoIds.includes(id)) {
-        return Promise.resolve(
-          createTestTodo({
-            id,
-            title: `Todo ${id.slice(0, 8)}`,
-            status: TodoStatus.PENDING,
-            workState: WorkState.IDLE,
-            totalWorkTime: 0,
-            lastStateChangeAt: new Date(),
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            priority: PriorityLevel.MEDIUM,
-          }),
-        );
+        });
       }
       return Promise.resolve(null);
     }),
     findAll: mock(() => Promise.resolve([])),
     update: mock(() =>
-      Promise.resolve(
-        createTestTodo({
-          id: "updated-todo-id",
-          title: "Updated Todo",
-          status: TodoStatus.PENDING,
-          workState: WorkState.IDLE,
-          totalWorkTime: 0,
-          lastStateChangeAt: new Date(),
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          priority: PriorityLevel.MEDIUM,
-        }),
-      ),
+      Promise.resolve({
+        id: "updated-todo-id",
+        title: "Updated Todo",
+        description: undefined,
+        status: TodoStatus.PENDING,
+        workState: WorkState.IDLE,
+        totalWorkTime: 0,
+        lastStateChangeAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        priority: PriorityLevel.MEDIUM,
+      }),
     ),
     delete: mock(() => Promise.resolve()),
     updateWorkState: mock(() =>
-      Promise.resolve(
-        createTestTodo({
-          id: "todo-id",
-          title: "Todo",
-          status: TodoStatus.PENDING,
-          workState: WorkState.ACTIVE,
-          totalWorkTime: 0,
-          lastStateChangeAt: new Date(),
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          priority: PriorityLevel.MEDIUM,
-        }),
-      ),
+      Promise.resolve({
+        id: "todo-id",
+        title: "Todo",
+        description: undefined,
+        status: TodoStatus.PENDING,
+        workState: WorkState.ACTIVE,
+        totalWorkTime: 0,
+        lastStateChangeAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        priority: PriorityLevel.MEDIUM,
+      }),
     ),
     updateWorkTime: mock(() =>
-      Promise.resolve(
-        createTestTodo({
-          id: "todo-id",
-          title: "Todo",
-          status: TodoStatus.PENDING,
-          workState: WorkState.IDLE,
-          totalWorkTime: 60,
-          lastStateChangeAt: new Date(),
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          priority: PriorityLevel.MEDIUM,
-        }),
-      ),
+      Promise.resolve({
+        id: "todo-id",
+        title: "Todo",
+        description: undefined,
+        status: TodoStatus.PENDING,
+        workState: WorkState.IDLE,
+        totalWorkTime: 60,
+        lastStateChangeAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        priority: PriorityLevel.MEDIUM,
+      }),
     ),
   });
 

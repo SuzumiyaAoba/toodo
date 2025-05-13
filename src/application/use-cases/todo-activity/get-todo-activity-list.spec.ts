@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
-import { createTestTodo } from "../../../domain/entities/test-helpers";
-import { PriorityLevel, Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
+import { PriorityLevel, type Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
 import { ActivityType, type TodoActivity } from "../../../domain/entities/todo-activity";
 import { TodoNotFoundError } from "../../../domain/errors/todo-errors";
 import type { TodoActivityRepository } from "../../../domain/repositories/todo-activity-repository";
@@ -74,9 +73,10 @@ describe("GetTodoActivityListUseCase", () => {
     const todoId = "todo-id";
     const now = new Date();
 
-    const mockTodo = createTestTodo({
+    const mockTodo: Todo = {
       id: todoId,
       title: "Test Todo",
+      description: undefined,
       status: TodoStatus.PENDING,
       workState: WorkState.IDLE,
       totalWorkTime: 0,
@@ -84,7 +84,7 @@ describe("GetTodoActivityListUseCase", () => {
       createdAt: now,
       updatedAt: now,
       priority: PriorityLevel.MEDIUM,
-    });
+    };
 
     const mockActivities: TodoActivity[] = [
       {
@@ -127,9 +127,10 @@ describe("GetTodoActivityListUseCase", () => {
     const todoId = "todo-id";
     const now = new Date();
 
-    const mockTodo = createTestTodo({
+    const mockTodo: Todo = {
       id: todoId,
       title: "Test Todo",
+      description: undefined,
       status: TodoStatus.PENDING,
       workState: WorkState.IDLE,
       totalWorkTime: 0,
@@ -137,7 +138,7 @@ describe("GetTodoActivityListUseCase", () => {
       createdAt: now,
       updatedAt: now,
       priority: PriorityLevel.MEDIUM,
-    });
+    };
 
     mockTodoRepository.findById.mockImplementationOnce(async () => Promise.resolve(mockTodo));
     mockTodoActivityRepository.findByTodoId.mockImplementationOnce(async () => Promise.resolve([]));

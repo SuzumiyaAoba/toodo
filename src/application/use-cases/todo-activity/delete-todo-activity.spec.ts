@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
-import { createTestTodo } from "../../../domain/entities/test-helpers";
-import { PriorityLevel, Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
+import { PriorityLevel, type Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
 import { ActivityType, type TodoActivity } from "../../../domain/entities/todo-activity";
 import {
   TodoActivityNotFoundError,
@@ -82,9 +81,10 @@ describe("DeleteTodoActivityUseCase", () => {
     const activityId = "non-existent-activity";
     const now = new Date();
 
-    const mockTodo = createTestTodo({
+    const mockTodo: Todo = {
       id: todoId,
       title: "Test Todo",
+      description: undefined,
       status: TodoStatus.PENDING,
       workState: WorkState.IDLE,
       totalWorkTime: 0,
@@ -92,7 +92,7 @@ describe("DeleteTodoActivityUseCase", () => {
       createdAt: now,
       updatedAt: now,
       priority: PriorityLevel.MEDIUM,
-    });
+    };
 
     mockTodoRepository.findById.mockImplementationOnce(async () => Promise.resolve(mockTodo));
     mockTodoActivityRepository.findById.mockImplementationOnce(async () => Promise.resolve(null));
@@ -112,9 +112,10 @@ describe("DeleteTodoActivityUseCase", () => {
     const activityId = "activity-id";
     const now = new Date();
 
-    const mockTodo = createTestTodo({
+    const mockTodo: Todo = {
       id: todoId,
       title: "Test Todo",
+      description: undefined,
       status: TodoStatus.PENDING,
       workState: WorkState.IDLE,
       totalWorkTime: 0,
@@ -122,7 +123,7 @@ describe("DeleteTodoActivityUseCase", () => {
       createdAt: now,
       updatedAt: now,
       priority: PriorityLevel.MEDIUM,
-    });
+    };
 
     const mockActivity: TodoActivity = {
       id: activityId,
@@ -150,9 +151,10 @@ describe("DeleteTodoActivityUseCase", () => {
     const activityId = "activity-id";
     const now = new Date();
 
-    const mockTodo = createTestTodo({
+    const mockTodo: Todo = {
       id: todoId,
       title: "Test Todo",
+      description: undefined,
       status: TodoStatus.PENDING,
       workState: WorkState.IDLE,
       totalWorkTime: 0,
@@ -160,7 +162,7 @@ describe("DeleteTodoActivityUseCase", () => {
       createdAt: now,
       updatedAt: now,
       priority: PriorityLevel.MEDIUM,
-    });
+    };
 
     const mockActivity: TodoActivity = {
       id: activityId,

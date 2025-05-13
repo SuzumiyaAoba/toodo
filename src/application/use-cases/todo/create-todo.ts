@@ -1,4 +1,4 @@
-import { type PriorityLevel, Todo, type TodoStatus, type WorkState } from "../../../domain/entities/todo";
+import { PriorityLevel, type Todo, TodoStatus, WorkState } from "../../../domain/entities/todo";
 import type { TodoRepository } from "../../../domain/repositories/todo-repository";
 
 /**
@@ -19,14 +19,14 @@ export class CreateTodoUseCase {
     workState?: WorkState;
     priority?: PriorityLevel;
   }): Promise<Todo> {
-    return this.todoRepository.create(
-      Todo.createNew({
-        title: data.title,
-        description: data.description,
-        status: data.status,
-        workState: data.workState,
-        priority: data.priority,
-      }),
-    );
+    return this.todoRepository.create({
+      title: data.title,
+      description: data.description,
+      status: data.status || TodoStatus.PENDING,
+      workState: data.workState || WorkState.IDLE,
+      totalWorkTime: 0,
+      lastStateChangeAt: new Date(),
+      priority: data.priority || PriorityLevel.MEDIUM,
+    });
   }
 }
