@@ -15,7 +15,7 @@ import { ErrorCode, createApiError } from "../errors/api-errors";
  */
 export const errorHandler = async (err: Error, c: Context, next?: Next): Promise<Response> => {
   try {
-    // In test environments, there might be no next function, so check if next is callable
+    // テスト環境では次の処理がないことがあるので、next が呼び出し可能かどうかをチェック
     if (typeof next === "function") {
       await next();
     }
@@ -59,10 +59,5 @@ export const errorHandler = async (err: Error, c: Context, next?: Next): Promise
   }
 
   // Generic error handling
-  return c.json(
-    {
-      error: createApiError(ErrorCode.INTERNAL_ERROR, "Internal Server Error"),
-    },
-    500,
-  );
+  return c.json({ error: createApiError(ErrorCode.INTERNAL_ERROR, "Internal Server Error") }, 500);
 };

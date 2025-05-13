@@ -318,16 +318,16 @@ export class PrismaTodoRepository extends PrismaBaseRepository<Todo, PrismaTodo>
     }, `${todoId}-${dependencyId}`);
   }
 
-  // Subtask related implementations
+  // サブタスク関連の実装
   async findByParent(parentId: TodoId): Promise<Todo[]> {
     return this.executePrismaOperation(async () => {
-      // Check if parent task exists
+      // 親タスクが存在するか確認
       const parent = await this.prisma.todo.findUnique({ where: { id: parentId } });
       if (!parent) {
         throw new TodoNotFoundError(parentId);
       }
 
-      // Get subtasks related to parent task
+      // 親タスクに関連するサブタスクを取得
       const subtasks = await this.prisma.todo.findMany({
         where: { parentId },
         include: {
@@ -343,13 +343,13 @@ export class PrismaTodoRepository extends PrismaBaseRepository<Todo, PrismaTodo>
 
   async findChildrenTree(parentId: TodoId, maxDepth = 10): Promise<Todo[]> {
     return this.executePrismaOperation(async () => {
-      // Check if parent task exists
+      // 親タスクが存在するか確認
       const parent = await this.prisma.todo.findUnique({ where: { id: parentId } });
       if (!parent) {
         throw new TodoNotFoundError(parentId);
       }
 
-      // Function to recursively fetch child tasks
+      // 再帰的に子タスクを取得する関数
       const fetchSubtasksRecursively = async (currentParentId: TodoId, currentDepth: number): Promise<PrismaTodo[]> => {
         if (currentDepth >= maxDepth) {
           return [];
@@ -363,7 +363,7 @@ export class PrismaTodoRepository extends PrismaBaseRepository<Todo, PrismaTodo>
           },
         });
 
-        // Recursively get child tasks for each subtask
+        // 各サブタスクの子タスクを再帰的に取得
         const subtasksWithChildren = await Promise.all(
           subtasks.map(async (subtask) => {
             const children = await fetchSubtasksRecursively(subtask.id, currentDepth + 1);
@@ -374,42 +374,42 @@ export class PrismaTodoRepository extends PrismaBaseRepository<Todo, PrismaTodo>
         return subtasksWithChildren;
       };
 
-      // Get subtasks of the parent task (recursively)
+      // 親タスクのサブタスクを取得（再帰的に）
       const subtasksWithNesting = await fetchSubtasksRecursively(parentId, 0);
 
-      // Convert to domain model
+      // ドメインモデルに変換
       return this.mapToDomainArray(subtasksWithNesting);
     }, `${parentId}-${maxDepth}`);
   }
 
   async updateParent(todoId: TodoId, parentId: TodoId | null): Promise<Todo> {
     return this.executePrismaOperation(async () => {
-      // Check if task exists
+      // タスクが存在するか確認
       const todo = await this.prisma.todo.findUnique({ where: { id: todoId } });
       if (!todo) {
         throw new TodoNotFoundError(todoId);
       }
 
-      // Check if parent task exists when specified
+      // 親タスクが指定されている場合、存在するか確認
       if (parentId !== null) {
         const parent = await this.prisma.todo.findUnique({ where: { id: parentId } });
         if (!parent) {
           throw new TodoNotFoundError(parentId);
         }
 
-        // Cannot set self as parent
+        // 自分自身を親にはできない
         if (todoId === parentId) {
           throw new SelfDependencyError(todoId);
         }
 
-        // Check for circular reference
+        // 循環参照がないか確認
         const wouldCreateCycle = await this.checkForHierarchyCycle(todoId, parentId);
         if (wouldCreateCycle) {
           throw new DependencyCycleError(todoId, parentId);
         }
       }
 
-      // Update parent task
+      // 親タスクを更新
       const updatedTodo = await this.prisma.todo.update({
         where: { id: todoId },
         data: { parentId },
@@ -426,7 +426,7 @@ export class PrismaTodoRepository extends PrismaBaseRepository<Todo, PrismaTodo>
 
   async addSubtask(parentId: TodoId, subtaskId: TodoId): Promise<void> {
     return this.executePrismaOperation(async () => {
-      // Check if both tasks exist
+      // 両方のタスクが存在するか確認
       const parent = await this.prisma.todo.findUnique({ where: { id: parentId } });
       const subtask = await this.prisma.todo.findUnique({ where: { id: subtaskId } });
 
@@ -437,18 +437,18 @@ export class PrismaTodoRepository extends PrismaBaseRepository<Todo, PrismaTodo>
         throw new TodoNotFoundError(subtaskId);
       }
 
-      // Cannot add self as subtask
+      // 自分自身をサブタスクにはできない
       if (parentId === subtaskId) {
         throw new SelfDependencyError(parentId);
       }
 
-      // Check for circular reference
+      // 循環参照がないか確認
       const wouldCreateCycle = await this.checkForHierarchyCycle(subtaskId, parentId);
       if (wouldCreateCycle) {
         throw new DependencyCycleError(subtaskId, parentId);
       }
 
-      // Set parent for the subtask
+      // サブタスクの親を設定
       await this.prisma.todo.update({
         where: { id: subtaskId },
         data: { parentId },
@@ -458,7 +458,7 @@ export class PrismaTodoRepository extends PrismaBaseRepository<Todo, PrismaTodo>
 
   async removeSubtask(parentId: TodoId, subtaskId: TodoId): Promise<void> {
     return this.executePrismaOperation(async () => {
-      // Check if both tasks exist
+      // 両方のタスクが存在するか確認
       const parent = await this.prisma.todo.findUnique({ where: { id: parentId } });
       const subtask = await this.prisma.todo.findUnique({ where: { id: subtaskId } });
 
@@ -469,12 +469,12 @@ export class PrismaTodoRepository extends PrismaBaseRepository<Todo, PrismaTodo>
         throw new TodoNotFoundError(subtaskId);
       }
 
-      // Check subtask relationship
+      // サブタスクの関係を確認
       if (subtask.parentId !== parentId) {
         throw new SubtaskNotFoundError(subtaskId, parentId);
       }
 
-      // Remove parent reference (explicitly set to null instead of undefined)
+      // サブタスクの親を解除（undefinedではなくnullを明示的に設定）
       await this.prisma.todo.update({
         where: { id: subtaskId },
         data: { parentId: null },

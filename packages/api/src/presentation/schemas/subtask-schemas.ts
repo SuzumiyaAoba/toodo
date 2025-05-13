@@ -2,11 +2,11 @@ import * as v from "valibot";
 import { CommonSchemas, TodoSchema } from "./todo-schemas";
 
 /**
- * Schema definitions for subtask inputs and outputs
+ * サブタスク関連の入力と出力のスキーマを定義
  */
 
 /**
- * Parameter schema for subtask operations
+ * サブタスク操作用のパラメータスキーマ
  */
 export const TodoSubtaskParamSchema = v.object({
   id: CommonSchemas.uuid(),
@@ -14,22 +14,22 @@ export const TodoSubtaskParamSchema = v.object({
 });
 
 /**
- * Parameter type for subtask operations
+ * サブタスク操作用のパラメータ型
  */
 export type TodoSubtaskParam = v.InferOutput<typeof TodoSubtaskParamSchema>;
 
 /**
- * Subtask list response schema
+ * サブタスクリスト応答スキーマ
  */
 export const SubtaskListSchema = v.array(TodoSchema);
 
 /**
- * Subtask list response type
+ * サブタスクリスト応答型
  */
 export type SubtaskListResponse = v.InferOutput<typeof SubtaskListSchema>;
 
 /**
- * Subtask tree node type
+ * サブタスクツリーノード型
  */
 type SubtaskTreeNode = {
   id: string;
@@ -37,13 +37,13 @@ type SubtaskTreeNode = {
   description?: string;
   status: string;
   workState: string;
-  priority: string; // Maintaining string type for consistency
-  dueDate?: string; // Changed from Date type to string type
+  priority: string; // 整合性のため、string型を維持
+  dueDate?: string; // Date型からstring型に変更
   subtasks: SubtaskTreeNode[];
 };
 
 /**
- * Subtask tree node schema
+ * サブタスクツリーノードスキーマ
  */
 export const SubtaskTreeNodeSchema: v.BaseSchema<unknown, SubtaskTreeNode, v.BaseIssue<unknown>> = v.object({
   id: CommonSchemas.uuid(),
@@ -51,32 +51,32 @@ export const SubtaskTreeNodeSchema: v.BaseSchema<unknown, SubtaskTreeNode, v.Bas
   description: CommonSchemas.description(),
   status: CommonSchemas.todoStatus(),
   workState: CommonSchemas.workState(),
-  priority: CommonSchemas.priorityLevel(), // Using CommonSchemas for consistency
-  dueDate: v.optional(v.string()), // Changed from Date type to string type
+  priority: CommonSchemas.priorityLevel(), // CommonSchemasを使用して一貫性を保つ
+  dueDate: v.optional(v.string()), // Date型からstring型に変更
   subtasks: v.array(v.lazy(() => SubtaskTreeNodeSchema)),
 });
 
 /**
- * Subtask tree response schema
+ * サブタスクツリー応答スキーマ
  */
 export const SubtaskTreeSchema = v.array(SubtaskTreeNodeSchema);
 
 /**
- * Subtask tree response type
+ * サブタスクツリー応答型
  */
 export type SubtaskTreeResponse = v.InferOutput<typeof SubtaskTreeSchema>;
 
 /**
- * Create subtask request schema
+ * 新規サブタスク作成リクエストスキーマ
  */
 export const CreateSubtaskSchema = v.object({
   parentId: CommonSchemas.uuid(),
   title: CommonSchemas.title(),
   description: CommonSchemas.description(),
-  priority: v.optional(CommonSchemas.priorityLevel()), // Using CommonSchemas for consistency
+  priority: v.optional(CommonSchemas.priorityLevel()), // CommonSchemasを使用して一貫性を保つ
 });
 
 /**
- * Create subtask request type
+ * 新規サブタスク作成リクエスト型
  */
 export type CreateSubtaskRequest = v.InferOutput<typeof CreateSubtaskSchema>;

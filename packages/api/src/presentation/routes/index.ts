@@ -12,7 +12,7 @@ import { setupTodoDependencyRoutes } from "./todo-dependency-routes";
 import { setupTodoDueDateRoutes } from "./todo-due-date-routes";
 import { setupTodoRoutes } from "./todo-routes";
 
-// Importing types for Todo, TodoActivity, TodoDependency
+// Todo, TodoActivity, TodoDependency の型インポート
 import type { CreateTodoActivityUseCase } from "../../application/use-cases/todo-activity/create-todo-activity";
 import type { DeleteTodoActivityUseCase } from "../../application/use-cases/todo-activity/delete-todo-activity";
 import type { GetTodoActivityListUseCase } from "../../application/use-cases/todo-activity/get-todo-activity-list";
@@ -69,13 +69,13 @@ export function setupRoutes<E extends Env = Env, S extends Schema = Schema>(
   // PrismaClient for repositories
   prisma: PrismaClient,
 ): Hono<E, S> {
-  // Initialize repositories
+  // リポジトリの初期化
   const todoRepository = new PrismaTodoRepository(prisma);
   const tagRepository = new PrismaTagRepository(prisma);
   const projectRepository = new PrismaProjectRepository(prisma);
 
-  // Set up routes
-  // 1. Todo and related activity routes
+  // ルートのセットアップ
+  // 1. Todoとその関連アクティビティルート
   setupTodoRoutes<E, S>(
     app,
     createTodoUseCase,
@@ -89,16 +89,16 @@ export function setupRoutes<E extends Env = Env, S extends Schema = Schema>(
     deleteTodoActivityUseCase,
   );
 
-  // 2. Todo dependency routes
+  // 2. Todoの依存関係ルート
   setupTodoDependencyRoutes<E, S>(app, todoRepository);
 
-  // 3. Tag related routes
+  // 3. タグ関連ルート
   setupTagRoutes<E, S>(app, tagRepository, todoRepository);
 
-  // 4. Project related routes
+  // 4. プロジェクト関連ルート
   setupProjectRoutes<E, S>(app, projectRepository, todoRepository);
 
-  // 5. Due date related routes
+  // 5. 期限日関連ルート
   setupTodoDueDateRoutes<E, S>(
     app,
     findOverdueTodosUseCase,
@@ -107,7 +107,7 @@ export function setupRoutes<E extends Env = Env, S extends Schema = Schema>(
     bulkUpdateDueDateUseCase,
   );
 
-  // 6. Subtask related routes
+  // 6. サブタスク関連ルート
   app.route("/todos", subtaskRoutes);
 
   return app;

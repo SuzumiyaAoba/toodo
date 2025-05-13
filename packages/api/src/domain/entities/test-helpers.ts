@@ -79,21 +79,21 @@ export function createMockPrismaTodo(params: {
 }
 
 /**
- * Convert priority level to a string for Prisma
+ * 優先度をPrisma用の文字列に変換
  */
 export function priorityLevelToString(priority: PriorityLevel): string {
   return priority.toString().toLowerCase();
 }
 
 /**
- * Convert todo status to a string for Prisma
+ * Todoステータスをプリズマ用の文字列に変換
  */
 export function todoStatusToString(status: TodoStatus): string {
   return status.toString().toLowerCase();
 }
 
 /**
- * Convert work state to a string for Prisma
+ * 作業状態をプリズマ用の文字列に変換
  */
 export function workStateToString(state: WorkState): string {
   return state.toString().toLowerCase();

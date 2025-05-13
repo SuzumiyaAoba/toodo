@@ -20,29 +20,29 @@ export interface TodoRepository {
   findWithDueDateBefore(date: Date): Promise<Todo[]>;
   findWithDueDateBetween(startDate: Date, endDate: Date): Promise<Todo[]>;
 
-  // Subtask related methods
+  // サブタスク関連のメソッド
   findByParent(parentId: TodoId): Promise<Todo[]>;
   findChildrenTree(parentId: TodoId, maxDepth?: number): Promise<Todo[]>;
   updateParent(todoId: TodoId, parentId: TodoId | null): Promise<Todo>;
   addSubtask(parentId: TodoId, subtaskId: TodoId): Promise<void>;
   removeSubtask(parentId: TodoId, subtaskId: TodoId): Promise<void>;
 
-  // Cycle check methods
+  // 循環参照チェック
   checkForHierarchyCycle(todoId: TodoId, potentialParentId: TodoId): Promise<boolean>;
 
-  // Dependency management methods
+  // 依存関係管理のメソッド
   addDependency(todoId: TodoId, dependencyId: TodoId): Promise<void>;
   removeDependency(todoId: TodoId, dependencyId: TodoId): Promise<void>;
   findDependencies(todoId: TodoId): Promise<Todo[]>;
   findDependents(todoId: TodoId): Promise<Todo[]>;
   wouldCreateDependencyCycle(todoId: TodoId, dependencyId: TodoId): Promise<boolean>;
 
-  // Due date related methods
+  // 期日関連のメソッド
   findOverdue(currentDate?: Date): Promise<Todo[]>;
   findDueSoon(days?: number, currentDate?: Date): Promise<Todo[]>;
   findByDueDateRange(startDate: Date, endDate: Date): Promise<Todo[]>;
 
-  // Other utility methods
+  // その他の便利なメソッド
   findAllCompleted(): Promise<Todo[]>;
   findByProjectId(projectId: string): Promise<Todo[]>;
   findByTagId(tagId: string): Promise<Todo[]>;
