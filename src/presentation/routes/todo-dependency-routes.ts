@@ -1,6 +1,5 @@
 import type { ConversionConfig } from "@valibot/to-json-schema";
 import type { Hono } from "hono";
-import type { Env, Schema } from "hono";
 import { describeRoute } from "hono-openapi";
 import { resolver, validator as vValidator } from "hono-openapi/valibot";
 import { AddTodoDependencyUseCase } from "../../application/use-cases/todo-dependency/add-todo-dependency";
@@ -32,10 +31,7 @@ const valibotConfig: ConversionConfig = {
 /**
  * Setup API routes for Todo dependencies
  */
-export function setupTodoDependencyRoutes<E extends Env = Env, S extends Schema = Schema>(
-  app: Hono<E, S>,
-  todoRepository: TodoRepository,
-): Hono<E, S> {
+export function setupTodoDependencyRoutes(app: Hono, todoRepository: TodoRepository): Hono {
   // 依存関係を追加するエンドポイント
   app.post(
     "/todos/:id/dependencies/:dependencyId",
