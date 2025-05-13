@@ -9,23 +9,20 @@ datasource db {
 }
 
 model Todo {
-  id                String            @id @default(uuid())
+  id                String         @id @default(uuid())
   title             String
   description       String?
-  status            String            @default("pending")
-  workState         String            @default("idle")
-  totalWorkTime     Int               @default(0)
-  lastStateChangeAt DateTime          @default(now())
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
-  priority          String            @default("medium") // Added priority field
+  status            String         @default("pending")
+  workState         String         @default("idle")
+  totalWorkTime     Int            @default(0)
+  lastStateChangeAt DateTime       @default(now())
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  priority          String         @default("medium") // Added priority field
   projectId         String?        // Reference to project
   activities        TodoActivity[]
   tags              TodoTag[]
   project           Project?       @relation(fields: [projectId], references: [id])
-  
-  dependsOn         TodoDependency[]  @relation("DependentTodo")
-  dependents        TodoDependency[]  @relation("DependencyTodo")
 }
 
 model TodoActivity {
@@ -37,16 +34,6 @@ model TodoActivity {
   previousState String?
   workTime      Int?
   todo          Todo     @relation(fields: [todoId], references: [id], onDelete: Cascade)
-}
-
-model TodoDependency {
-  dependentId   String
-  dependencyId  String
-  createdAt     DateTime @default(now())
-  dependent     Todo     @relation("DependentTodo", fields: [dependentId], references: [id], onDelete: Cascade)
-  dependency    Todo     @relation("DependencyTodo", fields: [dependencyId], references: [id], onDelete: Cascade)
-
-  @@id([dependentId, dependencyId])
 }
 
 model Tag {

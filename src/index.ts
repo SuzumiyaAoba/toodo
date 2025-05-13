@@ -8,10 +8,6 @@ import { setupRoutes } from "./presentation/routes";
 import { CreateTodoActivityUseCase } from "./application/use-cases/todo-activity/create-todo-activity";
 import { DeleteTodoActivityUseCase } from "./application/use-cases/todo-activity/delete-todo-activity";
 import { GetTodoActivityListUseCase } from "./application/use-cases/todo-activity/get-todo-activity-list";
-import { AddTodoDependencyUseCase } from "./application/use-cases/todo-dependency/add-todo-dependency";
-import { GetTodoDependenciesUseCase } from "./application/use-cases/todo-dependency/get-todo-dependencies";
-import { GetTodoDependentsUseCase } from "./application/use-cases/todo-dependency/get-todo-dependents";
-import { RemoveTodoDependencyUseCase } from "./application/use-cases/todo-dependency/remove-todo-dependency";
 // Use Cases
 import { CreateTodoUseCase } from "./application/use-cases/todo/create-todo";
 import { DeleteTodoUseCase } from "./application/use-cases/todo/delete-todo";
@@ -73,12 +69,6 @@ const createTodoActivityUseCase = new CreateTodoActivityUseCase(todoRepository, 
 const getTodoActivityListUseCase = new GetTodoActivityListUseCase(todoRepository, todoActivityRepository);
 const deleteTodoActivityUseCase = new DeleteTodoActivityUseCase(todoRepository, todoActivityRepository);
 
-// Initialize Todo Dependency use cases
-const addTodoDependencyUseCase = new AddTodoDependencyUseCase(todoRepository);
-const removeTodoDependencyUseCase = new RemoveTodoDependencyUseCase(todoRepository);
-const getTodoDependenciesUseCase = new GetTodoDependenciesUseCase(todoRepository);
-const getTodoDependentsUseCase = new GetTodoDependentsUseCase(todoRepository);
-
 // Setup routes directly with use cases - pass the app instance as the first parameter
 setupRoutes(
   app,
@@ -91,10 +81,6 @@ setupRoutes(
   createTodoActivityUseCase,
   getTodoActivityListUseCase,
   deleteTodoActivityUseCase,
-  addTodoDependencyUseCase,
-  removeTodoDependencyUseCase,
-  getTodoDependenciesUseCase,
-  getTodoDependentsUseCase,
   prisma, // Pass PrismaClient instance for TagController
 );
 

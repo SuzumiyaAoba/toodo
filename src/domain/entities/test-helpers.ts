@@ -65,9 +65,7 @@ export function createMockPrismaTodo(overrides: Partial<PrismaTodo> = {}): Prism
 let originalDateNow: () => number;
 let mockedDate: Date | null = null;
 
-// Dateコンストラクタの引数の型を正確に定義
-type DateArg = string | number | Date;
-type DateArgs = [DateArg] | [number, number, number?, number?, number?, number?, number?];
+type DateArgs = [string | number | Date] | [number, number, number?, number?, number?, number?, number?];
 
 export const jest = {
   useFakeTimers: () => {
@@ -76,15 +74,12 @@ export const jest = {
     mockedDate = new Date();
     Date.now = () => (mockedDate ? mockedDate.getTime() : originalDateNow());
     global.Date = class extends Date {
-      constructor(...args: unknown[]) {
+      constructor(...args: DateArgs[number][]) {
         if (args.length === 0) {
           super(mockedDate ? mockedDate.getTime() : Date.now());
-        } else if (args.length === 1) {
-          super(args[0] as DateArg);
         } else {
-          // 数値の場合は年、月、日などのパラメータとして扱う
-          const [year, month, ...rest] = args as [number, number, ...number[]];
-          super(year, month, ...rest);
+          // @ts-expect-error - args is correctly typed but TypeScript is having trouble with the spread
+          super(...args);
         }
       }
     } as DateConstructor;

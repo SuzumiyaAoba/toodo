@@ -22,10 +22,6 @@ import { UpdateTagUseCase } from "../../application/use-cases/tag/update-tag";
 import type { CreateTodoActivityUseCase } from "../../application/use-cases/todo-activity/create-todo-activity";
 import type { DeleteTodoActivityUseCase } from "../../application/use-cases/todo-activity/delete-todo-activity";
 import type { GetTodoActivityListUseCase } from "../../application/use-cases/todo-activity/get-todo-activity-list";
-import type { AddTodoDependencyUseCase } from "../../application/use-cases/todo-dependency/add-todo-dependency";
-import type { GetTodoDependenciesUseCase } from "../../application/use-cases/todo-dependency/get-todo-dependencies";
-import type { GetTodoDependentsUseCase } from "../../application/use-cases/todo-dependency/get-todo-dependents";
-import type { RemoveTodoDependencyUseCase } from "../../application/use-cases/todo-dependency/remove-todo-dependency";
 import type { CreateTodoUseCase } from "../../application/use-cases/todo/create-todo";
 import type { DeleteTodoUseCase } from "../../application/use-cases/todo/delete-todo";
 import type { GetTodoUseCase } from "../../application/use-cases/todo/get-todo";
@@ -107,11 +103,6 @@ export function setupRoutes<E extends Env = Env>(
   createTodoActivityUseCase: CreateTodoActivityUseCase,
   getTodoActivityListUseCase: GetTodoActivityListUseCase,
   deleteTodoActivityUseCase: DeleteTodoActivityUseCase,
-  // TodoDependency use cases
-  addTodoDependencyUseCase: AddTodoDependencyUseCase,
-  removeTodoDependencyUseCase: RemoveTodoDependencyUseCase,
-  getTodoDependenciesUseCase: GetTodoDependenciesUseCase,
-  getTodoDependentsUseCase: GetTodoDependentsUseCase,
   // PrismaClient for controllers
   prisma: PrismaClient,
 ): Hono<E, Schema> {

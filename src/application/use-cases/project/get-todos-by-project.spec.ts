@@ -27,12 +27,6 @@ describe("GetTodosByProject", () => {
       findById: mock(async () => null),
       findAll: mock(async () => []),
       delete: mock(async () => {}),
-      addDependency: mock(async () => {}),
-      removeDependency: mock(async () => {}),
-      findDependents: mock(async () => []),
-      findDependencies: mock(async () => []),
-      wouldCreateDependencyCycle: mock(async () => false),
-      findAllCompleted: mock(async () => []),
     };
   });
 

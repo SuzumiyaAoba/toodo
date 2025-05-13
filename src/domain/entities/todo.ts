@@ -63,8 +63,6 @@ export class Todo {
   readonly updatedAt: Date;
   readonly priority: PriorityLevel;
   readonly projectId?: ProjectId;
-  readonly dependencies: TodoId[];
-  readonly dependents: TodoId[];
 
   constructor(
     id: TodoId,
@@ -78,8 +76,6 @@ export class Todo {
     priority: PriorityLevel = PriorityLevel.MEDIUM,
     projectId?: ProjectId,
     description?: string,
-    dependencies: TodoId[] = [],
-    dependents: TodoId[] = [],
   ) {
     this.id = id;
     this.title = title;
@@ -92,8 +88,6 @@ export class Todo {
     this.updatedAt = updatedAt;
     this.priority = priority;
     this.projectId = projectId;
-    this.dependencies = [...dependencies];
-    this.dependents = [...dependents];
   }
 
   /**
@@ -115,8 +109,6 @@ export class Todo {
       input.priority ?? PriorityLevel.MEDIUM,
       input.projectId,
       input.description,
-      [],
-      [],
     );
 
     // id, createdAt, updatedAtを除外した新しいオブジェクトを返す
@@ -139,8 +131,6 @@ export class Todo {
     updatedAt = new Date(),
     priority = this.priority,
     projectId = this.projectId,
-    dependencies = this.dependencies,
-    dependents = this.dependents,
   }: Partial<Todo>): Todo {
     return new Todo(
       id,
@@ -154,8 +144,6 @@ export class Todo {
       priority,
       projectId,
       description,
-      dependencies,
-      dependents,
     );
   }
 
@@ -321,104 +309,6 @@ export class Todo {
     }
     return this.updateWorkState(WorkState.ACTIVE, currentTime);
   }
-
-  /**
-   * Add a dependency to this Todo
-   * @param dependencyId The ID of the Todo this Todo depends on
-   */
-  addDependency(dependencyId: TodoId): Todo {
-    // 自分自身への依存関係は追加できない
-    if (dependencyId === this.id) {
-      throw new Error("A todo cannot depend on itself");
-    }
-
-    // すでに依存関係がある場合は追加しない
-    if (this.dependencies.includes(dependencyId)) {
-      return this;
-    }
-
-    const updatedDependencies = [...this.dependencies, dependencyId];
-    return this.copyWith({ dependencies: updatedDependencies });
-  }
-
-  /**
-   * Remove a dependency from this Todo
-   * @param dependencyId The ID of the Todo to remove from dependencies
-   */
-  removeDependency(dependencyId: TodoId): Todo {
-    const updatedDependencies = this.dependencies.filter((id) => id !== dependencyId);
-
-    // 依存関係が変わらない場合は同じインスタンスを返す
-    if (updatedDependencies.length === this.dependencies.length) {
-      return this;
-    }
-
-    return this.copyWith({ dependencies: updatedDependencies });
-  }
-
-  /**
-   * Add a dependent to this Todo
-   * @param dependentId The ID of the Todo that depends on this Todo
-   */
-  addDependent(dependentId: TodoId): Todo {
-    // 自分自身への依存関係は追加できない
-    if (dependentId === this.id) {
-      throw new Error("A todo cannot depend on itself");
-    }
-
-    // すでに依存関係がある場合は追加しない
-    if (this.dependents.includes(dependentId)) {
-      return this;
-    }
-
-    const updatedDependents = [...this.dependents, dependentId];
-    return this.copyWith({ dependents: updatedDependents });
-  }
-
-  /**
-   * Remove a dependent from this Todo
-   * @param dependentId The ID of the Todo to remove from dependents
-   */
-  removeDependent(dependentId: TodoId): Todo {
-    const updatedDependents = this.dependents.filter((id) => id !== dependentId);
-
-    // 依存関係が変わらない場合は同じインスタンスを返す
-    if (updatedDependents.length === this.dependents.length) {
-      return this;
-    }
-
-    return this.copyWith({ dependents: updatedDependents });
-  }
-
-  /**
-   * Check if this Todo has a dependency on another Todo
-   * @param dependencyId The ID of the Todo to check
-   */
-  hasDependencyOn(dependencyId: TodoId): boolean {
-    return this.dependencies.includes(dependencyId);
-  }
-
-  /**
-   * Check if this Todo has a dependent Todo
-   * @param dependentId The ID of the Todo to check
-   */
-  hasDependent(dependentId: TodoId): boolean {
-    return this.dependents.includes(dependentId);
-  }
-
-  /**
-   * Check if this Todo can be completed based on its dependencies
-   * @param completedTodoIds Array of IDs of completed Todos
-   */
-  canBeCompleted(completedTodoIds: TodoId[]): boolean {
-    // 依存関係がない場合は完了できる
-    if (this.dependencies.length === 0) {
-      return true;
-    }
-
-    // すべての依存先Todoが完了しているかチェック
-    return this.dependencies.every((dependencyId) => completedTodoIds.includes(dependencyId));
-  }
 }
 
 /**
@@ -474,16 +364,7 @@ export function priorityLevelToString(priorityLevel: PriorityLevel): string {
 /**
  * Convert PrismaTodo to Todo domain entity
  */
-export function mapToDomainTodo(
-  prismaTodo: PrismaTodo & {
-    dependsOn?: { dependencyId: string }[];
-    dependents?: { dependentId: string }[];
-  },
-): Todo {
-  // 依存関係のIDを抽出
-  const dependencies = prismaTodo.dependsOn?.map((dep) => dep.dependencyId) || [];
-  const dependents = prismaTodo.dependents?.map((dep) => dep.dependentId) || [];
-
+export function mapToDomainTodo(prismaTodo: PrismaTodo): Todo {
   return new Todo(
     prismaTodo.id,
     prismaTodo.title,
@@ -496,7 +377,5 @@ export function mapToDomainTodo(
     prismaTodo.priority as PriorityLevel,
     prismaTodo.projectId || undefined,
     prismaTodo.description || undefined,
-    dependencies,
-    dependents,
   );
 }

@@ -15,12 +15,6 @@ interface MockedTodoRepository extends TodoRepository {
   findById: MockedFunction<(id: string) => Promise<Todo | null>>;
   findAll: MockedFunction<() => Promise<Todo[]>>;
   delete: MockedFunction<(id: string) => Promise<void>>;
-  addDependency: MockedFunction<(todoId: string, dependencyId: string) => Promise<void>>;
-  removeDependency: MockedFunction<(todoId: string, dependencyId: string) => Promise<void>>;
-  findDependents: MockedFunction<(todoId: string) => Promise<Todo[]>>;
-  findDependencies: MockedFunction<(todoId: string) => Promise<Todo[]>>;
-  wouldCreateDependencyCycle: MockedFunction<(todoId: string, dependencyId: string) => Promise<boolean>>;
-  findAllCompleted: MockedFunction<() => Promise<Todo[]>>;
 }
 
 interface MockedProjectRepository extends ProjectRepository {
@@ -55,12 +49,6 @@ describe("RemoveTodoFromProject", () => {
       findById: mock(() => Promise.resolve(null)),
       findAll: mock(() => Promise.resolve([])),
       delete: mock(() => Promise.resolve()),
-      addDependency: mock(() => Promise.resolve()),
-      removeDependency: mock(() => Promise.resolve()),
-      findDependents: mock(() => Promise.resolve([])),
-      findDependencies: mock(() => Promise.resolve([])),
-      wouldCreateDependencyCycle: mock(() => Promise.resolve(false)),
-      findAllCompleted: mock(() => Promise.resolve([])),
     } as MockedTodoRepository;
 
     useCase = new RemoveTodoFromProject(mockProjectRepository, mockTodoRepository);

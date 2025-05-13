@@ -1,112 +1,196 @@
-# Toodo - タスク管理アプリケーション要件仕様書
+# TODO Management System - Requirements and Specifications
 
-## 1. 概要
+## 1. Introduction
 
-Toodo は個人やチームが Todo アイテムを効率的に管理するための REST API アプリケーションです。
+### 1.1 Purpose
 
-## 2. 機能要件
+This document defines the requirements and specifications for a TODO management system using the Hono framework as a REST API.
 
-### 2.1 Todo 管理
+## 2. Functional Requirements
 
-#### 2.1.1 基本機能
+### 2.1 Core Features
 
-- Todo アイテムの作成、読み取り、更新、削除（CRUD）
-- Todo の状態管理（Pending、In Progress、Completed、Cancelled）
-- Todo への説明文の追加
-- Todo の優先度設定（Low、Medium、High、Critical）
+#### Task Management
+- ✅ Create new TODOs
+- 📋 View a list of TODOs
+- 🔍 View details of individual TODOs
+- ✏️ Edit existing TODOs
+- 🗑️ Delete unwanted TODOs
+- 🔄 Change the status of TODOs (pending/completed)
 
-#### 2.1.2 作業状態追跡
+#### Progress Tracking
+- 📝 Track TODO activity history (started, paused, completed)
+- 📜 View activity history of TODOs
+- ⏱️ Track work state of TODOs (idle, active, paused, completed)
+- ⏲️ Calculate and track work time for TODOs
 
-- Todo の作業状態管理（Idle、Active、Paused、Completed）
-- 作業時間の記録と集計
-- 状態変更履歴の保存
+#### Organization Features
+- ⭐ Set and update priority levels for TODOs
+- 📁 Organize TODOs with Projects
+- 🔍 View and manage TODOs by Project
+- 🏷️ Categorize TODOs with tags
 
-#### 2.1.3 依存関係管理
+### 2.2 Constraints
 
-- Todo アイテム間の依存関係の設定
-- 依存関係がある Todo の表示
-- 依存する Todo の表示
-- 循環依存関係の検出と防止
-- 依存関係に基づいたステータス制限（例：依存するTodoが完了するまで完了にできない）
+#### Todo Constraints
+- 📝 **Title**: Required, maximum 100 characters
+- 📄 **Description**: Optional, maximum 1000 characters
+- 🔄 **Status**: Must be either "pending" or "completed"
+- ⭐ **Priority**: Must be one of "low", "medium", "high" (default: "medium")
 
-### 2.2 タグ管理
+#### Work State & Activity Constraints
+- 📊 **Work State**: Must be one of "idle", "active", "paused", "completed"
+- 🔔 **Activity Type**: Must be one of "started", "paused", "completed", "discarded"
+- ⏱️ **Work Time**: Measured in seconds
 
-- タグの作成、読み取り、更新、削除
-- タグの名前とカラー設定
-- Todo へのタグ付け
-- タグによる Todo のフィルタリング
+#### Project & Tag Constraints
+- 🏷️ **Tag Name**: Required, maximum 50 characters
+- 🎨 **Color**: Optional, hex color format (e.g., "#FF5733")
+- 📁 **Project Name**: Required, maximum 100 characters
+- 📋 **Project Status**: Must be one of "active", "archived"
 
-### 2.3 プロジェクト管理
+## 3. System Specifications
 
-- プロジェクトの作成、読み取り、更新、削除
-- プロジェクトの名前、説明、カラー設定
-- プロジェクトの状態管理（Active、Inactive）
-- Todo のプロジェクトへの割り当て
-- プロジェクトによる Todo のフィルタリング
+### 3.1 Data Model
 
-## 3. 非機能要件
+#### 3.1.1 Todo Entity
 
-### 3.1 パフォーマンス
+| Field             | Type      | Description                      | Constraints                                        |
+| ----------------- | --------- | -------------------------------- | -------------------------------------------------- |
+| id                | UUID      | Unique identifier for the TODO   | Auto-generated, unique                             |
+| title             | String    | Title of the TODO                | Required, max 100 characters                       |
+| description       | String    | Detailed description of the TODO | Optional, max 1000 characters                      |
+| status            | Enum      | Status of the TODO               | Default: "pending"                                 |
+| workState         | Enum      | Current work state of the TODO   | One of: "idle", "active", "paused", "completed"    |
+| totalWorkTime     | Integer   | Total accumulated work time      | In seconds, default: 0                             |
+| lastStateChangeAt | Timestamp | Last time work state changed     | Auto-updated on state changes                      |
+| createdAt         | Timestamp | Creation time of the TODO        | Auto-generated                                     |
+| updatedAt         | Timestamp | Last update time of the TODO     | Auto-updated on changes                            |
+| priority          | Enum      | Priority level of the TODO       | One of: "low", "medium", "high", default: "medium" |
+| projectId         | UUID      | Reference to the Project         | Foreign key to Project.id, Optional                |
 
-- API レスポンスタイムは平均 200ms 以下を目標とする
-- 同時に 50 リクエストを処理できるようにする
+#### 3.1.2 TodoActivity Entity
 
-### 3.2 セキュリティ
+| Field         | Type      | Description                        | Constraints                                           |
+| ------------- | --------- | ---------------------------------- | ----------------------------------------------------- |
+| id            | UUID      | Unique identifier for the activity | Auto-generated, unique                                |
+| todoId        | UUID      | Reference to the TODO              | Foreign key to Todo.id                                |
+| type          | Enum      | Type of activity                   | One of: "started", "paused", "completed", "discarded" |
+| workTime      | Integer   | Time spent on this activity cycle  | In seconds, optional                                  |
+| previousState | Enum      | Work state before this activity    | One of: "idle", "active", "paused", "completed"       |
+| createdAt     | Timestamp | When the activity occurred         | Auto-generated                                        |
+| note          | String    | Optional note about the activity   | Optional, max 500 characters                          |
 
-- 入力値のバリデーション
-- SQLインジェクション対策
-- XSS対策
+#### 3.1.3 Tag Entity
 
-### 3.3 拡張性
+| Field     | Type      | Description                   | Constraints                 |
+| --------- | --------- | ----------------------------- | --------------------------- |
+| id        | UUID      | Unique identifier for the tag | Auto-generated, unique      |
+| name      | String    | Name of the tag               | Required, max 50 characters, unique |
+| color     | String    | Color code for the tag        | Optional, hex color code    |
+| createdAt | Timestamp | Creation time of the tag      | Auto-generated              |
+| updatedAt | Timestamp | Last update time of the tag   | Auto-updated on changes     |
 
-- コードベースは新機能の追加が容易な構造とする
-- クリーンアーキテクチャの原則に従う
+#### 3.1.4 TodoTag Entity (Join Table)
 
-### 3.4 信頼性
+| Field      | Type      | Description               | Constraints            |
+| ---------- | --------- | ------------------------- | ---------------------- |
+| todoId     | UUID      | Reference to the TODO     | Foreign key to Todo.id |
+| tagId      | UUID      | Reference to the Tag      | Foreign key to Tag.id  |
+| assignedAt | Timestamp | When the tag was assigned | Auto-generated         |
 
-- エラー処理の一貫性
-- 適切なロギング
-- ユニットテスト、統合テストのカバレッジ 80% 以上
+#### 3.1.5 Project Entity
 
-## 4. ユーザーストーリー
+| Field       | Type      | Description                       | Constraints                          |
+| ----------- | --------- | --------------------------------- | ------------------------------------ |
+| id          | UUID      | Unique identifier for the project | Auto-generated, unique               |
+| name        | String    | Name of the project               | Required, max 100 characters, unique |
+| description | String    | Description of the project        | Optional, max 1000 characters        |
+| color       | String    | Color code for the project        | Optional, hex color code             |
+| status      | Enum      | Status of the project             | One of: "active", "archived"         |
+| createdAt   | Timestamp | Creation time of the project      | Auto-generated                       |
+| updatedAt   | Timestamp | Last update time of the project   | Auto-updated on changes              |
 
-### 4.1 Todo 管理
+#### Entity Relationships Diagram
 
-1. ユーザーは新しい Todo を作成できる
-2. ユーザーは Todo のリストを表示できる
-3. ユーザーは Todo の詳細を表示できる
-4. ユーザーは Todo を編集できる
-5. ユーザーは Todo を削除できる
-6. ユーザーは Todo を完了としてマークできる
-7. ユーザーは Todo にステータスを設定できる
-8. ユーザーは Todo の作業を開始/一時停止/再開できる
-9. ユーザーは Todo 間の依存関係を設定できる
-10. ユーザーは Todo の依存関係を表示できる
+```
+┌────────────┐     ┌────────────────┐     ┌────────────┐
+│            │     │                │     │            │
+│   Todo     │1    │   TodoActivity │*    │   Tag      │
+│            ├─────┤                │     │            │
+└─────┬──────┘     └────────────────┘     └──────┬─────┘
+      │                                           │
+      │ *                                         │ *
+      │                                           │
+┌─────▼──────┐                            ┌──────▼─────┐
+│            │                            │            │
+│  Project   │                            │  TodoTag   │
+│            │                            │            │
+└────────────┘                            └────────────┘
+```
 
-### 4.2 タグ管理
+Legend:
+- 1: One relationship
+- *: Many relationship
 
-1. ユーザーは新しいタグを作成できる
-2. ユーザーはタグのリストを表示できる
-3. ユーザーはタグを編集できる
-4. ユーザーはタグを削除できる
-5. ユーザーは Todo にタグを付けられる
-6. ユーザーはタグで Todo をフィルタリングできる
+### 3.2 API Endpoints
 
-### 4.3 プロジェクト管理
+#### Todo Management Endpoints
 
-1. ユーザーは新しいプロジェクトを作成できる
-2. ユーザーはプロジェクトのリストを表示できる
-3. ユーザーはプロジェクトの詳細を表示できる
-4. ユーザーはプロジェクトを編集できる
-5. ユーザーはプロジェクトを削除できる
-6. ユーザーはプロジェクトに Todo を追加できる
-7. ユーザーはプロジェクトで Todo をフィルタリングできる
+| Method | Path                      | Description                    | Response Codes              |
+| ------ | ------------------------- | ------------------------------ | --------------------------- |
+| POST   | /todos                    | Create a new TODO              | 201: Created                |
+| GET    | /todos                    | Get a list of TODOs            | 200: OK                     |
+| GET    | /todos/{id}               | Get details of a specific TODO | 200: OK, 404: Not Found     |
+| PUT    | /todos/{id}               | Update a specific TODO         | 200: OK, 404: Not Found     |
+| DELETE | /todos/{id}               | Delete a specific TODO         | 204: No Content, 404: Not Found |
 
-## 5. 技術スタック
+#### Activity Tracking Endpoints
 
-- TypeScript
-- Hono (Web フレームワーク)
-- Valibot (バリデーション)
-- Prisma (ORM)
-- SQLite (データベース)
-- Bun (ランタイム)
+| Method | Path                                | Description                             | Response Codes                                  |
+| ------ | ----------------------------------- | --------------------------------------- | ----------------------------------------------- |
+| POST   | /todos/{id}/activities              | Record a new activity for a TODO        | 201: Created, 404: Not Found                    |
+| GET    | /todos/{id}/activities              | Get activity history of a specific TODO | 200: OK, 404: Not Found                         |
+| DELETE | /todos/{id}/activities/{activityId} | Delete a specific activity for a TODO   | 204: No Content, 403: Forbidden, 404: Not Found |
+| GET    | /todos/{id}/work-time               | Get the total work time of a TODO       | 200: OK, 404: Not Found                         |
+
+#### Tag Management Endpoints
+
+| Method | Path                     | Description                   | Response Codes              |
+| ------ | ------------------------ | ----------------------------- | --------------------------- |
+| POST   | /tags                    | Create a new tag              | 201: Created                |
+| GET    | /tags                    | Get a list of tags            | 200: OK                     |
+| GET    | /tags/{id}               | Get details of a specific tag | 200: OK, 404: Not Found     |
+| PUT    | /tags/{id}               | Update a specific tag         | 200: OK, 404: Not Found     |
+| DELETE | /tags/{id}               | Delete a specific tag         | 204: No Content, 404: Not Found |
+| GET    | /tags/stats              | Get tag usage statistics      | 200: OK                     |
+
+#### Todo-Tag Association Endpoints
+
+| Method | Path                         | Description                    | Response Codes              |
+| ------ | ---------------------------- | ------------------------------ | --------------------------- |
+| POST   | /todos/{id}/tags             | Assign a tag to a TODO         | 201: Created, 404: Not Found |
+| GET    | /todos/{id}/tags             | Get tags of a specific TODO    | 200: OK, 404: Not Found     |
+| DELETE | /todos/{id}/tags/{tagId}     | Remove a tag from a TODO       | 204: No Content, 404: Not Found |
+| GET    | /todos/by-tag/{tagId}        | Get TODOs by tag               | 200: OK, 404: Not Found     |
+| GET    | /todos/by-tags               | Get TODOs by multiple tags     | 200: OK                     |
+| POST   | /tags/{id}/bulk-assign       | Assign a tag to multiple TODOs | 200: OK, 404: Not Found     |
+| DELETE | /tags/{id}/bulk-remove       | Remove a tag from multiple TODOs | 200: OK, 404: Not Found   |
+
+#### Project Management Endpoints
+
+| Method | Path                          | Description                     | Response Codes              |
+| ------ | ----------------------------- | ------------------------------- | --------------------------- |
+| POST   | /projects                     | Create a new project            | 201: Created                |
+| GET    | /projects                     | Get a list of projects          | 200: OK                     |
+| GET    | /projects/{id}                | Get details of a specific project | 200: OK, 404: Not Found   |
+| PUT    | /projects/{id}                | Update a specific project       | 200: OK, 404: Not Found     |
+| DELETE | /projects/{id}                | Delete a specific project       | 204: No Content, 404: Not Found |
+
+#### Project-Todo Association Endpoints
+
+| Method | Path                            | Description                      | Response Codes              |
+| ------ | ------------------------------- | -------------------------------- | --------------------------- |
+| GET    | /projects/{id}/todos            | Get TODOs in a specific project  | 200: OK, 404: Not Found     |
+| POST   | /projects/{id}/todos            | Add a TODO to a project          | 201: Created, 404: Not Found |
+| DELETE | /projects/{id}/todos/{todoId}   | Remove a TODO from a project     | 204: No Content, 404: Not Found |
