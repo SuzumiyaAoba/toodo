@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { PrismaClient, type TodoActivity } from "./generated/prisma";
+import { PrismaClient } from "./generated/prisma";
 
 import { Scalar } from "@scalar/hono-api-reference";
 import type { ConversionConfig } from "@valibot/to-json-schema";
@@ -490,7 +490,7 @@ app.delete(
     }
 
     // 2. Check if the activity exists and belongs to the TODO
-    const activity: TodoActivity | null = await prisma.todoActivity.findUnique({
+    const activity = await prisma.todoActivity.findUnique({
       where: { id: activityId },
     });
 
