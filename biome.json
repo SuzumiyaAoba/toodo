@@ -7,9 +7,9 @@
   },
   "linter": {
     "enabled": true,
-    "ignore": ["**/*.spec.ts", "**/*.test.ts"]
+    "ignore": ["*.spec.ts"]
   },
   "files": {
-    "ignore": [".github/**", "docs/**", "prisma", "src/generated/**", "**/dist/**", "**/*.spec.ts", "**/*.test.ts"]
+    "ignore": [".github/**", "docs/**", "prisma", "src/generated/**", "**/dist/**"]
   }
 }
