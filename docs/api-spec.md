@@ -14,11 +14,15 @@ Authentication is not required for this version of the API.
 
 ## Error Responses
 
-All endpoints can return the following error response:
+All endpoints can return the following error responses:
 
 ```json
 {
-  "error": "Error message"
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Human readable error message",
+    "details": {} // Optional additional error details
+  }
 }
 ```
 
@@ -26,8 +30,6 @@ Common error codes:
 - `VALIDATION_ERROR` - Invalid input data (HTTP 400)
 - `NOT_FOUND` - Requested resource not found (HTTP 404)
 - `INTERNAL_ERROR` - Unexpected server error (HTTP 500)
-- `DEPENDENCY_CYCLE` - Dependency cycle detected (HTTP 400)
-- `INVALID_STATE` - Invalid state transition (HTTP 400)
 
 ## Endpoints
 
@@ -47,23 +49,32 @@ Query parameters:
 
 Response:
 ```json
-[
-  {
-    "id": "string",
-    "title": "string",
-    "description": "string | null",
-    "status": "pending | in_progress | completed",
-    "workState": "idle | active | paused | completed",
-    "totalWorkTime": "number",
-    "lastStateChangeAt": "ISO date string",
-    "createdAt": "ISO date string",
-    "updatedAt": "ISO date string",
-    "priority": "low | medium | high",
-    "projectId": "string | null",
-    "dependencies": ["string"], // IDs of todos this todo depends on
-    "dependents": ["string"]    // IDs of todos that depend on this todo
-  }
-]
+{
+  "todos": [
+    {
+      "id": "string",
+      "title": "string",
+      "description": "string | null",
+      "status": "pending | in_progress | completed | cancelled",
+      "workState": "idle | active | paused | completed",
+      "totalWorkTime": "number",
+      "lastStateChangeAt": "ISO date string",
+      "createdAt": "ISO date string",
+      "updatedAt": "ISO date string",
+      "priority": "low | medium | high | critical",
+      "projectId": "string | null",
+      "tags": [
+        {
+          "id": "string",
+          "name": "string",
+          "color": "string | null"
+        }
+      ],
+      "dependencies": ["string"], // IDs of todos this todo depends on
+      "dependents": ["string"]    // IDs of todos that depend on this todo
+    }
+  ]
+}
 ```
 
 #### Get Todo By ID
@@ -78,14 +89,21 @@ Response:
   "id": "string",
   "title": "string",
   "description": "string | null",
-  "status": "pending | in_progress | completed",
+  "status": "pending | in_progress | completed | cancelled",
   "workState": "idle | active | paused | completed",
   "totalWorkTime": "number",
   "lastStateChangeAt": "ISO date string",
   "createdAt": "ISO date string",
   "updatedAt": "ISO date string",
-  "priority": "low | medium | high",
+  "priority": "low | medium | high | critical",
   "projectId": "string | null",
+  "tags": [
+    {
+      "id": "string",
+      "name": "string",
+      "color": "string | null"
+    }
+  ],
   "dependencies": ["string"], // IDs of todos this todo depends on
   "dependents": ["string"]    // IDs of todos that depend on this todo
 }
@@ -102,13 +120,14 @@ Request body:
 {
   "title": "string",
   "description": "string | null",
-  "status": "pending | completed", // Optional, default: "pending"
-  "priority": "low | medium | high", // Optional, default: "medium"
-  "projectId": "string | null" // Optional
+  "status": "pending | in_progress | completed | cancelled", // Optional, default: "pending"
+  "priority": "low | medium | high | critical", // Optional, default: "medium"
+  "projectId": "string | null", // Optional
+  "tagIds": ["string"] // Optional
 }
 ```
 
-Response: Created Todo object (201 Created)
+Response: Todo object (201 Created)
 
 #### Update Todo
 
@@ -121,8 +140,8 @@ Request body:
 {
   "title": "string", // Optional
   "description": "string | null", // Optional
-  "status": "pending | completed", // Optional
-  "priority": "low | medium | high" // Optional
+  "status": "pending | in_progress | completed | cancelled", // Optional
+  "priority": "low | medium | high | critical" // Optional
 }
 ```
 
@@ -142,15 +161,13 @@ Response: 204 No Content
 POST /todos/:id/dependencies/:dependencyId
 ```
 
-Adds a dependency relationship where the todo with ID `:id` depends on the todo with ID `:dependencyId`.
+Add a dependency relationship where the todo with ID `:id` depends on the todo with ID `:dependencyId`.
 
 Response: 204 No Content
 
 Possible errors:
 - `DEPENDENCY_CYCLE` - Adding this dependency would create a cycle (HTTP 400)
-- `TODO_NOT_FOUND` - Todo or dependency todo not found (HTTP 404)
-- `SELF_DEPENDENCY` - Self-referential dependencies are not allowed (HTTP 400)
-- `DEPENDENCY_EXISTS` - Dependency already exists (HTTP 400)
+- `TODO_NOT_FOUND` - Either the todo or dependency todo not found (HTTP 404)
 
 #### Remove Todo Dependency
 
@@ -158,7 +175,7 @@ Possible errors:
 DELETE /todos/:id/dependencies/:dependencyId
 ```
 
-Removes a dependency relationship between todos.
+Remove a dependency relationship between todos.
 
 Response: 204 No Content
 
@@ -168,7 +185,7 @@ Response: 204 No Content
 GET /todos/:id/dependencies
 ```
 
-Gets all todos that the specified todo depends on.
+Get all todos that the specified todo depends on.
 
 Response:
 ```json
@@ -177,8 +194,8 @@ Response:
     {
       "id": "string",
       "title": "string",
-      "status": "pending | in_progress | completed",
-      "priority": "low | medium | high"
+      "status": "pending | in_progress | completed | cancelled",
+      "priority": "low | medium | high | critical"
     }
   ]
 }
@@ -190,7 +207,7 @@ Response:
 GET /todos/:id/dependents
 ```
 
-Gets all todos that depend on the specified todo.
+Get all todos that depend on the specified todo.
 
 Response:
 ```json
@@ -199,40 +216,8 @@ Response:
     {
       "id": "string",
       "title": "string",
-      "status": "pending | in_progress | completed",
-      "priority": "low | medium | high"
-    }
-  ]
-}
-```
-
-#### Get Todo Dependency Tree
-
-```
-GET /todos/:id/dependency-tree
-```
-
-Gets the specified todo and its dependencies in a hierarchical tree structure.
-
-Query parameters:
-- `maxDepth` - Maximum depth of the tree to retrieve (optional, default: unlimited)
-
-Response:
-```json
-{
-  "id": "string",
-  "title": "string",
-  "status": "pending | in_progress | completed",
-  "priority": "low | medium | high",
-  "dependencies": [
-    {
-      "id": "string",
-      "title": "string",
-      "status": "pending | in_progress | completed",
-      "priority": "low | medium | high",
-      "dependencies": [
-        // Recursive structure
-      ]
+      "status": "pending | in_progress | completed | cancelled",
+      "priority": "low | medium | high | critical"
     }
   ]
 }
@@ -248,17 +233,19 @@ GET /todos/:id/activities
 
 Response:
 ```json
-[
-  {
-    "id": "string",
-    "todoId": "string",
-    "type": "started | paused | completed | discarded",
-    "workTime": "number | null",
-    "previousState": "idle | active | paused | completed | null",
-    "note": "string | null",
-    "createdAt": "ISO date string"
-  }
-]
+{
+  "activities": [
+    {
+      "id": "string",
+      "todoId": "string",
+      "type": "started | paused | resumed | completed",
+      "workTime": "number",
+      "previousState": "string",
+      "note": "string | null",
+      "createdAt": "ISO date string"
+    }
+  ]
+}
 ```
 
 #### Record Todo Activity
@@ -270,16 +257,12 @@ POST /todos/:id/activities
 Request body:
 ```json
 {
-  "type": "started | paused | completed | discarded",
+  "type": "started | paused | resumed | completed",
   "note": "string | null"
 }
 ```
 
 Response: Created activity object (201 Created)
-
-Possible errors:
-- `TODO_NOT_FOUND` - The specified todo was not found (HTTP 404)
-- `INVALID_STATE_TRANSITION` - The transition from the current state to the specified activity type is invalid (HTTP 400)
 
 ### Tags
 
@@ -291,15 +274,15 @@ GET /tags
 
 Response:
 ```json
-[
-  {
-    "id": "string",
-    "name": "string",
-    "color": "string | null",
-    "createdAt": "ISO date string",
-    "updatedAt": "ISO date string"
-  }
-]
+{
+  "tags": [
+    {
+      "id": "string",
+      "name": "string",
+      "color": "string | null"
+    }
+  ]
+}
 ```
 
 #### Get Tag By ID
@@ -313,9 +296,7 @@ Response:
 {
   "id": "string",
   "name": "string",
-  "color": "string | null",
-  "createdAt": "ISO date string",
-  "updatedAt": "ISO date string"
+  "color": "string | null"
 }
 ```
 
@@ -369,17 +350,19 @@ GET /projects
 
 Response:
 ```json
-[
-  {
-    "id": "string",
-    "name": "string",
-    "description": "string | null",
-    "color": "string | null",
-    "status": "active | archived",
-    "createdAt": "ISO date string",
-    "updatedAt": "ISO date string"
-  }
-]
+{
+  "projects": [
+    {
+      "id": "string",
+      "name": "string",
+      "description": "string | null",
+      "color": "string | null",
+      "status": "active | inactive",
+      "createdAt": "ISO date string",
+      "updatedAt": "ISO date string"
+    }
+  ]
+}
 ```
 
 #### Get Project By ID
@@ -395,7 +378,7 @@ Response:
   "name": "string",
   "description": "string | null",
   "color": "string | null",
-  "status": "active | archived",
+  "status": "active | inactive",
   "createdAt": "ISO date string",
   "updatedAt": "ISO date string"
 }
@@ -413,7 +396,7 @@ Request body:
   "name": "string",
   "description": "string | null",
   "color": "string | null",
-  "status": "active | archived"
+  "status": "active | inactive"
 }
 ```
 
@@ -431,7 +414,7 @@ Request body:
   "name": "string",
   "description": "string | null",
   "color": "string | null",
-  "status": "active | archived"
+  "status": "active | inactive"
 }
 ```
 

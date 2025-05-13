@@ -2,7 +2,7 @@
 
 ## 1. Overview
 
-The Toodo application is a RESTful API system for managing TODO items. This document outlines the architecture implemented in the application.
+The Toodo application is a RESTful API system for managing TODO items. This document outlines the architecture to be implemented during the refactoring process.
 
 ### 1.1 Technology Stack
 
@@ -13,7 +13,7 @@ The Toodo application is a RESTful API system for managing TODO items. This docu
 - ✅ **Valibot** - Runtime validation library
 - 🔄 **Prisma** - Type-safe database ORM
 - 🗄️ **SQLite** - Embedded database
-- 🏃 **Bun** - JavaScript/TypeScript runtime and test framework
+- 🏃 **Bun** - JavaScript/TypeScript runtime
 
 ## 2. Architecture Principles
 
@@ -21,7 +21,6 @@ The Toodo application is a RESTful API system for managing TODO items. This docu
 - 🧩 **Modularity**: Split into independent modules to improve maintainability
 - 🧪 **Testability**: Design code structure that facilitates unit testing
 - 🏛️ **Clean Architecture**: Keep business logic independent from infrastructure details
-- 🔒 **Immutability**: Core entities are implemented as immutable objects to ensure data integrity
 
 ## 3. Architecture Structure
 
@@ -104,66 +103,45 @@ The domain layer contains the core business entities, each with its own set of r
 
 #### 4.1.1 Todo Entity
 
-The core entity of the application, representing a task to be completed. Todo entities are implemented as **immutable objects** - all methods return new Todo instances rather than modifying the existing one.
+The core entity of the application, representing a task to be completed.
 
 ```typescript
-export enum TodoStatus {
-  PENDING = "pending",
-  IN_PROGRESS = "in_progress",
-  COMPLETED = "completed",
-}
-
-export enum WorkState {
-  IDLE = "idle",
-  ACTIVE = "active",
-  PAUSED = "paused",
-  COMPLETED = "completed",
-}
-
-export enum PriorityLevel {
-  LOW = "low",
-  MEDIUM = "medium",
-  HIGH = "high",
-}
-
 export class Todo {
   constructor(
-    public readonly id: TodoId,
-    public readonly title: string,
-    public readonly description?: string,
-    public readonly status: TodoStatus = TodoStatus.PENDING,
-    public readonly workState: WorkState = WorkState.IDLE,
-    public readonly totalWorkTime: number = 0,
-    public readonly lastStateChangeAt: Date = new Date(),
-    public readonly createdAt: Date = new Date(),
-    public readonly updatedAt: Date = new Date(),
-    public readonly priority: PriorityLevel = PriorityLevel.MEDIUM,
-    public readonly projectId?: ProjectId,
-    public readonly dependencies: TodoId[] = [],
-    public readonly dependents: TodoId[] = []
+    public readonly id: string,
+    public title: string,
+    public description: string | null,
+    public status: TodoStatus,
+    public workState: WorkState,
+    public totalWorkTime: number,
+    public lastStateChangeAt: Date,
+    public readonly createdAt: Date,
+    public readonly updatedAt: Date,
+    public priority: PriorityLevel,
+    public projectId: string | null,
+    public dependencies: string[] = [], // IDs of todos this todo depends on
+    public dependents: string[] = []    // IDs of todos that depend on this todo
   ) {}
 
-  // Domain methods - all return new Todo instances
-  updateTitle(title: string): Todo { /* implementation */ }
-  updateDescription(description?: string): Todo { /* implementation */ }
-  updateStatus(status: TodoStatus): Todo { /* implementation */ }
-  updatePriority(priority: PriorityLevel): Todo { /* implementation */ }
-  
-  // State management methods
-  complete(currentTime?: Date): Todo { /* implementation */ }
-  reopen(currentTime?: Date): Todo { /* implementation */ }
-  start(currentTime?: Date): Todo { /* implementation */ }
-  pause(currentTime?: Date): Todo { /* implementation */ }
-  resume(currentTime?: Date): Todo { /* implementation */ }
+  // Domain methods
+  updateTitle(title: string): void { /* implementation */ }
+  updateDescription(description: string | null): void { /* implementation */ }
+  updateStatus(status: TodoStatus): void { /* implementation */ }
+  updatePriority(priority: PriorityLevel): void { /* implementation */ }
   
   // Dependency management methods
-  addDependency(dependencyId: TodoId): Todo { /* implementation */ }
-  removeDependency(dependencyId: TodoId): Todo { /* implementation */ }
-  addDependent(dependentId: TodoId): Todo { /* implementation */ }
-  removeDependent(dependentId: TodoId): Todo { /* implementation */ }
-  hasDependencyOn(dependencyId: TodoId): boolean { /* implementation */ }
-  hasDependent(dependentId: TodoId): boolean { /* implementation */ }
-  canBeCompleted(completedTodoIds: TodoId[]): boolean { /* implementation */ }
+  addDependency(todoId: string): void { /* implementation */ }
+  removeDependency(todoId: string): void { /* implementation */ }
+  addDependent(todoId: string): void { /* implementation */ }
+  removeDependent(todoId: string): void { /* implementation */ }
+  hasDependencyOn(todoId: string): boolean { /* implementation */ }
+  hasDependentOn(todoId: string): boolean { /* implementation */ }
+  
+  // State management methods
+  startWork(): void { /* implementation */ }
+  pauseWork(): void { /* implementation */ }
+  completeWork(): void { /* implementation */ }
+  // etc.
 }
 ```
 
@@ -187,52 +165,45 @@ export class TodoActivity {
 
 #### 4.1.3 Tag Entity
 
-Used to categorize and filter todos. Tag entities are also implemented as immutable objects.
+Used to categorize and filter todos.
 
 ```typescript
 export class Tag {
   constructor(
     public readonly id: string,
-    public readonly name: string,
-    public readonly color: string | null,
+    public name: string,
+    public color: string | null,
     public readonly createdAt: Date,
     public readonly updatedAt: Date
   ) {}
 
-  // Domain methods - all return new Tag instances
-  updateName(name: string): Tag { /* implementation */ }
-  updateColor(color: string | null): Tag { /* implementation */ }
+  updateName(name: string): void { /* implementation */ }
+  updateColor(color: string | null): void { /* implementation */ }
 }
 ```
 
 #### 4.1.4 Project Entity
 
-Groups related todos together. Project entities are also implemented as immutable objects.
+Groups related todos together.
 
 ```typescript
-export enum ProjectStatus {
-  ACTIVE = "active",
-  ARCHIVED = "archived", 
-}
-
 export class Project {
   constructor(
     public readonly id: string,
-    public readonly name: string,
-    public readonly description: string | null,
-    public readonly color: string | null,
-    public readonly status: ProjectStatus,
+    public name: string,
+    public description: string | null,
+    public color: string | null,
+    public status: ProjectStatus,
     public readonly createdAt: Date,
     public readonly updatedAt: Date
   ) {}
 
-  // Domain methods - all return new Project instances
-  updateName(name: string): Project { /* implementation */ }
-  updateDescription(description: string | null): Project { /* implementation */ }
-  updateColor(color: string | null): Project { /* implementation */ }
-  updateStatus(status: ProjectStatus): Project { /* implementation */ }
-  archive(): Project { /* implementation */ }
-  activate(): Project { /* implementation */ }
+  updateName(name: string): void { /* implementation */ }
+  updateDescription(description: string | null): void { /* implementation */ }
+  updateColor(color: string | null): void { /* implementation */ }
+  updateStatus(status: ProjectStatus): void { /* implementation */ }
+  archive(): void { /* implementation */ }
+  activate(): void { /* implementation */ }
 }
 ```
 
@@ -439,64 +410,6 @@ export class RecordTodoActivityUseCase {
   }
 }
 ```
-
-### 4.4 Validation Schemas
-
-The presentation layer uses Valibot for input/output validation with reusable schema components:
-
-```typescript
-// presentation/schemas/todo-schemas.ts
-import * as v from "valibot";
-import { PriorityLevel, TodoStatus, WorkState } from "../../domain/entities/todo";
-import { ActivityType } from "../../domain/entities/todo-activity";
-
-/**
- * Common schema parts that are reused across different schemas
- */
-export const CommonSchemas = {
-  uuid: () => v.pipe(v.string(), v.uuid()),
-  title: () => v.pipe(v.string(), v.minLength(1), v.maxLength(100)),
-  description: () => v.optional(v.pipe(v.string(), v.maxLength(1000))),
-  note: () => v.optional(v.pipe(v.string(), v.maxLength(500))),
-  todoStatus: () => v.picklist([TodoStatus.PENDING, TodoStatus.IN_PROGRESS, TodoStatus.COMPLETED]),
-  workState: () => v.picklist([WorkState.IDLE, WorkState.ACTIVE, WorkState.PAUSED, WorkState.COMPLETED]),
-  activityType: () =>
-    v.picklist([ActivityType.STARTED, ActivityType.PAUSED, ActivityType.COMPLETED, ActivityType.DISCARDED]),
-};
-
-/**
- * Base schema for entities with ID and timestamps
- */
-export const BaseEntitySchema = v.object({
-  id: CommonSchemas.uuid(),
-  createdAt: DateSchema,
-  updatedAt: DateSchema,
-});
-
-/**
- * Schema for Todo entity responses
- */
-export const TodoSchema = v.object({
-  id: CommonSchemas.uuid(),
-  title: CommonSchemas.title(),
-  description: CommonSchemas.description(),
-  status: CommonSchemas.todoStatus(),
-  workState: CommonSchemas.workState(),
-  totalWorkTime: v.number(),
-  lastStateChangeAt: DateSchema,
-  createdAt: DateSchema,
-  updatedAt: DateSchema,
-  priority: v.string(),
-  projectId: v.optional(CommonSchemas.uuid()),
-  dependencies: v.optional(v.array(CommonSchemas.uuid())),
-  dependents: v.optional(v.array(CommonSchemas.uuid())),
-});
-```
-
-This approach of using common schema components improves maintainability by:
-1. Reducing code duplication across schema definitions
-2. Centralizing validation rules
-3. Providing consistent data validation across the API
 
 ## 5. Dependency Injection
 
@@ -706,55 +619,49 @@ app.get('/docs', swaggerUI({ url: '/openapi.json' }));
 
 ### 8.1 Unit Testing
 
-Each component is tested in isolation with mocked dependencies. The project uses Bun's test framework:
+Each component is tested in isolation with mocked dependencies:
 
 ```typescript
 // application/use-cases/todo/create-todo.spec.ts
-import { describe, expect, it, mock } from "bun:test";
-import { CreateTodoUseCase } from "./create-todo";
-import { PriorityLevel, TodoStatus, WorkState } from "../../../domain/entities/todo";
-import { createTestTodo } from "../../../domain/entities/test-helpers";
-
-describe("CreateTodoUseCase", () => {
-  const mockTodoRepository = {
-    create: mock(() => Promise.resolve()),
-    // ... other repository methods
-  };
+describe('CreateTodoUseCase', () => {
+  let useCase: CreateTodoUseCase;
+  let mockTodoRepository: jest.Mocked<TodoRepository>;
   
-  const useCase = new CreateTodoUseCase(mockTodoRepository);
+  beforeEach(() => {
+    mockTodoRepository = {
+      create: jest.fn(),
+      // ... other repository methods
+    } as any;
+    
+    useCase = new CreateTodoUseCase(mockTodoRepository);
+  });
   
-  test("should create a todo with default values when only title is provided", async () => {
+  it('should create a todo with default values', async () => {
     // Arrange
-    const todoData = {
-      title: "New Test Todo",
-    };
-
-    const now = new Date();
-    const createdTodo = createTestTodo({
-      id: "new-todo-id",
-      title: "New Test Todo",
-      status: TodoStatus.PENDING,
-      workState: WorkState.IDLE,
-      totalWorkTime: 0,
-      lastStateChangeAt: now,
-      createdAt: now,
-      updatedAt: now,
-      priority: PriorityLevel.MEDIUM,
-    });
-
-    mockTodoRepository.create.mockImplementationOnce(async () => Promise.resolve(createdTodo));
-
+    const params = { title: 'Test Todo' };
+    const expectedTodo = { id: '123', title: 'Test Todo', /* ... */ };
+    mockTodoRepository.create.mockResolvedValue(expectedTodo);
+    
     // Act
-    const result = await useCase.execute(todoData);
-
+    const result = await useCase.execute(params);
+    
     // Assert
-    expect(mockTodoRepository.create).toHaveBeenCalledTimes(1);
-    expect(mockTodoRepository.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: "New Test Todo",
-      }),
-    );
-    expect(result).toEqual(createdTodo);
+    expect(result).toEqual(expectedTodo);
+    expect(mockTodoRepository.create).toHaveBeenCalledWith(expect.objectContaining({
+      title: 'Test Todo',
+      status: 'pending',
+      priority: 'medium',
+      workState: 'idle',
+    }));
+  });
+  
+  it('should throw error for empty title', async () => {
+    // Arrange
+    const params = { title: '   ' };
+    
+    // Act & Assert
+    await expect(useCase.execute(params)).rejects.toThrow('Title cannot be empty');
+    expect(mockTodoRepository.create).not.toHaveBeenCalled();
   });
 });
 ```
@@ -764,47 +671,67 @@ describe("CreateTodoUseCase", () => {
 Tests interactions between multiple components:
 
 ```typescript
-// src/index.spec.ts
-import { describe, expect, test, beforeAll, afterAll } from "bun:test";
-import { Server } from "bun";
-import app from "./index";
-
-describe("Todo API Integration Tests", () => {
-  let server: Server;
-  let createdTodoId: string;
-
-  // Start server before tests
-  beforeAll(() => {
-    server = app.listen();
+// test/integration/todo-api.spec.ts
+describe('Todo API', () => {
+  let app: Hono;
+  let prisma: PrismaClient;
+  
+  beforeAll(async () => {
+    prisma = new PrismaClient();
+    // Set up test database
+    await prisma.$connect();
+    
+    // Initialize app with test dependencies
+    const container = new DIContainer(prisma);
+    app = createApp(container);
   });
-
-  // Stop server after tests
-  afterAll(() => {
-    server.stop();
+  
+  afterAll(async () => {
+    await prisma.$disconnect();
   });
-
-  test("should create a new todo", async () => {
-    const response = await fetch(`${server.url}/todos`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        title: "Test Todo",
-        description: "This is a test todo",
-        priority: "high",
-      }),
+  
+  beforeEach(async () => {
+    // Clear test data
+    await prisma.todoActivity.deleteMany();
+    await prisma.todoTag.deleteMany();
+    await prisma.todo.deleteMany();
+    await prisma.tag.deleteMany();
+    await prisma.project.deleteMany();
+  });
+  
+  describe('POST /todos', () => {
+    it('should create a new todo', async () => {
+      // Arrange
+      const todoData = {
+        title: 'Integration Test Todo',
+        description: 'Test description',
+        priority: 'high'
+      };
+      
+      // Act
+      const response = await app.request('/todos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(todoData)
+      });
+      
+      // Assert
+      expect(response.status).toBe(201);
+      const responseBody = await response.json();
+      expect(responseBody).toMatchObject({
+        title: todoData.title,
+        description: todoData.description,
+        priority: todoData.priority,
+        status: 'pending'
+      });
+      
+      // Verify in database
+      const savedTodo = await prisma.todo.findUnique({
+        where: { id: responseBody.id }
+      });
+      expect(savedTodo).not.toBeNull();
+      expect(savedTodo?.title).toBe(todoData.title);
     });
-
-    expect(response.status).toBe(201);
-    const data = await response.json();
-    expect(data.title).toBe("Test Todo");
-    expect(data.description).toBe("This is a test todo");
-    expect(data.status).toBe("pending");
-    expect(data.priority).toBe("high");
-
-    // Save the created Todo ID for subsequent tests
-    createdTodoId = data.id;
   });
 });
 ```
