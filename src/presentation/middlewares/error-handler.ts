@@ -1,6 +1,5 @@
 import type { Context, MiddlewareHandler } from "hono";
 import { ValiError } from "valibot";
-import { TagNameExistsError, TagNotFoundError } from "../../domain/errors/tag-errors";
 import {
   InvalidStateTransitionError,
   TodoActivityNotFoundError,
@@ -19,11 +18,7 @@ export const errorHandler: MiddlewareHandler = async (c: Context, next) => {
     console.error("Error:", error);
 
     // Handle domain-specific errors
-    if (
-      error instanceof TodoNotFoundError ||
-      error instanceof TodoActivityNotFoundError ||
-      error instanceof TagNotFoundError
-    ) {
+    if (error instanceof TodoNotFoundError || error instanceof TodoActivityNotFoundError) {
       return c.json({ error: createApiError(ErrorCode.NOT_FOUND, error.message) }, 404);
     }
 
@@ -33,10 +28,6 @@ export const errorHandler: MiddlewareHandler = async (c: Context, next) => {
 
     if (error instanceof UnauthorizedActivityDeletionError) {
       return c.json({ error: createApiError(ErrorCode.FORBIDDEN, error.message) }, 403);
-    }
-
-    if (error instanceof TagNameExistsError) {
-      return c.json({ error: createApiError(ErrorCode.CONFLICT, error.message) }, 409);
     }
 
     // Handle validation errors from valibot
