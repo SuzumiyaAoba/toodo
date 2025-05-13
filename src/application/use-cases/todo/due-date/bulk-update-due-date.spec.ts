@@ -1,4 +1,4 @@
-import { describe, expect, it, jest } from "bun:test";
+import { describe, expect, it, vi } from "vitest";
 import { BulkUpdateDueDateUseCase } from "../../../../application/use-cases/todo/due-date/bulk-update-due-date";
 import { PriorityLevel, Todo, TodoStatus, WorkState } from "../../../../domain/entities/todo";
 import { TodoRepository } from "../../../../domain/repositories/todo-repository";
@@ -58,10 +58,10 @@ describe("BulkUpdateDueDateUseCase", () => {
     ];
 
     const mockTodoRepository: Pick<TodoRepository, "findById" | "update"> = {
-      findById: jest.fn().mockImplementation((id: string) => {
+      findById: vi.fn().mockImplementation((id: string) => {
         return Promise.resolve(mockTodos.find((todo) => todo.id === id) || null);
       }),
-      update: jest.fn().mockImplementation((id: string, todo: Todo) => {
+      update: vi.fn().mockImplementation((id: string, todo: Todo) => {
         return Promise.resolve(mockUpdatedTodos.find((t) => t.id === id) || null);
       }),
     };
@@ -103,10 +103,10 @@ describe("BulkUpdateDueDateUseCase", () => {
     ];
 
     const mockTodoRepository: Pick<TodoRepository, "findById" | "update"> = {
-      findById: jest.fn().mockImplementation((id: string) => {
+      findById: vi.fn().mockImplementation((id: string) => {
         return Promise.resolve(mockTodos.find((todo) => todo.id === id) || null);
       }),
-      update: jest.fn().mockImplementation((id: string, todo: Todo) => {
+      update: vi.fn().mockImplementation((id: string, todo: Todo) => {
         return Promise.resolve(mockUpdatedTodos.find((t) => t.id === id) || null);
       }),
     };
@@ -184,10 +184,10 @@ describe("BulkUpdateDueDateUseCase", () => {
     ];
 
     const mockTodoRepository: Pick<TodoRepository, "findById" | "update"> = {
-      findById: jest.fn().mockImplementation((id: string) => {
+      findById: vi.fn().mockImplementation((id: string) => {
         return Promise.resolve(mockTodos.find((todo) => todo.id === id) || null);
       }),
-      update: jest.fn().mockImplementation((id: string, todo: Todo) => {
+      update: vi.fn().mockImplementation((id: string, todo: Todo) => {
         return Promise.resolve(mockUpdatedTodos.find((t) => t.id === id) || null);
       }),
     };
