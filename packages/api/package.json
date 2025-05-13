@@ -20,7 +20,6 @@
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
-    "@types/bun": "^1.2.10",
     "undici": "^7.8.0"
   }
 }
