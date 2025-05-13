@@ -1,6 +1,5 @@
 import { vValidator } from "@hono/valibot-validator";
-import type { Hono } from "hono";
-import { describeRoute } from "hono-openapi";
+import { Hono } from "hono";
 import type { CreateTodoActivityUseCase } from "../../application/use-cases/todo-activity/create-todo-activity";
 import type { DeleteTodoActivityUseCase } from "../../application/use-cases/todo-activity/delete-todo-activity";
 import type { GetTodoActivityListUseCase } from "../../application/use-cases/todo-activity/get-todo-activity-list";
@@ -19,24 +18,15 @@ import {
 import {
   CreateTodoActivitySchema,
   CreateTodoSchema,
-  ErrorResponseSchema,
   IdParamSchema,
   TodoActivityIdParamSchema,
-  TodoActivityListSchema,
-  TodoActivitySchema,
-  TodoListSchema,
-  TodoSchema,
   UpdateTodoSchema,
-  WorkTimeResponseSchema,
 } from "../schemas/todo-schemas";
 
 /**
  * Setup API routes for the Todo application
- * @param app - Hono application instance
- * @returns Hono application instance with routes configured
  */
 export function setupRoutes(
-  app: Hono,
   // Todo use cases
   createTodoUseCase: CreateTodoUseCase,
   getTodoListUseCase: GetTodoListUseCase,
@@ -49,307 +39,80 @@ export function setupRoutes(
   getTodoActivityListUseCase: GetTodoActivityListUseCase,
   deleteTodoActivityUseCase: DeleteTodoActivityUseCase,
 ): Hono {
+  const app = new Hono();
+
   // Todo routes
-  app.post(
-    "/todos",
-    describeRoute({
-      tags: ["Todos"],
-      summary: "Create a new todo",
-      description: "Create a new todo item with the provided data",
-      request: {
-        body: {
-          required: true,
-          content: {
-            "application/json": {
-              schema: CreateTodoSchema,
-            },
-          },
-        },
-      },
-      responses: {
-        201: {
-          description: "Todo created successfully",
-          content: {
-            "application/json": {
-              schema: TodoSchema,
-            },
-          },
-        },
-        400: {
-          description: "Invalid request data",
-          content: {
-            "application/json": {
-              schema: ErrorResponseSchema,
-            },
-          },
-        },
-      },
-    }),
-    vValidator("json", CreateTodoSchema),
-    async (c) => {
-      const data = c.req.valid("json");
-      const todo = await createTodoUseCase.execute(data);
-      return c.json(todo, 201);
-    },
-  );
+  app.post("/todos", vValidator("json", CreateTodoSchema), async (c) => {
+    const data = c.req.valid("json");
+    const todo = await createTodoUseCase.execute(data);
+    return c.json(todo, 201);
+  });
 
-  app.get(
-    "/todos",
-    describeRoute({
-      tags: ["Todos"],
-      summary: "Get all todos",
-      description: "Retrieve a list of all todo items",
-      responses: {
-        200: {
-          description: "List of todos",
-          content: {
-            "application/json": {
-              schema: TodoListSchema,
-            },
-          },
-        },
-      },
-    }),
-    async (c) => {
-      const todos = await getTodoListUseCase.execute();
-      return c.json(todos);
-    },
-  );
+  app.get("/todos", async (c) => {
+    const todos = await getTodoListUseCase.execute();
+    return c.json(todos);
+  });
 
-  app.get(
-    "/todos/:id",
-    describeRoute({
-      tags: ["Todos"],
-      summary: "Get a specific todo",
-      description: "Retrieve a todo item by its ID",
-      request: {
-        params: IdParamSchema,
-      },
-      responses: {
-        200: {
-          description: "Todo details",
-          content: {
-            "application/json": {
-              schema: TodoSchema,
-            },
-          },
-        },
-        404: {
-          description: "Todo not found",
-          content: {
-            "application/json": {
-              schema: ErrorResponseSchema,
-            },
-          },
-        },
-      },
-    }),
-    vValidator("param", IdParamSchema),
-    async (c) => {
-      const { id } = c.req.valid("param");
-      try {
-        const todo = await getTodoUseCase.execute(id);
-        return c.json(todo);
-      } catch (error) {
-        if (error instanceof TodoNotFoundError) {
-          return c.json({ error: error.message }, 404);
-        }
-        throw error;
+  app.get("/todos/:id", vValidator("param", IdParamSchema), async (c) => {
+    const { id } = c.req.valid("param");
+    try {
+      const todo = await getTodoUseCase.execute(id);
+      return c.json(todo);
+    } catch (error) {
+      if (error instanceof TodoNotFoundError) {
+        return c.json({ error: error.message }, 404);
       }
-    },
-  );
+      throw error;
+    }
+  });
 
-  app.put(
-    "/todos/:id",
-    describeRoute({
-      tags: ["Todos"],
-      summary: "Update a todo",
-      description: "Update a todo item with the provided data",
-      request: {
-        params: IdParamSchema,
-        body: {
-          required: true,
-          content: {
-            "application/json": {
-              schema: UpdateTodoSchema,
-            },
-          },
-        },
-      },
-      responses: {
-        200: {
-          description: "Todo updated successfully",
-          content: {
-            "application/json": {
-              schema: TodoSchema,
-            },
-          },
-        },
-        400: {
-          description: "Invalid request data",
-          content: {
-            "application/json": {
-              schema: ErrorResponseSchema,
-            },
-          },
-        },
-        404: {
-          description: "Todo not found",
-          content: {
-            "application/json": {
-              schema: ErrorResponseSchema,
-            },
-          },
-        },
-      },
-    }),
-    vValidator("param", IdParamSchema),
-    vValidator("json", UpdateTodoSchema),
-    async (c) => {
-      const { id } = c.req.valid("param");
-      const data = c.req.valid("json");
+  app.put("/todos/:id", vValidator("param", IdParamSchema), vValidator("json", UpdateTodoSchema), async (c) => {
+    const { id } = c.req.valid("param");
+    const data = c.req.valid("json");
 
-      try {
-        const todo = await updateTodoUseCase.execute(id, data);
-        return c.json(todo);
-      } catch (error) {
-        if (error instanceof TodoNotFoundError) {
-          return c.json({ error: error.message }, 404);
-        }
-        throw error;
+    try {
+      const todo = await updateTodoUseCase.execute(id, data);
+      return c.json(todo);
+    } catch (error) {
+      if (error instanceof TodoNotFoundError) {
+        return c.json({ error: error.message }, 404);
       }
-    },
-  );
+      throw error;
+    }
+  });
 
-  app.delete(
-    "/todos/:id",
-    describeRoute({
-      tags: ["Todos"],
-      summary: "Delete a todo",
-      description: "Delete a todo item by its ID",
-      request: {
-        params: IdParamSchema,
-      },
-      responses: {
-        204: {
-          description: "Todo deleted successfully",
-        },
-        404: {
-          description: "Todo not found",
-          content: {
-            "application/json": {
-              schema: ErrorResponseSchema,
-            },
-          },
-        },
-      },
-    }),
-    vValidator("param", IdParamSchema),
-    async (c) => {
-      const { id } = c.req.valid("param");
+  app.delete("/todos/:id", vValidator("param", IdParamSchema), async (c) => {
+    const { id } = c.req.valid("param");
 
-      try {
-        await deleteTodoUseCase.execute(id);
-        c.status(204);
-        return c.body(null);
-      } catch (error) {
-        if (error instanceof TodoNotFoundError) {
-          return c.json({ error: error.message }, 404);
-        }
-        throw error;
+    try {
+      await deleteTodoUseCase.execute(id);
+      c.status(204);
+      return c.body(null);
+    } catch (error) {
+      if (error instanceof TodoNotFoundError) {
+        return c.json({ error: error.message }, 404);
       }
-    },
-  );
+      throw error;
+    }
+  });
 
-  app.get(
-    "/todos/:id/work-time",
-    describeRoute({
-      tags: ["Todos", "Work Time"],
-      summary: "Get work time information",
-      description: "Retrieve work time information for a todo item",
-      request: {
-        params: IdParamSchema,
-      },
-      responses: {
-        200: {
-          description: "Work time information",
-          content: {
-            "application/json": {
-              schema: WorkTimeResponseSchema,
-            },
-          },
-        },
-        404: {
-          description: "Todo not found",
-          content: {
-            "application/json": {
-              schema: ErrorResponseSchema,
-            },
-          },
-        },
-      },
-    }),
-    vValidator("param", IdParamSchema),
-    async (c) => {
-      const { id } = c.req.valid("param");
+  app.get("/todos/:id/work-time", vValidator("param", IdParamSchema), async (c) => {
+    const { id } = c.req.valid("param");
 
-      try {
-        const workTimeInfo = await getTodoWorkTimeUseCase.execute(id);
-        return c.json(workTimeInfo);
-      } catch (error) {
-        if (error instanceof TodoNotFoundError) {
-          return c.json({ error: error.message }, 404);
-        }
-        throw error;
+    try {
+      const workTimeInfo = await getTodoWorkTimeUseCase.execute(id);
+      return c.json(workTimeInfo);
+    } catch (error) {
+      if (error instanceof TodoNotFoundError) {
+        return c.json({ error: error.message }, 404);
       }
-    },
-  );
+      throw error;
+    }
+  });
 
   // TodoActivity routes
   app.post(
     "/todos/:id/activities",
-    describeRoute({
-      tags: ["Todos", "Activities"],
-      summary: "Create a new activity",
-      description: "Create a new activity for a todo item",
-      request: {
-        params: IdParamSchema,
-        body: {
-          required: true,
-          content: {
-            "application/json": {
-              schema: CreateTodoActivitySchema,
-            },
-          },
-        },
-      },
-      responses: {
-        201: {
-          description: "Activity created successfully",
-          content: {
-            "application/json": {
-              schema: TodoActivitySchema,
-            },
-          },
-        },
-        400: {
-          description: "Invalid state transition or request data",
-          content: {
-            "application/json": {
-              schema: ErrorResponseSchema,
-            },
-          },
-        },
-        404: {
-          description: "Todo not found",
-          content: {
-            "application/json": {
-              schema: ErrorResponseSchema,
-            },
-          },
-        },
-      },
-    }),
     vValidator("param", IdParamSchema),
     vValidator("json", CreateTodoActivitySchema),
     async (c) => {
@@ -371,100 +134,37 @@ export function setupRoutes(
     },
   );
 
-  app.get(
-    "/todos/:id/activities",
-    describeRoute({
-      tags: ["Todos", "Activities"],
-      summary: "Get activities for a todo",
-      description: "Retrieve a list of activities for a todo item",
-      request: {
-        params: IdParamSchema,
-      },
-      responses: {
-        200: {
-          description: "List of activities",
-          content: {
-            "application/json": {
-              schema: TodoActivityListSchema,
-            },
-          },
-        },
-        404: {
-          description: "Todo not found",
-          content: {
-            "application/json": {
-              schema: ErrorResponseSchema,
-            },
-          },
-        },
-      },
-    }),
-    vValidator("param", IdParamSchema),
-    async (c) => {
-      const { id } = c.req.valid("param");
+  app.get("/todos/:id/activities", vValidator("param", IdParamSchema), async (c) => {
+    const { id } = c.req.valid("param");
 
-      try {
-        const activities = await getTodoActivityListUseCase.execute(id);
-        return c.json(activities);
-      } catch (error) {
-        if (error instanceof TodoNotFoundError) {
-          return c.json({ error: error.message }, 404);
-        }
-        throw error;
+    try {
+      const activities = await getTodoActivityListUseCase.execute(id);
+      return c.json(activities);
+    } catch (error) {
+      if (error instanceof TodoNotFoundError) {
+        return c.json({ error: error.message }, 404);
       }
-    },
-  );
+      throw error;
+    }
+  });
 
-  app.delete(
-    "/todos/:id/activities/:activityId",
-    describeRoute({
-      tags: ["Todos", "Activities"],
-      summary: "Delete an activity",
-      description: "Delete an activity for a todo item",
-      request: {
-        params: TodoActivityIdParamSchema,
-      },
-      responses: {
-        204: {
-          description: "Activity deleted successfully",
-        },
-        403: {
-          description: "Unauthorized deletion",
-          content: {
-            "application/json": {
-              schema: ErrorResponseSchema,
-            },
-          },
-        },
-        404: {
-          description: "Todo or activity not found",
-          content: {
-            "application/json": {
-              schema: ErrorResponseSchema,
-            },
-          },
-        },
-      },
-    }),
-    vValidator("param", TodoActivityIdParamSchema),
-    async (c) => {
-      const { id, activityId } = c.req.valid("param");
+  app.delete("/todos/:id/activities/:activityId", vValidator("param", TodoActivityIdParamSchema), async (c) => {
+    const { id, activityId } = c.req.valid("param");
 
-      try {
-        await deleteTodoActivityUseCase.execute(id, activityId);
-        c.status(204);
-        return c.body(null);
-      } catch (error) {
-        if (error instanceof TodoNotFoundError || error instanceof TodoActivityNotFoundError) {
-          return c.json({ error: error.message }, 404);
-        }
-        if (error instanceof UnauthorizedActivityDeletionError) {
-          return c.json({ error: error.message }, 403);
-        }
-        throw error;
+    try {
+      await deleteTodoActivityUseCase.execute(id, activityId);
+      c.status(204);
+      return c.body(null);
+    } catch (error) {
+      if (error instanceof TodoNotFoundError || error instanceof TodoActivityNotFoundError) {
+        return c.json({ error: error.message }, 404);
       }
-    },
-  );
+      if (error instanceof UnauthorizedActivityDeletionError) {
+        return c.json({ error: error.message }, 403);
+      }
+      throw error;
+    }
+  });
 
   return app;
 }
