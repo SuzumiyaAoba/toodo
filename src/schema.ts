@@ -1,20 +1,26 @@
 import * as v from "valibot";
-import { CommonSchemas, DateSchema } from "./presentation/schemas/todo-schemas";
+
+const ISO8601_DATE_REGEX = /^\d{4}-?\d\d-?\d\d(?:T\d\d(?::?\d\d(?::?\d\d(?:\.\d+)?)?)?(?:Z|[+-]\d\d:?\d\d)?)?$/;
+
+const DateSchema = v.pipe(
+  v.string(),
+  v.regex(ISO8601_DATE_REGEX),
+  v.transform((date) => new Date(date)),
+);
 
 /**
  * Schema for a TODO item
  */
 export const TodoSchema = v.object({
-  id: CommonSchemas.uuid(),
-  title: CommonSchemas.title(),
-  description: CommonSchemas.description(),
+  id: v.pipe(v.string(), v.uuid()),
+  title: v.pipe(v.string(), v.minLength(1), v.maxLength(100)),
+  description: v.optional(v.pipe(v.string(), v.maxLength(1000))),
   status: v.picklist(["pending", "completed"]),
   workState: v.picklist(["idle", "active", "paused", "completed"]),
   totalWorkTime: v.number(),
   lastStateChangeAt: DateSchema,
   createdAt: DateSchema,
   updatedAt: DateSchema,
-  priority: v.string(),
 });
 
 /**
@@ -26,11 +32,10 @@ export type Todo = v.InferOutput<typeof TodoSchema>;
  * Schema for creating a new TODO
  */
 export const CreateTodoSchema = v.object({
-  title: CommonSchemas.title(),
-  description: CommonSchemas.description(),
+  title: v.pipe(v.string(), v.minLength(1), v.maxLength(100)),
+  description: v.optional(v.pipe(v.string(), v.maxLength(1000))),
   status: v.optional(v.picklist(["pending", "completed"])),
   workState: v.optional(v.picklist(["idle", "active", "paused", "completed"])),
-  priority: v.optional(v.string()),
 });
 
 /**
@@ -42,11 +47,10 @@ export type CreateTodo = v.InferOutput<typeof CreateTodoSchema>;
  * Schema for updating a TODO
  */
 export const UpdateTodoSchema = v.object({
-  title: v.optional(CommonSchemas.title()),
-  description: CommonSchemas.description(),
+  title: v.optional(v.pipe(v.string(), v.minLength(1), v.maxLength(100))),
+  description: v.optional(v.pipe(v.string(), v.maxLength(1000))),
   status: v.optional(v.picklist(["pending", "completed"])),
   workState: v.optional(v.picklist(["idle", "active", "paused", "completed"])),
-  priority: v.optional(v.string()),
 });
 
 /**
@@ -68,12 +72,12 @@ export type TodoList = v.InferOutput<typeof TodoListSchema>;
  * Schema for a TODO activity
  */
 export const TodoActivitySchema = v.object({
-  id: CommonSchemas.uuid(),
-  todoId: CommonSchemas.uuid(),
+  id: v.pipe(v.string(), v.uuid()),
+  todoId: v.pipe(v.string(), v.uuid()),
   type: v.picklist(["started", "paused", "completed", "discarded"]),
   workTime: v.optional(v.number()),
   previousState: v.optional(v.picklist(["idle", "active", "paused", "completed"])),
-  note: CommonSchemas.note(),
+  note: v.optional(v.pipe(v.string(), v.maxLength(500))),
   createdAt: DateSchema,
 });
 
@@ -87,7 +91,7 @@ export type TodoActivity = v.InferOutput<typeof TodoActivitySchema>;
  */
 export const CreateTodoActivitySchema = v.object({
   type: v.picklist(["started", "paused", "completed", "discarded"]),
-  note: CommonSchemas.note(),
+  note: v.optional(v.pipe(v.string(), v.maxLength(500))),
 });
 
 /**
@@ -109,7 +113,7 @@ export type TodoActivityList = v.InferOutput<typeof TodoActivityListSchema>;
  * Schema for work time response
  */
 export const WorkTimeResponseSchema = v.object({
-  id: CommonSchemas.uuid(),
+  id: v.pipe(v.string(), v.uuid()),
   totalWorkTime: v.number(),
   workState: v.picklist(["idle", "active", "paused", "completed"]),
   formattedTime: v.string(),
@@ -136,7 +140,7 @@ export type ErrorResponse = v.InferOutput<typeof ErrorResponseSchema>;
  * Schema for params with ID
  */
 export const IdParamSchema = v.object({
-  id: CommonSchemas.uuid(),
+  id: v.pipe(v.string(), v.uuid()),
 });
 
 /**
@@ -148,8 +152,8 @@ export type IdParam = v.InferOutput<typeof IdParamSchema>;
  * Schema for TODO and Activity ID params
  */
 export const TodoActivityIdParamSchema = v.object({
-  id: CommonSchemas.uuid(),
-  activityId: CommonSchemas.uuid(),
+  id: v.pipe(v.string(), v.uuid()),
+  activityId: v.pipe(v.string(), v.uuid()),
 });
 
 /**

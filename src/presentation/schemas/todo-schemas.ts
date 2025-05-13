@@ -1,5 +1,5 @@
 import * as v from "valibot";
-import { PriorityLevel, TodoStatus, WorkState } from "../../domain/entities/todo";
+import { TodoStatus, WorkState } from "../../domain/entities/todo";
 import { ActivityType } from "../../domain/entities/todo-activity";
 
 const ISO8601_DATE_REGEX = /^\d{4}-?\d\d-?\d\d(?:T\d\d(?::?\d\d(?::?\d\d(?:\.\d+)?)?)?(?:Z|[+-]\d\d:?\d\d)?)?$/;
@@ -14,45 +14,20 @@ export const DateSchema = v.pipe(
 );
 
 /**
- * Common schema parts that are reused across different schemas
- */
-export const CommonSchemas = {
-  uuid: () => v.pipe(v.string(), v.uuid()),
-  title: () => v.pipe(v.string(), v.minLength(1), v.maxLength(100)),
-  description: () => v.optional(v.pipe(v.string(), v.maxLength(1000))),
-  note: () => v.optional(v.pipe(v.string(), v.maxLength(500))),
-  todoStatus: () => v.picklist([TodoStatus.PENDING, TodoStatus.IN_PROGRESS, TodoStatus.COMPLETED]),
-  workState: () => v.picklist([WorkState.IDLE, WorkState.ACTIVE, WorkState.PAUSED, WorkState.COMPLETED]),
-  activityType: () =>
-    v.picklist([ActivityType.STARTED, ActivityType.PAUSED, ActivityType.COMPLETED, ActivityType.DISCARDED]),
-};
-
-/**
- * Base schema for entities with ID and timestamps
- */
-export const BaseEntitySchema = v.object({
-  id: CommonSchemas.uuid(),
-  createdAt: DateSchema,
-  updatedAt: DateSchema,
-});
-
-/**
  * Schema for Todo entity responses
  */
 export const TodoSchema = v.object({
-  id: CommonSchemas.uuid(),
-  title: CommonSchemas.title(),
-  description: CommonSchemas.description(),
-  status: CommonSchemas.todoStatus(),
-  workState: CommonSchemas.workState(),
+  id: v.pipe(v.string(), v.uuid()),
+  title: v.pipe(v.string(), v.minLength(1), v.maxLength(100)),
+  description: v.optional(v.pipe(v.string(), v.maxLength(1000))),
+  status: v.picklist([TodoStatus.PENDING, TodoStatus.COMPLETED]),
+  workState: v.picklist([WorkState.IDLE, WorkState.ACTIVE, WorkState.PAUSED, WorkState.COMPLETED]),
   totalWorkTime: v.number(),
   lastStateChangeAt: DateSchema,
   createdAt: DateSchema,
   updatedAt: DateSchema,
-  priority: v.string(),
-  projectId: v.optional(CommonSchemas.uuid()),
-  dependencies: v.optional(v.array(CommonSchemas.uuid())), // 依存するTodoのIDリスト
-  dependents: v.optional(v.array(CommonSchemas.uuid())), // このTodoに依存するTodoのIDリスト
+  dependencies: v.optional(v.array(v.pipe(v.string(), v.uuid()))), // 依存するTodoのIDリスト
+  dependents: v.optional(v.array(v.pipe(v.string(), v.uuid()))), // このTodoに依存するTodoのIDリスト
 });
 
 /**
@@ -64,11 +39,10 @@ export type TodoResponse = v.InferOutput<typeof TodoSchema>;
  * Schema for creating a Todo
  */
 export const CreateTodoSchema = v.object({
-  title: CommonSchemas.title(),
-  description: CommonSchemas.description(),
+  title: v.pipe(v.string(), v.minLength(1), v.maxLength(100)),
+  description: v.optional(v.pipe(v.string(), v.maxLength(1000))),
   status: v.optional(v.picklist([TodoStatus.PENDING, TodoStatus.COMPLETED])),
-  workState: v.optional(CommonSchemas.workState()),
-  priority: v.optional(v.string()),
+  workState: v.optional(v.picklist([WorkState.IDLE, WorkState.ACTIVE, WorkState.PAUSED, WorkState.COMPLETED])),
 });
 
 /**
@@ -80,11 +54,10 @@ export type CreateTodoRequest = v.InferOutput<typeof CreateTodoSchema>;
  * Schema for updating a Todo
  */
 export const UpdateTodoSchema = v.object({
-  title: v.optional(CommonSchemas.title()),
-  description: CommonSchemas.description(),
+  title: v.optional(v.pipe(v.string(), v.minLength(1), v.maxLength(100))),
+  description: v.optional(v.pipe(v.string(), v.maxLength(1000))),
   status: v.optional(v.picklist([TodoStatus.PENDING, TodoStatus.COMPLETED])),
-  workState: v.optional(CommonSchemas.workState()),
-  priority: v.optional(v.string()),
+  workState: v.optional(v.picklist([WorkState.IDLE, WorkState.ACTIVE, WorkState.PAUSED, WorkState.COMPLETED])),
 });
 
 /**
@@ -106,12 +79,12 @@ export type TodoListResponse = v.InferOutput<typeof TodoListSchema>;
  * Schema for TodoActivity entity responses
  */
 export const TodoActivitySchema = v.object({
-  id: CommonSchemas.uuid(),
-  todoId: CommonSchemas.uuid(),
-  type: CommonSchemas.activityType(),
+  id: v.pipe(v.string(), v.uuid()),
+  todoId: v.pipe(v.string(), v.uuid()),
+  type: v.picklist([ActivityType.STARTED, ActivityType.PAUSED, ActivityType.COMPLETED, ActivityType.DISCARDED]),
   workTime: v.optional(v.number()),
-  previousState: v.optional(CommonSchemas.workState()),
-  note: CommonSchemas.note(),
+  previousState: v.optional(v.picklist([WorkState.IDLE, WorkState.ACTIVE, WorkState.PAUSED, WorkState.COMPLETED])),
+  note: v.optional(v.pipe(v.string(), v.maxLength(500))),
   createdAt: DateSchema,
 });
 
@@ -124,8 +97,8 @@ export type TodoActivityResponse = v.InferOutput<typeof TodoActivitySchema>;
  * Schema for creating a TodoActivity
  */
 export const CreateTodoActivitySchema = v.object({
-  type: CommonSchemas.activityType(),
-  note: CommonSchemas.note(),
+  type: v.picklist([ActivityType.STARTED, ActivityType.PAUSED, ActivityType.COMPLETED, ActivityType.DISCARDED]),
+  note: v.optional(v.pipe(v.string(), v.maxLength(500))),
 });
 
 /**
@@ -147,9 +120,9 @@ export type TodoActivityListResponse = v.InferOutput<typeof TodoActivityListSche
  * Schema for work time response
  */
 export const WorkTimeResponseSchema = v.object({
-  id: CommonSchemas.uuid(),
+  id: v.pipe(v.string(), v.uuid()),
   totalWorkTime: v.number(),
-  workState: CommonSchemas.workState(),
+  workState: v.picklist([WorkState.IDLE, WorkState.ACTIVE, WorkState.PAUSED, WorkState.COMPLETED]),
   formattedTime: v.string(),
 });
 
@@ -174,7 +147,7 @@ export type ErrorResponse = v.InferOutput<typeof ErrorResponseSchema>;
  * Schema for ID path parameters
  */
 export const IdParamSchema = v.object({
-  id: CommonSchemas.uuid(),
+  id: v.pipe(v.string(), v.uuid()),
 });
 
 /**
@@ -186,8 +159,8 @@ export type IdParam = v.InferOutput<typeof IdParamSchema>;
  * Schema for Todo and Activity ID path parameters
  */
 export const TodoActivityIdParamSchema = v.object({
-  id: CommonSchemas.uuid(),
-  activityId: CommonSchemas.uuid(),
+  id: v.pipe(v.string(), v.uuid()),
+  activityId: v.pipe(v.string(), v.uuid()),
 });
 
 /**
@@ -199,8 +172,8 @@ export type TodoActivityIdParam = v.InferOutput<typeof TodoActivityIdParamSchema
  * Schema for Todo and Tag ID path parameters
  */
 export const TodoTagParamSchema = v.object({
-  id: CommonSchemas.uuid(),
-  tagId: CommonSchemas.uuid(),
+  id: v.pipe(v.string(), v.uuid()),
+  tagId: v.pipe(v.string(), v.uuid()),
 });
 
 /**
@@ -212,8 +185,8 @@ export type TodoTagParam = v.InferOutput<typeof TodoTagParamSchema>;
  * Schema for Todo dependency path parameters
  */
 export const TodoDependencyParamSchema = v.object({
-  id: CommonSchemas.uuid(),
-  dependencyId: CommonSchemas.uuid(),
+  id: v.pipe(v.string(), v.uuid()),
+  dependencyId: v.pipe(v.string(), v.uuid()),
 });
 
 /**
@@ -222,20 +195,17 @@ export const TodoDependencyParamSchema = v.object({
 export type TodoDependencyParam = v.InferOutput<typeof TodoDependencyParamSchema>;
 
 /**
- * Basic Todo info schema used in dependencies and dependents lists
- */
-export const BasicTodoInfoSchema = v.object({
-  id: CommonSchemas.uuid(),
-  title: v.string(),
-  status: CommonSchemas.todoStatus(),
-  priority: v.string(),
-});
-
-/**
  * Schema for Todo dependency list response
  */
 export const TodoDependencyListSchema = v.object({
-  dependencies: v.array(BasicTodoInfoSchema),
+  dependencies: v.array(
+    v.object({
+      id: v.pipe(v.string(), v.uuid()),
+      title: v.string(),
+      status: v.picklist([TodoStatus.PENDING, TodoStatus.IN_PROGRESS, TodoStatus.COMPLETED]),
+      priority: v.string(),
+    }),
+  ),
 });
 
 /**
@@ -247,7 +217,14 @@ export type TodoDependencyListResponse = v.InferOutput<typeof TodoDependencyList
  * Schema for Todo dependents list response
  */
 export const TodoDependentListSchema = v.object({
-  dependents: v.array(BasicTodoInfoSchema),
+  dependents: v.array(
+    v.object({
+      id: v.pipe(v.string(), v.uuid()),
+      title: v.string(),
+      status: v.picklist([TodoStatus.PENDING, TodoStatus.IN_PROGRESS, TodoStatus.COMPLETED]),
+      priority: v.string(),
+    }),
+  ),
 });
 
 /**
@@ -259,8 +236,8 @@ export type TodoDependentListResponse = v.InferOutput<typeof TodoDependentListSc
  * Schema for Project and Todo ID path parameters
  */
 export const ProjectTodoParamSchema = v.object({
-  id: CommonSchemas.uuid(),
-  todoId: CommonSchemas.uuid(),
+  id: v.pipe(v.string(), v.uuid()),
+  todoId: v.pipe(v.string(), v.uuid()),
 });
 
 /**
@@ -280,9 +257,9 @@ type TodoDependencyNode = {
  * Schema for Todo dependency tree node response
  */
 export const TodoDependencyNodeSchema: v.GenericSchema<TodoDependencyNode> = v.object({
-  id: CommonSchemas.uuid(),
+  id: v.pipe(v.string(), v.uuid()),
   title: v.string(),
-  status: CommonSchemas.todoStatus(),
+  status: v.picklist([TodoStatus.PENDING, TodoStatus.IN_PROGRESS, TodoStatus.COMPLETED]),
   priority: v.nullable(v.number()),
   dependencies: v.array(v.lazy(() => TodoDependencyNodeSchema)),
 });
