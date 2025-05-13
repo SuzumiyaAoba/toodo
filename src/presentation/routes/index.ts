@@ -1,15 +1,6 @@
 import type { Hono } from "hono";
 import { describeRoute } from "hono-openapi";
 import { resolver, validator as vValidator } from "hono-openapi/valibot";
-import { parse } from "valibot";
-import { BulkAssignTagUseCase, BulkRemoveTagUseCase } from "../../application/use-cases/tag/bulk-tag-operations";
-import { CreateTagUseCase } from "../../application/use-cases/tag/create-tag";
-import { DeleteTagUseCase } from "../../application/use-cases/tag/delete-tag";
-import { GetAllTagsUseCase, GetTagByIdUseCase } from "../../application/use-cases/tag/get-tag";
-import { GetTagStatisticsUseCase } from "../../application/use-cases/tag/get-tag-statistics";
-import { GetTodosByMultipleTagsUseCase } from "../../application/use-cases/tag/get-todos-by-multiple-tags";
-import { GetTodosByTagUseCase } from "../../application/use-cases/tag/todo-tag-operations";
-import { UpdateTagUseCase } from "../../application/use-cases/tag/update-tag";
 import type { CreateTodoActivityUseCase } from "../../application/use-cases/todo-activity/create-todo-activity";
 import type { DeleteTodoActivityUseCase } from "../../application/use-cases/todo-activity/delete-todo-activity";
 import type { GetTodoActivityListUseCase } from "../../application/use-cases/todo-activity/get-todo-activity-list";
@@ -19,28 +10,15 @@ import type { GetTodoUseCase } from "../../application/use-cases/todo/get-todo";
 import type { GetTodoListUseCase } from "../../application/use-cases/todo/get-todo-list";
 import type { GetTodoWorkTimeUseCase } from "../../application/use-cases/todo/get-todo-work-time";
 import type { UpdateTodoUseCase } from "../../application/use-cases/todo/update-todo";
-import type { Tag } from "../../domain/entities/tag";
 import {
   InvalidStateTransitionError,
   TodoActivityNotFoundError,
   TodoNotFoundError,
   UnauthorizedActivityDeletionError,
 } from "../../domain/errors/todo-errors";
-import type { TagRepository } from "../../domain/repositories/tag-repository";
-import type { TodoRepository } from "../../domain/repositories/todo-repository";
 import type { PrismaClient } from "../../generated/prisma";
-import { PrismaTagRepository } from "../../infrastructure/repositories/prisma-tag-repository";
-import { PrismaTodoRepository } from "../../infrastructure/repositories/prisma-todo-repository";
+import { TagController } from "../controllers/tag-controller";
 import { TodoTagController } from "../controllers/todo-tag-controller";
-import {
-  BulkTagOperationSchema,
-  CreateTagSchema,
-  MultipleTagQuerySchema,
-  TagIdParamSchema,
-  type TagResponse,
-  TagSchema,
-  UpdateTagSchema,
-} from "../schemas/tag-schemas";
 import {
   CreateTodoActivitySchema,
   CreateTodoSchema,
@@ -501,202 +479,13 @@ export function setupRoutes<E extends Env = Env>(
     },
   );
 
+  // Tag routes
+  const tagController = new TagController(prisma);
+  app.route("/tags", tagController.getApp());
+
   // Todo-Tag relationship routes
   const todoTagController = new TodoTagController(prisma);
   app.route("/todos", todoTagController.getApp());
-
-  // Tag routes - 直接index.tsに実装
-  // リポジトリの作成
-  const tagRepository = new PrismaTagRepository(prisma);
-  const todoRepository = new PrismaTodoRepository(prisma);
-
-  // Helper function to map Tag to TagResponse
-  const mapTagToResponse = (tag: Tag): TagResponse => {
-    const response: TagResponse = {
-      id: tag.id,
-      name: tag.name,
-      color: tag.color,
-      createdAt: tag.createdAt.toISOString(),
-      updatedAt: tag.updatedAt.toISOString(),
-    };
-
-    return parse(TagSchema, response);
-  };
-
-  // Create a new tag
-  app.post("/tags", vValidator("json", CreateTagSchema), async (c) => {
-    const input = c.req.valid("json");
-    const useCase = new CreateTagUseCase(tagRepository);
-    const tag = await useCase.execute(input);
-    return c.json(mapTagToResponse(tag), 201);
-  });
-
-  // Get all tags
-  app.get("/tags", async (c) => {
-    const useCase = new GetAllTagsUseCase(tagRepository);
-    const tags = await useCase.execute();
-    return c.json(tags.map((tag) => mapTagToResponse(tag)));
-  });
-
-  // Get tag usage statistics
-  app.get("/tags/stats", async (c) => {
-    const useCase = new GetTagStatisticsUseCase(tagRepository);
-    const statistics = await useCase.execute();
-    return c.json(statistics);
-  });
-
-  // Get todos by multiple tags
-  app.get("/tags/by-tags", async (c) => {
-    try {
-      const queryParams = {
-        tagIds: c.req.query("tagIds") || "",
-        mode: c.req.query("mode") || "all",
-      };
-
-      const validated = parse(MultipleTagQuerySchema, queryParams);
-      const useCase = new GetTodosByMultipleTagsUseCase(tagRepository, todoRepository);
-
-      const todos = await useCase.execute({
-        tagIds: validated.tagIds,
-        mode: validated.mode,
-      });
-
-      return c.json(
-        todos.map((todo) => ({
-          id: todo.id,
-          title: todo.title,
-          description: todo.description,
-          status: todo.status,
-          workState: todo.workState,
-          totalWorkTime: todo.totalWorkTime,
-          lastStateChangeAt: todo.lastStateChangeAt.toISOString(),
-          createdAt: todo.createdAt.toISOString(),
-          updatedAt: todo.updatedAt.toISOString(),
-        })),
-      );
-    } catch (error) {
-      if (error instanceof Error && error.message.includes("not found")) {
-        return c.json({ message: error.message }, 404);
-      }
-      throw error;
-    }
-  });
-
-  // Get a specific tag
-  app.get("/tags/:id", async (c) => {
-    const id = c.req.param("id");
-    const useCase = new GetTagByIdUseCase(tagRepository);
-    const tag = await useCase.execute({ id });
-
-    if (!tag) {
-      return c.json({ message: `Tag with ID '${id}' not found` }, 404);
-    }
-
-    return c.json(mapTagToResponse(tag));
-  });
-
-  // Update a tag
-  app.put("/tags/:id", vValidator("json", UpdateTagSchema), async (c) => {
-    const id = c.req.param("id");
-    const data = c.req.valid("json");
-    const useCase = new UpdateTagUseCase(tagRepository);
-
-    try {
-      const tag = await useCase.execute({ id, ...data });
-      return c.json(mapTagToResponse(tag));
-    } catch (error) {
-      if (error instanceof Error && error.message.includes("not found")) {
-        return c.json({ message: error.message }, 404);
-      }
-      throw error;
-    }
-  });
-
-  // Delete a tag
-  app.delete("/tags/:id", async (c) => {
-    const id = c.req.param("id");
-    const useCase = new DeleteTagUseCase(tagRepository);
-
-    try {
-      await useCase.execute({ id });
-      return c.status(204);
-    } catch (error) {
-      if (error instanceof Error && error.message.includes("not found")) {
-        return c.json({ message: error.message }, 404);
-      }
-      throw error;
-    }
-  });
-
-  // Get todos by tag
-  app.get("/tags/:id/todos", async (c) => {
-    const tagId = c.req.param("id");
-    const useCase = new GetTodosByTagUseCase(tagRepository, todoRepository);
-
-    try {
-      const todos = await useCase.execute({ tagId });
-      return c.json(
-        todos.map((todo) => ({
-          id: todo.id,
-          title: todo.title,
-          description: todo.description,
-          status: todo.status,
-          workState: todo.workState,
-          totalWorkTime: todo.totalWorkTime,
-          lastStateChangeAt: todo.lastStateChangeAt.toISOString(),
-          createdAt: todo.createdAt.toISOString(),
-          updatedAt: todo.updatedAt.toISOString(),
-        })),
-      );
-    } catch (error) {
-      if (error instanceof Error && error.message.includes("not found")) {
-        return c.json({ message: error.message }, 404);
-      }
-      throw error;
-    }
-  });
-
-  // Bulk assign a tag to multiple todos
-  app.post("/tags/:id/bulk-assign", vValidator("json", BulkTagOperationSchema), async (c) => {
-    const tagId = c.req.param("id");
-    const data = c.req.valid("json");
-    const useCase = new BulkAssignTagUseCase(tagRepository, todoRepository);
-
-    try {
-      const result = await useCase.execute({
-        tagId,
-        todoIds: data.todoIds,
-      });
-
-      return c.json(result);
-    } catch (error) {
-      if (error instanceof Error && error.message.includes("not found")) {
-        return c.json({ message: error.message }, 404);
-      }
-      throw error;
-    }
-  });
-
-  // Bulk remove a tag from multiple todos
-  app.delete("/tags/:id/bulk-remove", vValidator("json", BulkTagOperationSchema), async (c) => {
-    const tagId = c.req.param("id");
-    const data = c.req.valid("json");
-    const useCase = new BulkRemoveTagUseCase(tagRepository, todoRepository);
-
-    try {
-      const result = await useCase.execute({
-        tagId,
-        todoIds: data.todoIds,
-      });
-
-      return c.json(result);
-    } catch (error) {
-      if (error instanceof Error && error.message.includes("not found")) {
-        return c.json({ message: error.message }, 404);
-      }
-      throw error;
-    }
-  });
 
   return app;
 }
