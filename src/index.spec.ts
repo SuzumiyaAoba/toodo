@@ -7,7 +7,6 @@ describe("Toodo API", () => {
   let server: { url: string };
   let prisma: PrismaClient;
   let createdTodoId: string;
-  const apiPath = "/api/v1"; // APIのベースパス
 
   // Setup
   beforeAll(async () => {
@@ -36,7 +35,7 @@ describe("Toodo API", () => {
 
   // Tests
   test("should create a new todo", async () => {
-    const response = await fetch(`${server.url}${apiPath}/todos`, {
+    const response = await fetch(`${server.url}/todos`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -60,7 +59,7 @@ describe("Toodo API", () => {
   });
 
   test("should get the list of todos", async () => {
-    const response = await fetch(`${server.url}${apiPath}/todos`);
+    const response = await fetch(`${server.url}/todos`);
     expect(response.status).toBe(200);
     const data = await response.json();
     expect(Array.isArray(data)).toBe(true);
@@ -68,7 +67,7 @@ describe("Toodo API", () => {
   });
 
   test("should get a specific todo", async () => {
-    const response = await fetch(`${server.url}${apiPath}/todos/${createdTodoId}`);
+    const response = await fetch(`${server.url}/todos/${createdTodoId}`);
     expect(response.status).toBe(200);
     const data = await response.json();
     expect(data.id).toBe(createdTodoId);
@@ -76,7 +75,7 @@ describe("Toodo API", () => {
   });
 
   test("should update a todo", async () => {
-    const response = await fetch(`${server.url}${apiPath}/todos/${createdTodoId}`, {
+    const response = await fetch(`${server.url}/todos/${createdTodoId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -93,7 +92,7 @@ describe("Toodo API", () => {
   });
 
   test("should add an activity to a todo", async () => {
-    const response = await fetch(`${server.url}${apiPath}/todos/${createdTodoId}/activities`, {
+    const response = await fetch(`${server.url}/todos/${createdTodoId}/activities`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -112,7 +111,7 @@ describe("Toodo API", () => {
   });
 
   test("should get activities for a todo", async () => {
-    const response = await fetch(`${server.url}${apiPath}/todos/${createdTodoId}/activities`);
+    const response = await fetch(`${server.url}/todos/${createdTodoId}/activities`);
     expect(response.status).toBe(200);
     const data = await response.json();
     expect(Array.isArray(data)).toBe(true);
@@ -121,7 +120,7 @@ describe("Toodo API", () => {
   });
 
   test("should get work time for a todo", async () => {
-    const response = await fetch(`${server.url}${apiPath}/todos/${createdTodoId}/work-time`);
+    const response = await fetch(`${server.url}/todos/${createdTodoId}/work-time`);
     expect(response.status).toBe(200);
     const data = await response.json();
     expect(data.id).toBe(createdTodoId);
@@ -130,14 +129,14 @@ describe("Toodo API", () => {
   });
 
   test("should delete a todo", async () => {
-    const response = await fetch(`${server.url}${apiPath}/todos/${createdTodoId}`, {
+    const response = await fetch(`${server.url}/todos/${createdTodoId}`, {
       method: "DELETE",
     });
 
     expect(response.status).toBe(204);
 
     // Verify that the todo is deleted
-    const getResponse = await fetch(`${server.url}${apiPath}/todos/${createdTodoId}`);
+    const getResponse = await fetch(`${server.url}/todos/${createdTodoId}`);
     expect(getResponse.status).toBe(404);
   });
 });
