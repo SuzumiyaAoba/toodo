@@ -1,13 +1,31 @@
 {
   "name": "toodo",
+  "version": "0.1.0",
+  "description": "Todo application",
+  "main": "index.js",
   "scripts": {
-    "dev": "bun run --hot src/index.ts",
+    "dev": "bun run --watch src/index.ts",
+    "build": "bun build src/index.ts --outdir dist",
+    "start": "bun dist/index.js",
+    "test": "bun test",
+    "lint": "biome check",
     "prepare": "husky",
-    "format": "biome check --write"
+    "format": "biome check --write",
+    "generate": "drizzle-kit generate",
+    "migrate": "bun run src/db/migrate.ts",
+    "studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@databases/sqlite": "^4.0.2",
+    "@libsql/client": "^0.15.5",
+    "@types/uuid": "^10.0.0",
+    "drizzle-kit": "^0.31.1",
+    "drizzle-orm": "^0.43.1",
     "hono": "^4.7.4",
-    "lint-staged": "^15.5.0"
+    "lint-staged": "^15.5.0",
+    "sqlite3": "^5.1.7",
+    "tslog": "^4.9.3",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",

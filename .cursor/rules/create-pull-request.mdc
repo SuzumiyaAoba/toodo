@@ -1,0 +1,104 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Pull Request Creation Procedure Using GitHub CLI
+
+## Step-by-Step Workflow
+
+1. Create and switch to a working branch
+   ```bash
+   # Use a descriptive branch name following conventions
+   # Pattern: <type>/<description>
+   # Examples: feature/user-authentication, fix/login-issue, docs/api-documentation
+   git checkout -b feature/new-feature
+   ```
+
+2. Make changes and commit
+   ```bash
+   # Stage specific files
+   git add <file1> <file2>
+   
+   # Or stage all changes
+   git add .
+   
+   # Commit with conventional commit format
+   # Pattern: <type>[optional scope]: <description>
+   # Examples: feat: add user registration, fix(auth): resolve login timeout
+   git commit -m "feat: add new feature"
+   ```
+
+3. Push the branch to remote
+   ```bash
+   git push -u origin feature/new-feature
+   ```
+
+4. Create a pull request
+   ```bash
+   # Basic command (interactive mode)
+   gh pr create
+   
+   # Full command with options (recommended)
+   gh pr create --title "{Pull Request Title}" --body "{Fill [PULL_REQUEST_TEMPLATE.md](mdc:.github/PULL_REQUEST_TEMPLATE.md) in one line}" --base master
+   ```
+
+## Additional Options and Commands
+
+### Commonly Used PR Creation Options
+
+- `--title`, `-t`: Specify the PR title
+- `--body`, `-b`: Specify the PR description
+- `--base`: Target branch for merging (default: repository's default branch)
+- `--draft`: Create as a draft PR
+- `--assignee`, `-a`: Assign to specific users
+- `--reviewer`, `-r`: Request reviews from specific users or teams
+- `--label`, `-l`: Add labels to the PR
+
+### Example with Multiple Options
+
+```bash
+gh pr create \
+  --title "feat: implement user authentication" \
+  --body "Adds JWT-based authentication system for users" \
+  --base develop \
+  --reviewer username1,username2 \
+  --assignee myusername \
+  --label enhancement \
+  --draft
+```
+
+### Managing Pull Requests
+
+- List open pull requests
+  ```bash
+  gh pr list
+  ```
+
+- View PR details
+  ```bash
+  gh pr view <PR-number>
+  # Or view in web browser
+  gh pr view <PR-number> --web
+  ```
+
+- Check out a PR locally
+  ```bash
+  gh pr checkout <PR-number>
+  ```
+
+- Merge a PR
+  ```bash
+  gh pr merge <PR-number>
+  # Options: --merge, --squash, --rebase
+  gh pr merge <PR-number> --squash
+  ```
+
+### Tips for Effective PRs
+
+- Keep PRs small and focused on a single change
+- Include clear descriptions of changes and reasoning
+- Reference related issues using keywords (Fixes #123, Relates to #456)
+- Ensure tests pass before requesting review
+- Respond promptly to review comments and requested changes
+
