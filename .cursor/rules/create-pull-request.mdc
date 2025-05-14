@@ -94,6 +94,48 @@ gh pr create \
   gh pr merge <PR-number> --squash
   ```
 
+- Update PR description after pushing changes
+  ```bash
+  # Create or update a file with the new PR description
+  # Option 1: Edit existing description
+  gh pr view <PR-number> --json body -q .body > pr_body.md
+  # Edit pr_body.md file with new changes
+  cat pr_body.md | gh pr edit <PR-number> --body-file -
+  
+  # Option 2: Create a new description based on template
+  cat .github/PULL_REQUEST_TEMPLATE.md > pr_body.md
+  # Edit pr_body.md file
+  cat pr_body.md | gh pr edit <PR-number> --body-file -
+  ```
+
+### Updating PR Description After Changes
+
+When making additional changes to a PR, it's important to keep the PR description in sync with the actual code changes:
+
+1. **Minor Changes**: For small changes that don't affect the overall scope:
+   - Add a note in the "Additional context" section about the update
+   - No need to completely rewrite the description
+
+2. **Significant Changes**: For changes that alter the PR's scope or purpose:
+   - Update the main "Description" section to reflect the new purpose
+   - Revise the "Type of change" checkboxes if the change type has shifted
+   - Update the "How Has This Been Tested" section with new test information
+   - Review and update all checklist items
+
+3. **Response to Review Comments**: When changes are made based on reviews:
+   - Consider adding a summary of changes made in response to reviews
+   - Reference specific review comments when describing changes
+
+Always use the `gh pr edit` command to update the PR description after pushing significant changes:
+
+```bash
+# Edit the title if the scope has changed
+gh pr edit <PR-number> --title "Updated title reflecting new changes"
+
+# Update the PR body with a file containing the revised description
+cat updated_pr_body.md | gh pr edit <PR-number> --body-file -
+```
+
 ### Tips for Effective PRs
 
 - Keep PRs small and focused on a single change
