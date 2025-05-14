@@ -40,8 +40,14 @@ alwaysApply: false
    gh pr create
    
    # Full command with options (recommended)
-   gh pr create --title "{Pull Request Title}" --body "{Fill [PULL_REQUEST_TEMPLATE.md](mdc:.github/PULL_REQUEST_TEMPLATE.md) in one line}" --base master
+   gh pr create --title "{Pull Request Title}" --body "{Fill PULL_REQUEST_TEMPLATE.md in one line}" --base master
    ```
+
+## Important Guidelines
+
+- **Language**: All PR titles and descriptions MUST be written in English, regardless of the primary language used in conversations.
+- **Template**: Follow the PULL_REQUEST_TEMPLATE.md structure when creating PR descriptions.
+- **Clarity**: Ensure descriptions clearly communicate the purpose and impact of changes.
 
 ## Additional Options and Commands
 
