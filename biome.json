@@ -7,6 +7,6 @@
   },
   "linter": {
     "enabled": true,
-    "ignore": ["./cursor/**/*"]
+    "ignore": [".cursor/**/*"]
   }
 }
