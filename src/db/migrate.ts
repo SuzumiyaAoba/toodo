@@ -16,7 +16,7 @@ async function main() {
 
   logger.info("Applying SQL migration...");
 
-  // SQLを直接実行してテーブルを作成
+  // Execute SQL directly to create tables
   db.run(sql`
     CREATE TABLE IF NOT EXISTS todos (
       id TEXT PRIMARY KEY NOT NULL,
