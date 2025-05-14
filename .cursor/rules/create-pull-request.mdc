@@ -49,8 +49,8 @@ alwaysApply: false
 5. Updating a pull request after creation
    ```bash
    # Make additional changes to your code
-   git add .
-   git commit -m "feat: implement requested changes"
+   git add <changed_files>
+   git commit -m "type: descriptive message about changes"
    
    # Push updates to the same branch
    git push
@@ -70,12 +70,24 @@ alwaysApply: false
    gh pr edit <PR-number> --title "Updated PR Title" --body "Updated PR Description"
    ```
 
+7. Responding to review feedback
+   ```bash
+   # After making requested changes
+   git add <files>
+   git commit -m "fix: address review feedback on X feature"
+   git push
+   
+   # Optionally add comments to the PR via GitHub CLI
+   gh pr comment <PR-number> --body "I've addressed the feedback by refactoring the authentication logic as suggested."
+   ```
+
 ## Essential Guidelines
 
 - **Language**: All PR titles and descriptions MUST be written in English, regardless of the primary language used in conversations.
 - **Template**: Adhere to the PULL_REQUEST_TEMPLATE.md structure when creating PR descriptions.
 - **Clarity**: Ensure descriptions clearly communicate the purpose, scope, and impact of changes.
 - **Updates**: When addressing review feedback, include context about the changes made in commit messages.
+- **Size**: Keep PRs reasonably sized (ideally under 400 lines of changes) to facilitate effective reviews.
 
 ## Advanced Options and Commands
 
@@ -106,14 +118,14 @@ gh pr create \
 
 - List open pull requests
   ```bash
-  gh pr list
+  LESS=FRX gh pr list
   ```
 
 - View PR details
   ```bash
-  gh pr view <PR-number>
+  LESS=FRX gh pr view <PR-number>
   # Or open in web browser
-  gh pr view <PR-number> --web
+  LESS=FRX gh pr view <PR-number> --web
   ```
 
 - Check out a PR locally
@@ -140,6 +152,11 @@ gh pr create \
   gh pr edit <PR-number> --remove-reviewer username1
   ```
 
+- Mark PR as ready for review (if it was a draft)
+  ```bash
+  gh pr ready <PR-number>
+  ```
+
 ### Best Practices for Effective PRs
 
 - Keep PRs focused on a single logical change
@@ -149,4 +166,43 @@ gh pr create \
 - Respond promptly and thoroughly to reviewer feedback
 - When addressing review comments, use the suggestion feature when applicable
 - Consider using draft PRs for work-in-progress changes that require early feedback
+- Add screenshots for UI changes to help reviewers understand the visual impact
+
+## Troubleshooting PR Workflows
+
+### GitHub CLI Issues
+
+If you encounter issues with GitHub CLI commands:
+
+1. Verify GitHub CLI installation and version
+   ```bash
+   gh --version
+   ```
+
+2. Check authentication status
+   ```bash
+   gh auth status
+   ```
+
+3. Re-authenticate if needed
+   ```bash
+   gh auth login
+   ```
+
+### Alternative Methods (Without GitHub CLI)
+
+If GitHub CLI is unavailable or encountering errors:
+
+1. Create a PR through the web interface:
+   - Push your branch: `git push -u origin your-branch-name`
+   - Visit your repository on GitHub
+   - Click "Compare & pull request" button that appears
+   - Fill in the title and description according to guidelines
+   - Submit the PR
+
+2. Update an existing PR without GitHub CLI:
+   - Make changes to your code
+   - Commit and push to the same branch
+   - The PR will update automatically
+   - Visit the PR on GitHub to update title/description manually if needed
 
