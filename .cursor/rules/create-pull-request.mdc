@@ -40,7 +40,7 @@ alwaysApply: false
    gh pr create
    
    # Full command with options (recommended)
-   gh pr create --title "{Pull Request Title}" --body "{Fill PULL_REQUEST_TEMPLATE.md in one line}" --base master
+   echo "{Fill @PULL_REQUEST_TEMPLATE.md in one line}" | gh pr create --title "{Pull Request Title}" --base master --body-file -
    ```
 
 ## Important Guidelines
