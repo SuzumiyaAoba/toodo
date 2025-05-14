@@ -1,0 +1,16 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Basic
+
+- Use English
+
+## Tecn Stack
+
+- Bun (Runtime)
+- Hono (Web Framework)
+- Bun SQLite (Database)
+- Drizzle (ORM)
+- tslog (Logging)
