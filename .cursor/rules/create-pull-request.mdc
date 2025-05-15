@@ -139,7 +139,7 @@ gh pr create \
   # Available strategies: --merge, --squash, --rebase
   gh pr merge <PR-number> --squash
   ```
-
+  
 - Check PR status
   ```bash
   gh pr status
@@ -205,4 +205,3 @@ If GitHub CLI is unavailable or encountering errors:
    - Commit and push to the same branch
    - The PR will update automatically
    - Visit the PR on GitHub to update title/description manually if needed
-
