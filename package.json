@@ -4,7 +4,7 @@
   "description": "Todo application",
   "main": "index.js",
   "scripts": {
-    "dev": "bun run --watch src/index.ts",
+    "dev": "bun src/index.ts",
     "build": "bun build src/index.ts --outdir dist --target bun",
     "start": "bun dist/index.js",
     "test": "bun test",

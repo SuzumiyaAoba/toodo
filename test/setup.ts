@@ -1,23 +1,20 @@
 import { Database } from "bun:sqlite";
 import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/bun-sqlite";
-import { Logger } from "tslog";
-import * as schema from "./schema";
+import * as schema from "../src/db/schema";
 
-const logger = new Logger({ name: "migrate" });
+/**
+ * テスト用のインメモリデータベースとDrizzleインスタンスを作成する
+ */
+export function createTestDb() {
+  // インメモリSQLiteデータベースを作成
+  const db = new Database(":memory:");
 
-async function main() {
-  logger.info("Starting database setup...");
+  // Drizzle ORMインスタンスを作成
+  const drizzleDb = drizzle(db, { schema });
 
-  // Create a Bun SQLite database connection
-  const sqlite = new Database("data.db");
-
-  const db = drizzle(sqlite, { schema });
-
-  logger.info("Applying SQL migration...");
-
-  // Execute SQL directly to create tables
-  db.run(sql`
+  // テーブルを作成
+  drizzleDb.run(sql`
     CREATE TABLE IF NOT EXISTS todos (
       id TEXT PRIMARY KEY NOT NULL,
       content TEXT NOT NULL,
@@ -39,11 +36,18 @@ async function main() {
     );
   `);
 
-  logger.info("Database setup completed successfully!");
-  process.exit(0);
+  // テスト用にスキーマをdbオブジェクトに追加
+  return {
+    ...drizzleDb,
+    todos: schema.todos,
+    subtasks: schema.subtasks,
+  };
 }
 
-main().catch((error) => {
-  logger.error("Failed to setup database:", error);
-  process.exit(1);
-});
+/**
+ * テスト用のHonoアプリを作成する
+ */
+export async function createTestApp() {
+  const { default: app } = await import("../src/index");
+  return app;
+}

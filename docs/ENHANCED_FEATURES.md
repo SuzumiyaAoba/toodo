@@ -104,6 +104,32 @@ interface Subtask {
 }
 ```
 
+#### 3.4 Implementation Plan
+
+1. **Database Schema Updates:**
+
+   - Create `subtasks` table with fields matching the data model
+   - Add indexes for optimized querying
+
+2. **API Endpoints:**
+
+   - `GET /api/todos/:todoId/subtasks` - Get all subtasks for a todo
+   - `POST /api/todos/:todoId/subtasks` - Create a new subtask
+   - `PUT /api/subtasks/:id` - Update a subtask
+   - `DELETE /api/subtasks/:id` - Delete a subtask
+   - `PUT /api/todos/:todoId/subtasks/reorder` - Reorder subtasks
+
+3. **Business Logic:**
+
+   - Handling subtask creation and validation
+   - Managing subtask ordering
+   - Implementing parent task completion logic
+
+4. **Testing:**
+   - Unit tests for subtask CRUD operations
+   - Integration tests for subtask-related API endpoints
+   - Testing parent-child task relationships
+
 ### 4. Tag System
 
 #### 4.1 Creating and Managing Tags
