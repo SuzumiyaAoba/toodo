@@ -1,14 +1,13 @@
 import { asc, eq } from "drizzle-orm";
-import { Subtask, SubtaskStatus } from "../../domain/models/Subtask";
-import type { SubtaskRepository } from "../../domain/repositories/SubtaskRepository";
-import { subtasks } from "../../db/schema";
-import { BunSQLiteDatabase, drizzle } from "drizzle-orm/bun-sqlite";
-import { Database } from "bun:sqlite";
-import { v4 as uuidv4 } from "uuid";
+import type { BunSQLiteDatabase } from "drizzle-orm/bun-sqlite";
 import * as schema from "../../db/schema";
+import { Subtask, type SubtaskStatus } from "../../domain/models/Subtask";
+import type { SubtaskRepository } from "../../domain/repositories/SubtaskRepository";
+
+type DbSchema = typeof schema;
 
 export class DrizzleSubtaskRepository implements SubtaskRepository {
-  constructor(private db: any) {}
+  constructor(private db: BunSQLiteDatabase<DbSchema>) {}
 
   async findByTodoId(todoId: string): Promise<Subtask[]> {
     const result = await this.db
@@ -29,7 +28,6 @@ export class DrizzleSubtaskRepository implements SubtaskRepository {
     createdAt: Date;
     updatedAt: Date | null;
   }): Subtask {
-    const updatedAt = record.updatedAt || new Date();
     return new Subtask(
       record.todoId,
       record.title,
@@ -38,31 +36,18 @@ export class DrizzleSubtaskRepository implements SubtaskRepository {
       record.id,
       record.status as SubtaskStatus,
       record.createdAt,
-      updatedAt
+      record.updatedAt ?? new Date(),
     );
   }
 
   async findById(id: string): Promise<Subtask | null> {
-    const record = await this.db
-      .select()
-      .from(schema.subtasks)
-      .where(eq(schema.subtasks.id, id))
-      .get();
+    const record = await this.db.select().from(schema.subtasks).where(eq(schema.subtasks.id, id)).get();
 
     if (!record) {
       return null;
     }
 
-    return new Subtask(
-      record.todoId,
-      record.title,
-      record.order,
-      record.description,
-      record.id,
-      record.status as SubtaskStatus,
-      record.createdAt,
-      record.updatedAt
-    );
+    return this.mapToModel(record);
   }
 
   async save(subtask: Subtask): Promise<Subtask> {
@@ -84,10 +69,7 @@ export class DrizzleSubtaskRepository implements SubtaskRepository {
     };
 
     if (existingSubtask) {
-      await this.db
-        .update(schema.subtasks)
-        .set(subtaskData)
-        .where(eq(schema.subtasks.id, subtask.id));
+      await this.db.update(schema.subtasks).set(subtaskData).where(eq(schema.subtasks.id, subtask.id));
     } else {
       await this.db.insert(schema.subtasks).values(subtaskData);
     }

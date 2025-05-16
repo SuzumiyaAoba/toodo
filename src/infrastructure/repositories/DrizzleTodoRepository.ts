@@ -1,13 +1,18 @@
 import { eq } from "drizzle-orm";
-import { Todo } from "../../domain/models/Todo";
-import type { TodoRepository } from "../../domain/repositories/TodoRepository";
+import type { BunSQLiteDatabase } from "drizzle-orm/bun-sqlite";
 import { todos } from "../../db/schema";
+import type * as schema from "../../db/schema";
+import { Todo } from "../../domain/models/Todo";
 import type { SubtaskRepository } from "../../domain/repositories/SubtaskRepository";
-import { BunSQLiteDatabase, drizzle } from "drizzle-orm/bun-sqlite";
-import { Database } from "bun:sqlite";
+import type { TodoRepository } from "../../domain/repositories/TodoRepository";
+
+type DbSchema = typeof schema;
 
 export class DrizzleTodoRepository implements TodoRepository {
-  constructor(private db: any, private subtaskRepository: SubtaskRepository) {}
+  constructor(
+    private db: BunSQLiteDatabase<DbSchema>,
+    private subtaskRepository: SubtaskRepository,
+  ) {}
 
   async findAll(): Promise<Todo[]> {
     const todoRecords = await this.db.select().from(todos).all();
@@ -15,16 +20,15 @@ export class DrizzleTodoRepository implements TodoRepository {
     const result: Todo[] = [];
     for (const record of todoRecords) {
       const subtasks = await this.subtaskRepository.findByTodoId(record.id);
-      const updatedAt = record.updatedAt || new Date();
       result.push(
         new Todo(
           record.content,
           record.id,
           record.completed,
           record.createdAt,
-          updatedAt,
-          subtasks
-        )
+          record.updatedAt ?? new Date(),
+          subtasks,
+        ),
       );
     }
 
@@ -32,35 +36,26 @@ export class DrizzleTodoRepository implements TodoRepository {
   }
 
   async findById(id: string): Promise<Todo | null> {
-    const record = await this.db
-      .select()
-      .from(todos)
-      .where(eq(todos.id, id))
-      .get();
+    const record = await this.db.select().from(todos).where(eq(todos.id, id)).get();
 
     if (!record) {
       return null;
     }
 
     const subtasks = await this.subtaskRepository.findByTodoId(id);
-    const updatedAt = record.updatedAt || new Date();
 
     return new Todo(
       record.content,
       record.id,
       record.completed,
       record.createdAt,
-      updatedAt,
-      subtasks
+      record.updatedAt ?? new Date(),
+      subtasks,
     );
   }
 
   async save(todo: Todo): Promise<Todo> {
-    const existingTodo = await this.db
-      .select()
-      .from(todos)
-      .where(eq(todos.id, todo.id))
-      .get();
+    const existingTodo = await this.db.select().from(todos).where(eq(todos.id, todo.id)).get();
 
     const todoData = {
       id: todo.id,
