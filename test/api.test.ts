@@ -24,12 +24,12 @@ interface Subtask {
 describe("API Tests", () => {
   let app: Hono;
 
-  // テスト用のモックデータストア
+  // Mock data store for testing
   const todoStore: Record<string, Todo> = {};
   const subtaskStore: Record<string, Subtask> = {};
 
   beforeAll(() => {
-    // テスト用のHonoアプリケーションを作成
+    // Create Hono application for testing
     app = new Hono();
 
     // Todo API
@@ -111,7 +111,7 @@ describe("API Tests", () => {
   });
 
   beforeEach(() => {
-    // 各テスト前にデータをクリアする
+    // Clear data before each test
     for (const key of Object.keys(todoStore)) {
       delete todoStore[key];
     }
@@ -122,7 +122,7 @@ describe("API Tests", () => {
 
   describe("Todo API", () => {
     it("should create and retrieve todos", async () => {
-      // Todoを作成
+      // Create a Todo
       const newTodo = { content: "Test Todo" };
 
       const createRes = await app.request("/api/todos", {
@@ -135,7 +135,7 @@ describe("API Tests", () => {
       const createdTodo = (await createRes.json()) as Todo;
       expect(createdTodo.content).toBe(newTodo.content);
 
-      // Todoリストを取得
+      // Retrieve Todo list
       const getRes = await app.request("/api/todos");
       expect(getRes.status).toBe(200);
 
@@ -147,7 +147,7 @@ describe("API Tests", () => {
 
   describe("Subtask API", () => {
     it("should create and retrieve subtasks", async () => {
-      // 先にTodoを作成
+      // Create a Todo first
       const todoData = { content: "Parent Todo" };
       const todoRes = await app.request("/api/todos", {
         method: "POST",
@@ -158,7 +158,7 @@ describe("API Tests", () => {
       const todo = (await todoRes.json()) as Todo;
       const todoId = todo.id;
 
-      // サブタスクを作成
+      // Create a subtask
       const subtaskData = { title: "Test Subtask" };
       const createRes = await app.request(`/api/todos/${todoId}/subtasks`, {
         method: "POST",
@@ -171,7 +171,7 @@ describe("API Tests", () => {
       expect(createdSubtask.title).toBe(subtaskData.title);
       expect(createdSubtask.todoId).toBe(todoId);
 
-      // サブタスクリストを取得
+      // Retrieve subtask list
       const getRes = await app.request(`/api/todos/${todoId}/subtasks`);
       expect(getRes.status).toBe(200);
 
@@ -181,7 +181,7 @@ describe("API Tests", () => {
     });
 
     it("should create multiple subtasks with proper ordering", async () => {
-      // 先にTodoを作成
+      // Create a Todo first
       const todoData = { content: "Parent Todo" };
       const todoRes = await app.request("/api/todos", {
         method: "POST",
@@ -192,7 +192,7 @@ describe("API Tests", () => {
       const todo = (await todoRes.json()) as Todo;
       const todoId = todo.id;
 
-      // 複数のサブタスクを作成
+      // Create multiple subtasks
       const subtask1 = { title: "Subtask 1" };
       const subtask2 = { title: "Subtask 2" };
       const subtask3 = { title: "Subtask 3" };
@@ -215,19 +215,19 @@ describe("API Tests", () => {
         body: JSON.stringify(subtask3),
       });
 
-      // サブタスクリストを取得して順序を確認
+      // Retrieve subtask list and check ordering
       const getRes = await app.request(`/api/todos/${todoId}/subtasks`);
       expect(getRes.status).toBe(200);
 
       const subtasks = (await getRes.json()) as Subtask[];
       expect(subtasks).toHaveLength(3);
 
-      // 順序が正しく設定されていることを確認
+      // Verify correct ordering
       expect(subtasks[0].order).toBe(1);
       expect(subtasks[1].order).toBe(2);
       expect(subtasks[2].order).toBe(3);
 
-      // タイトルが正しいことを確認
+      // Verify titles
       expect(subtasks.map((s) => s.title)).toContain(subtask1.title);
       expect(subtasks.map((s) => s.title)).toContain(subtask2.title);
       expect(subtasks.map((s) => s.title)).toContain(subtask3.title);
