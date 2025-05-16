@@ -6,8 +6,8 @@ alwaysApply: true
 # Toodo Project Guidelines
 
 ## Basic Rules
-- Use English for code, comments, documentation, and pull request
-- Follow the project structure and coding conventions
+- Use English for all code, comments, documentation, and pull requests
+- Follow the established project structure and coding conventions
 - Apply Domain-Driven Design (DDD) principles
 - Practice Test-Driven Development (TDD)
 
@@ -23,7 +23,7 @@ alwaysApply: true
 - Use [Biome](mdc:https:/biomejs.dev) for linting and formatting
 - 2 spaces for indentation
 - Maximum line length: 120 characters
-- Run `bun run format` to format code before committing
+- Run `bun run format` before committing to format code
 
 ## Project Structure
 - `src/index.ts` - Main application entry point
@@ -33,7 +33,7 @@ alwaysApply: true
   - `migrate.ts` - Migration script
 
 ## API Structure
-- REST API with the following endpoints:
+- RESTful API with these endpoints:
   - `GET /api/todos` - Get all todos
   - `POST /api/todos` - Create a new todo
   - `PATCH /api/todos/:id` - Update a todo
@@ -48,38 +48,38 @@ alwaysApply: true
 ## Development Approach
 
 ### Domain-Driven Design (DDD)
-- Focus on the core domain and domain logic
-- Base complex designs on a model of the domain
-- Collaborate with domain experts to improve the application model
-- Establish a common ubiquitous language between developers and domain experts
+- Focus on core domain and domain logic
+- Base complex designs on domain models
+- Collaborate with domain experts to improve application models
+- Establish common language between developers and domain experts
 - Structure code around domain concepts:
   - Entities: Objects with identity and lifecycle
   - Value Objects: Immutable objects with no identity
   - Aggregates: Clusters of entities and value objects
-  - Repositories: Collection-like interfaces for accessing domain objects
-  - Services: Domain operations that don't fit within entities
+  - Repositories: Interfaces for accessing domain objects
+  - Services: Domain operations that don't belong in entities
 
 ### Test-Driven Development (TDD)
 - Write tests before implementation (Red-Green-Refactor cycle)
 - Start with failing tests (Red)
-- Implement minimal code to make tests pass (Green)
-- Refactor code while maintaining test integrity (Refactor)
+- Write minimal code to make tests pass (Green)
+- Refactor while maintaining test integrity (Refactor)
 - Use tests to document expected behavior
-- Ensure high test coverage for all domain logic
-- Run tests with `bun run test` before commits
+- Ensure high test coverage for domain logic
+- Run `bun run test` before commits
 
 ## Git Commit Guidelines
-- All commit messages must follow [Conventional Commit](mdc:https:/www.conventionalcommits.org/ja/v1.0.0) specification
+- Follow [Conventional Commit](mdc:https:/www.conventionalcommits.org/ja/v1.0.0) specification for all messages
 - Format: `<type>[optional scope]: <description>`
 - Common types:
-  - `feat`: A new feature
-  - `fix`: A bug fix
-  - `docs`: Documentation only changes
-  - `style`: Changes that do not affect the meaning of the code
-  - `refactor`: A code change that neither fixes a bug nor adds a feature
-  - `test`: Adding missing tests or correcting existing tests
-  - `chore`: Changes to the build process or auxiliary tools
+  - `feat`: New feature
+  - `fix`: Bug fix
+  - `docs`: Documentation changes
+  - `style`: Changes not affecting code meaning
+  - `refactor`: Code changes that aren't fixes or features
+  - `test`: Adding or fixing tests
+  - `chore`: Build process or tool changes
 - Examples:
   - `feat: add todo filtering functionality`
-  - `fix: resolve issue with todo deletion`
+  - `fix: resolve todo deletion issue`
   - `docs: update API documentation`
