@@ -20,7 +20,7 @@ export class Subtask {
     id?: string,
     status: SubtaskStatus = "incomplete",
     createdAt?: Date,
-    updatedAt?: Date
+    updatedAt?: Date,
   ) {
     this.id = id || uuidv4();
     this.todoId = todoId;

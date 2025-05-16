@@ -1,8 +1,8 @@
 import { Hono } from "hono";
-import { AppContainer } from "./app-container";
+import { DependencyContainer } from "./application/services/DependencyContainer";
 
 const app = new Hono();
-const container = new AppContainer();
+const container = new DependencyContainer();
 
 const todoController = container.getTodoController();
 const subtaskController = container.getSubtaskController();

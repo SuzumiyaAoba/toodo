@@ -1,5 +1,5 @@
-import { Todo } from "../../../domain/models/Todo";
-import { TodoRepository } from "../../../domain/repositories/TodoRepository";
+import type { Todo } from "../../../domain/models/Todo";
+import type { TodoRepository } from "../../../domain/repositories/TodoRepository";
 
 export interface UpdateTodoDTO {
   id: string;

@@ -41,10 +41,7 @@ export class DependencyContainer {
     this.deleteTodoUseCase = new DeleteTodoUseCase(this.todoRepository);
 
     // Subtask UseCases
-    this.addSubtaskUseCase = new AddSubtaskUseCase(
-      this.todoRepository,
-      this.subtaskRepository
-    );
+    this.addSubtaskUseCase = new AddSubtaskUseCase(this.todoRepository);
     this.updateSubtaskUseCase = new UpdateSubtaskUseCase(
       this.subtaskRepository,
       this.todoRepository
@@ -54,8 +51,7 @@ export class DependencyContainer {
       this.todoRepository
     );
     this.reorderSubtasksUseCase = new ReorderSubtasksUseCase(
-      this.todoRepository,
-      this.subtaskRepository
+      this.todoRepository
     );
 
     // Controllers

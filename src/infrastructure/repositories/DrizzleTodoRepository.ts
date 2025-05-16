@@ -1,41 +1,41 @@
 import { eq } from "drizzle-orm";
 import { Todo } from "../../domain/models/Todo";
-import { TodoRepository } from "../../domain/repositories/TodoRepository";
-import { SubtaskRepository } from "../../domain/repositories/SubtaskRepository";
-import * as schema from "../../db/schema";
+import type { TodoRepository } from "../../domain/repositories/TodoRepository";
+import { todos } from "../../db/schema";
+import type { SubtaskRepository } from "../../domain/repositories/SubtaskRepository";
+import { BunSQLiteDatabase, drizzle } from "drizzle-orm/bun-sqlite";
+import { Database } from "bun:sqlite";
 
 export class DrizzleTodoRepository implements TodoRepository {
-  constructor(
-    private db: any, // 一時的にany型で定義
-    private subtaskRepository: SubtaskRepository
-  ) {}
+  constructor(private db: any, private subtaskRepository: SubtaskRepository) {}
 
   async findAll(): Promise<Todo[]> {
-    const todoRecords = await this.db.select().from(schema.todos).all();
+    const todoRecords = await this.db.select().from(todos).all();
 
-    const todos: Todo[] = [];
+    const result: Todo[] = [];
     for (const record of todoRecords) {
       const subtasks = await this.subtaskRepository.findByTodoId(record.id);
-      todos.push(
+      const updatedAt = record.updatedAt || new Date();
+      result.push(
         new Todo(
           record.content,
           record.id,
           record.completed,
           record.createdAt,
-          record.updatedAt,
+          updatedAt,
           subtasks
         )
       );
     }
 
-    return todos;
+    return result;
   }
 
   async findById(id: string): Promise<Todo | null> {
     const record = await this.db
       .select()
-      .from(schema.todos)
-      .where(eq(schema.todos.id, id))
+      .from(todos)
+      .where(eq(todos.id, id))
       .get();
 
     if (!record) {
@@ -43,13 +43,14 @@ export class DrizzleTodoRepository implements TodoRepository {
     }
 
     const subtasks = await this.subtaskRepository.findByTodoId(id);
+    const updatedAt = record.updatedAt || new Date();
 
     return new Todo(
       record.content,
       record.id,
       record.completed,
       record.createdAt,
-      record.updatedAt,
+      updatedAt,
       subtasks
     );
   }
@@ -57,8 +58,8 @@ export class DrizzleTodoRepository implements TodoRepository {
   async save(todo: Todo): Promise<Todo> {
     const existingTodo = await this.db
       .select()
-      .from(schema.todos)
-      .where(eq(schema.todos.id, todo.id))
+      .from(todos)
+      .where(eq(todos.id, todo.id))
       .get();
 
     const todoData = {
@@ -70,12 +71,9 @@ export class DrizzleTodoRepository implements TodoRepository {
     };
 
     if (existingTodo) {
-      await this.db
-        .update(schema.todos)
-        .set(todoData)
-        .where(eq(schema.todos.id, todo.id));
+      await this.db.update(todos).set(todoData).where(eq(todos.id, todo.id));
     } else {
-      await this.db.insert(schema.todos).values(todoData);
+      await this.db.insert(todos).values(todoData);
     }
 
     // Save all subtasks
@@ -88,6 +86,6 @@ export class DrizzleTodoRepository implements TodoRepository {
 
   async delete(id: string): Promise<void> {
     // Note: This assumes cascading delete for subtasks in the database
-    await this.db.delete(schema.todos).where(eq(schema.todos.id, id));
+    await this.db.delete(todos).where(eq(todos.id, id));
   }
 }

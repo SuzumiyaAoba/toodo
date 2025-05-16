@@ -1,10 +1,10 @@
-import { SubtaskRepository } from "../../../domain/repositories/SubtaskRepository";
-import { TodoRepository } from "../../../domain/repositories/TodoRepository";
+import type { SubtaskRepository } from "../../../domain/repositories/SubtaskRepository";
+import type { TodoRepository } from "../../../domain/repositories/TodoRepository";
 
 export class DeleteSubtaskUseCase {
   constructor(
     private subtaskRepository: SubtaskRepository,
-    private todoRepository: TodoRepository
+    private todoRepository: TodoRepository,
   ) {}
 
   async execute(id: string): Promise<boolean> {

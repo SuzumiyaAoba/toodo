@@ -1,10 +1,11 @@
-import { Context } from "hono";
+import type { Context } from "hono";
 import { Logger } from "tslog";
-import { AddSubtaskUseCase } from "../../application/usecases/subtask/AddSubtaskUseCase";
-import { DeleteSubtaskUseCase } from "../../application/usecases/subtask/DeleteSubtaskUseCase";
-import { ReorderSubtasksUseCase } from "../../application/usecases/subtask/ReorderSubtasksUseCase";
-import { UpdateSubtaskUseCase } from "../../application/usecases/subtask/UpdateSubtaskUseCase";
-import { SubtaskRepository } from "../../domain/repositories/SubtaskRepository";
+import type { AddSubtaskUseCase } from "../../application/usecases/subtask/AddSubtaskUseCase";
+import type { DeleteSubtaskUseCase } from "../../application/usecases/subtask/DeleteSubtaskUseCase";
+import type { ReorderSubtasksUseCase } from "../../application/usecases/subtask/ReorderSubtasksUseCase";
+import type { UpdateSubtaskUseCase } from "../../application/usecases/subtask/UpdateSubtaskUseCase";
+import type { SubtaskStatus } from "../../domain/models/Subtask";
+import type { SubtaskRepository } from "../../domain/repositories/SubtaskRepository";
 
 const logger = new Logger({ name: "SubtaskController" });
 
@@ -14,7 +15,7 @@ export class SubtaskController {
     private addSubtaskUseCase: AddSubtaskUseCase,
     private updateSubtaskUseCase: UpdateSubtaskUseCase,
     private deleteSubtaskUseCase: DeleteSubtaskUseCase,
-    private reorderSubtasksUseCase: ReorderSubtasksUseCase
+    private reorderSubtasksUseCase: ReorderSubtasksUseCase,
   ) {}
 
   getByTodoId = async (c: Context) => {
@@ -61,17 +62,14 @@ export class SubtaskController {
 
       // Validate status if provided
       if (status && !["completed", "incomplete"].includes(status)) {
-        return c.json(
-          { error: "Invalid status. Must be 'completed' or 'incomplete'" },
-          400
-        );
+        return c.json({ error: "Invalid status. Must be 'completed' or 'incomplete'" }, 400);
       }
 
       const subtask = await this.updateSubtaskUseCase.execute({
         id,
         title,
         description,
-        status: status as any,
+        status: status as SubtaskStatus,
       });
 
       if (!subtask) {
@@ -108,10 +106,7 @@ export class SubtaskController {
       const { orderMap } = await c.req.json();
 
       if (!orderMap || typeof orderMap !== "object") {
-        return c.json(
-          { error: "orderMap is required and must be an object" },
-          400
-        );
+        return c.json({ error: "orderMap is required and must be an object" }, 400);
       }
 
       const subtasks = await this.reorderSubtasksUseCase.execute({

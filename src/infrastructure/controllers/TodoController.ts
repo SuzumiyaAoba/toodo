@@ -1,9 +1,9 @@
-import { Context } from "hono";
+import type { Context } from "hono";
 import { Logger } from "tslog";
-import { CreateTodoUseCase } from "../../application/usecases/todo/CreateTodoUseCase";
-import { DeleteTodoUseCase } from "../../application/usecases/todo/DeleteTodoUseCase";
-import { GetAllTodosUseCase } from "../../application/usecases/todo/GetAllTodosUseCase";
-import { UpdateTodoUseCase } from "../../application/usecases/todo/UpdateTodoUseCase";
+import type { CreateTodoUseCase } from "../../application/usecases/todo/CreateTodoUseCase";
+import type { DeleteTodoUseCase } from "../../application/usecases/todo/DeleteTodoUseCase";
+import type { GetAllTodosUseCase } from "../../application/usecases/todo/GetAllTodosUseCase";
+import type { UpdateTodoUseCase } from "../../application/usecases/todo/UpdateTodoUseCase";
 
 const logger = new Logger({ name: "TodoController" });
 
@@ -12,7 +12,7 @@ export class TodoController {
     private getAllTodosUseCase: GetAllTodosUseCase,
     private createTodoUseCase: CreateTodoUseCase,
     private updateTodoUseCase: UpdateTodoUseCase,
-    private deleteTodoUseCase: DeleteTodoUseCase
+    private deleteTodoUseCase: DeleteTodoUseCase,
   ) {}
 
   getAll = async (c: Context) => {

@@ -17,7 +17,7 @@ export class Todo {
     completed?: boolean,
     createdAt?: Date,
     updatedAt?: Date,
-    subtasks: Subtask[] = []
+    subtasks: Subtask[] = [],
   ) {
     this.id = id || uuidv4();
     this.content = content;
@@ -28,10 +28,7 @@ export class Todo {
   }
 
   addSubtask(title: string, description?: string | null): Subtask {
-    const order =
-      this.subtasks.length > 0
-        ? Math.max(...this.subtasks.map((subtask) => subtask.order)) + 1
-        : 1;
+    const order = this.subtasks.length > 0 ? Math.max(...this.subtasks.map((subtask) => subtask.order)) + 1 : 1;
 
     const subtask = new Subtask(this.id, title, order, description);
     this.subtasks.push(subtask);
@@ -46,9 +43,7 @@ export class Todo {
 
   updateCompletionStatus(): void {
     this.completed =
-      this.subtasks.length > 0
-        ? this.subtasks.every((subtask) => subtask.status === "completed")
-        : false;
+      this.subtasks.length > 0 ? this.subtasks.every((subtask) => subtask.status === "completed") : false;
     this.updatedAt = new Date();
   }
 

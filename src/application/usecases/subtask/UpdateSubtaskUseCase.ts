@@ -1,7 +1,7 @@
-import { Subtask } from "../../../domain/models/Subtask";
-import { SubtaskStatus } from "../../../domain/models/Subtask";
-import { SubtaskRepository } from "../../../domain/repositories/SubtaskRepository";
-import { TodoRepository } from "../../../domain/repositories/TodoRepository";
+import type { Subtask } from "../../../domain/models/Subtask";
+import type { SubtaskStatus } from "../../../domain/models/Subtask";
+import type { SubtaskRepository } from "../../../domain/repositories/SubtaskRepository";
+import type { TodoRepository } from "../../../domain/repositories/TodoRepository";
 
 export interface UpdateSubtaskDTO {
   id: string;
@@ -13,7 +13,7 @@ export interface UpdateSubtaskDTO {
 export class UpdateSubtaskUseCase {
   constructor(
     private subtaskRepository: SubtaskRepository,
-    private todoRepository: TodoRepository
+    private todoRepository: TodoRepository,
   ) {}
 
   async execute(dto: UpdateSubtaskDTO): Promise<Subtask | null> {

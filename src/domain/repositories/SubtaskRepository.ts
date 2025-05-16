@@ -1,4 +1,4 @@
-import { Subtask } from "../models/Subtask";
+import type { Subtask } from "../models/Subtask";
 
 export interface SubtaskRepository {
   findByTodoId(todoId: string): Promise<Subtask[]>;

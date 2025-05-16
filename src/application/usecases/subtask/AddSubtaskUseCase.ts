@@ -1,5 +1,5 @@
-import { Subtask } from "../../../domain/models/Subtask";
-import { TodoRepository } from "../../../domain/repositories/TodoRepository";
+import type { Subtask } from "../../../domain/models/Subtask";
+import type { TodoRepository } from "../../../domain/repositories/TodoRepository";
 
 export interface AddSubtaskDTO {
   todoId: string;
