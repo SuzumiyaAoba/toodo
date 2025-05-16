@@ -3,13 +3,13 @@ import { drizzle } from "drizzle-orm/bun-sqlite";
 import * as schema from "../src/db/schema";
 
 /**
- * テスト用のインメモリデータベースとDrizzleインスタンスを作成する
+ * Create an in-memory database and Drizzle instance for testing
  */
 export function createTestDb() {
-  // インメモリSQLiteデータベースを作成
+  // Create in-memory SQLite database
   const db = new Database(":memory:");
 
-  // テーブルを作成
+  // Create tables
   db.exec(`
     CREATE TABLE IF NOT EXISTS todos (
       id TEXT PRIMARY KEY NOT NULL,
@@ -32,12 +32,12 @@ export function createTestDb() {
     );
   `);
 
-  // Drizzle ORMインスタンスを作成
+  // Create Drizzle ORM instance
   return drizzle(db, { schema });
 }
 
 /**
- * テスト用のHonoアプリを作成する
+ * Create a Hono app for testing
  */
 export async function createTestApp() {
   const { default: app } = await import("../src/index");
