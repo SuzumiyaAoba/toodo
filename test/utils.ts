@@ -1,10 +1,10 @@
 import { v4 as uuidv4 } from "uuid";
-import type { Subtask, Todo } from "../src/db/schema";
+import type { NewSubtask, NewTodo } from "../src/db/schema";
 
 /**
  * テスト用のTodoデータを作成する
  */
-export function createMockTodo(override: Partial<Todo> = {}): Todo {
+export function createMockTodo(override: Partial<NewTodo> = {}): NewTodo {
   return {
     id: uuidv4(),
     content: "Test Todo",
@@ -18,7 +18,9 @@ export function createMockTodo(override: Partial<Todo> = {}): Todo {
 /**
  * テスト用のサブタスクデータを作成する
  */
-export function createMockSubtask(override: Partial<Subtask> = {}): Subtask {
+export function createMockSubtask(
+  override: Partial<NewSubtask> = {}
+): NewSubtask {
   return {
     id: uuidv4(),
     todoId: uuidv4(),

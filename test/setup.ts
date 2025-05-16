@@ -1,6 +1,6 @@
 import { Database } from "bun:sqlite";
-import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/bun-sqlite";
+import { BunSQLiteDatabase } from "drizzle-orm/bun-sqlite";
 import * as schema from "../src/db/schema";
 
 /**
@@ -10,11 +10,8 @@ export function createTestDb() {
   // インメモリSQLiteデータベースを作成
   const db = new Database(":memory:");
 
-  // Drizzle ORMインスタンスを作成
-  const drizzleDb = drizzle(db, { schema });
-
   // テーブルを作成
-  drizzleDb.run(sql`
+  db.exec(`
     CREATE TABLE IF NOT EXISTS todos (
       id TEXT PRIMARY KEY NOT NULL,
       content TEXT NOT NULL,
@@ -36,12 +33,8 @@ export function createTestDb() {
     );
   `);
 
-  // テスト用にスキーマをdbオブジェクトに追加
-  return {
-    ...drizzleDb,
-    todos: schema.todos,
-    subtasks: schema.subtasks,
-  };
+  // Drizzle ORMインスタンスを作成
+  return drizzle(db, { schema });
 }
 
 /**

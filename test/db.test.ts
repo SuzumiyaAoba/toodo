@@ -1,30 +1,23 @@
-import { describe, it, expect, beforeEach } from "bun:test";
+import { describe, it, expect } from "bun:test";
 import { eq } from "drizzle-orm";
 import { createTestDb } from "./setup";
 import { createMockTodo, createMockSubtask } from "./utils";
 import { todos, subtasks } from "../src/db/schema";
 
 describe("Database operations", () => {
-  const db = createTestDb();
-
-  beforeEach(async () => {
-    // 各テスト前にテーブルをクリアする
-    await db.delete(db.subtasks).execute();
-    await db.delete(db.todos).execute();
-  });
-
   describe("Todo operations", () => {
     it("should insert and retrieve a todo", async () => {
+      const db = createTestDb();
       const mockTodo = createMockTodo();
 
       // Todoを挿入
-      await db.insert(db.todos).values(mockTodo).execute();
+      await db.insert(todos).values(mockTodo);
 
       // Todoを取得
       const retrievedTodo = await db
         .select()
-        .from(db.todos)
-        .where(eq(db.todos.id, mockTodo.id))
+        .from(todos)
+        .where(eq(todos.id, mockTodo.id))
         .get();
 
       expect(retrievedTodo).toBeDefined();
@@ -33,24 +26,24 @@ describe("Database operations", () => {
     });
 
     it("should update a todo", async () => {
+      const db = createTestDb();
       const mockTodo = createMockTodo();
 
       // Todoを挿入
-      await db.insert(db.todos).values(mockTodo).execute();
+      await db.insert(todos).values(mockTodo);
 
       // Todoを更新
       const updatedContent = "Updated Todo";
       await db
-        .update(db.todos)
+        .update(todos)
         .set({ content: updatedContent })
-        .where(eq(db.todos.id, mockTodo.id))
-        .execute();
+        .where(eq(todos.id, mockTodo.id));
 
       // 更新されたTodoを取得
       const retrievedTodo = await db
         .select()
-        .from(db.todos)
-        .where(eq(db.todos.id, mockTodo.id))
+        .from(todos)
+        .where(eq(todos.id, mockTodo.id))
         .get();
 
       expect(retrievedTodo).toBeDefined();
@@ -58,19 +51,20 @@ describe("Database operations", () => {
     });
 
     it("should delete a todo", async () => {
+      const db = createTestDb();
       const mockTodo = createMockTodo();
 
       // Todoを挿入
-      await db.insert(db.todos).values(mockTodo).execute();
+      await db.insert(todos).values(mockTodo);
 
       // Todoを削除
-      await db.delete(db.todos).where(eq(db.todos.id, mockTodo.id)).execute();
+      await db.delete(todos).where(eq(todos.id, mockTodo.id));
 
       // Todoが存在しないことを確認
       const retrievedTodo = await db
         .select()
-        .from(db.todos)
-        .where(eq(db.todos.id, mockTodo.id))
+        .from(todos)
+        .where(eq(todos.id, mockTodo.id))
         .get();
 
       expect(retrievedTodo).toBeUndefined();
@@ -79,19 +73,20 @@ describe("Database operations", () => {
 
   describe("Subtask operations", () => {
     it("should insert and retrieve a subtask", async () => {
+      const db = createTestDb();
       // 先にTodoを作成
       const mockTodo = createMockTodo();
-      await db.insert(db.todos).values(mockTodo).execute();
+      await db.insert(todos).values(mockTodo);
 
       // Subtaskを作成（Todoに関連付け）
       const mockSubtask = createMockSubtask({ todoId: mockTodo.id });
-      await db.insert(db.subtasks).values(mockSubtask).execute();
+      await db.insert(subtasks).values(mockSubtask);
 
       // Subtaskを取得
       const retrievedSubtask = await db
         .select()
-        .from(db.subtasks)
-        .where(eq(db.subtasks.id, mockSubtask.id))
+        .from(subtasks)
+        .where(eq(subtasks.id, mockSubtask.id))
         .get();
 
       expect(retrievedSubtask).toBeDefined();
@@ -101,27 +96,27 @@ describe("Database operations", () => {
     });
 
     it("should update a subtask", async () => {
+      const db = createTestDb();
       // 先にTodoを作成
       const mockTodo = createMockTodo();
-      await db.insert(db.todos).values(mockTodo).execute();
+      await db.insert(todos).values(mockTodo);
 
       // Subtaskを作成
       const mockSubtask = createMockSubtask({ todoId: mockTodo.id });
-      await db.insert(db.subtasks).values(mockSubtask).execute();
+      await db.insert(subtasks).values(mockSubtask);
 
       // Subtaskを更新
       const updatedTitle = "Updated Subtask";
       await db
-        .update(db.subtasks)
+        .update(subtasks)
         .set({ title: updatedTitle })
-        .where(eq(db.subtasks.id, mockSubtask.id))
-        .execute();
+        .where(eq(subtasks.id, mockSubtask.id));
 
       // 更新されたSubtaskを取得
       const retrievedSubtask = await db
         .select()
-        .from(db.subtasks)
-        .where(eq(db.subtasks.id, mockSubtask.id))
+        .from(subtasks)
+        .where(eq(subtasks.id, mockSubtask.id))
         .get();
 
       expect(retrievedSubtask).toBeDefined();
@@ -129,34 +124,33 @@ describe("Database operations", () => {
     });
 
     it("should delete a subtask", async () => {
+      const db = createTestDb();
       // 先にTodoを作成
       const mockTodo = createMockTodo();
-      await db.insert(db.todos).values(mockTodo).execute();
+      await db.insert(todos).values(mockTodo);
 
       // Subtaskを作成
       const mockSubtask = createMockSubtask({ todoId: mockTodo.id });
-      await db.insert(db.subtasks).values(mockSubtask).execute();
+      await db.insert(subtasks).values(mockSubtask);
 
       // Subtaskを削除
-      await db
-        .delete(db.subtasks)
-        .where(eq(db.subtasks.id, mockSubtask.id))
-        .execute();
+      await db.delete(subtasks).where(eq(subtasks.id, mockSubtask.id));
 
       // Subtaskが存在しないことを確認
       const retrievedSubtask = await db
         .select()
-        .from(db.subtasks)
-        .where(eq(db.subtasks.id, mockSubtask.id))
+        .from(subtasks)
+        .where(eq(subtasks.id, mockSubtask.id))
         .get();
 
       expect(retrievedSubtask).toBeUndefined();
     });
 
     it("should retrieve all subtasks for a todo", async () => {
+      const db = createTestDb();
       // 先にTodoを作成
       const mockTodo = createMockTodo();
-      await db.insert(db.todos).values(mockTodo).execute();
+      await db.insert(todos).values(mockTodo);
 
       // 複数のSubtaskを作成
       const mockSubtask1 = createMockSubtask({ todoId: mockTodo.id, order: 1 });
@@ -164,15 +158,14 @@ describe("Database operations", () => {
       const mockSubtask3 = createMockSubtask({ todoId: mockTodo.id, order: 3 });
 
       await db
-        .insert(db.subtasks)
-        .values([mockSubtask1, mockSubtask2, mockSubtask3])
-        .execute();
+        .insert(subtasks)
+        .values([mockSubtask1, mockSubtask2, mockSubtask3]);
 
       // Todoに関連するすべてのSubtaskを取得
       const retrievedSubtasks = await db
         .select()
-        .from(db.subtasks)
-        .where(eq(db.subtasks.todoId, mockTodo.id))
+        .from(subtasks)
+        .where(eq(subtasks.todoId, mockTodo.id))
         .all();
 
       expect(retrievedSubtasks).toHaveLength(3);
