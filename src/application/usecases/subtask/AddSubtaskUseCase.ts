@@ -1,5 +1,4 @@
 import { Subtask } from "../../../domain/models/Subtask";
-import { SubtaskRepository } from "../../../domain/repositories/SubtaskRepository";
 import { TodoRepository } from "../../../domain/repositories/TodoRepository";
 
 export interface AddSubtaskDTO {
@@ -9,10 +8,7 @@ export interface AddSubtaskDTO {
 }
 
 export class AddSubtaskUseCase {
-  constructor(
-    private todoRepository: TodoRepository,
-    private subtaskRepository: SubtaskRepository
-  ) {}
+  constructor(private todoRepository: TodoRepository) {}
 
   async execute(dto: AddSubtaskDTO): Promise<Subtask | null> {
     const todo = await this.todoRepository.findById(dto.todoId);

@@ -1,6 +1,5 @@
 import { Todo } from "./model";
 import { TodoRepository } from "./repository";
-import { SubtaskRepository } from "../subtask/repository";
 
 /**
  * Data Transfer Object for creating a Todo
@@ -30,12 +29,8 @@ export class TodoUseCases {
   /**
    * Constructor for TodoUseCases class
    * @param todoRepository Implementation of Todo repository
-   * @param subtaskRepository Implementation of Subtask repository
    */
-  constructor(
-    private todoRepository: TodoRepository,
-    private subtaskRepository: SubtaskRepository
-  ) {}
+  constructor(private todoRepository: TodoRepository) {}
 
   /**
    * Retrieves all Todos

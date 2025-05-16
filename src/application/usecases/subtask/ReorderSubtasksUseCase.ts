@@ -1,5 +1,4 @@
 import { Subtask } from "../../../domain/models/Subtask";
-import { SubtaskRepository } from "../../../domain/repositories/SubtaskRepository";
 import { TodoRepository } from "../../../domain/repositories/TodoRepository";
 
 export interface ReorderSubtasksDTO {
@@ -8,10 +7,7 @@ export interface ReorderSubtasksDTO {
 }
 
 export class ReorderSubtasksUseCase {
-  constructor(
-    private todoRepository: TodoRepository,
-    private subtaskRepository: SubtaskRepository
-  ) {}
+  constructor(private todoRepository: TodoRepository) {}
 
   async execute(dto: ReorderSubtasksDTO): Promise<Subtask[] | null> {
     const todo = await this.todoRepository.findById(dto.todoId);

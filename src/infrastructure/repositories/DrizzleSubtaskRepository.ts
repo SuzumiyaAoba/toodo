@@ -15,7 +15,16 @@ export class DrizzleSubtaskRepository implements SubtaskRepository {
       .all();
 
     return records.map(
-      (record) =>
+      (record: {
+        id: string;
+        todoId: string;
+        title: string;
+        description: string | null;
+        status: string;
+        order: number;
+        createdAt: Date;
+        updatedAt: Date;
+      }) =>
         new Subtask(
           record.todoId,
           record.title,

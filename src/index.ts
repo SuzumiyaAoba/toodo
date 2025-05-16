@@ -1,8 +1,6 @@
 import { Hono } from "hono";
-import { Logger } from "tslog";
 import { AppContainer } from "./app-container";
 
-const logger = new Logger({ name: "api" });
 const app = new Hono();
 const container = new AppContainer();
 
