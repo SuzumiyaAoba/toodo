@@ -12,6 +12,6 @@
         "noUnusedImports": "error"
       }
     },
-    "ignore": [".cursor/**/*"]
+    "ignore": [".cursor/**/*", "dist/**/*"]
   }
 }

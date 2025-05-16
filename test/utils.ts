@@ -18,9 +18,7 @@ export function createMockTodo(override: Partial<NewTodo> = {}): NewTodo {
 /**
  * テスト用のサブタスクデータを作成する
  */
-export function createMockSubtask(
-  override: Partial<NewSubtask> = {}
-): NewSubtask {
+export function createMockSubtask(override: Partial<NewSubtask> = {}): NewSubtask {
   return {
     id: uuidv4(),
     todoId: uuidv4(),

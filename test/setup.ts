@@ -1,6 +1,5 @@
 import { Database } from "bun:sqlite";
 import { drizzle } from "drizzle-orm/bun-sqlite";
-import { BunSQLiteDatabase } from "drizzle-orm/bun-sqlite";
 import * as schema from "../src/db/schema";
 
 /**

@@ -1,8 +1,8 @@
-import { describe, it, expect } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import { eq } from "drizzle-orm";
+import { subtasks, todos } from "../src/db/schema";
 import { createTestDb } from "./setup";
-import { createMockTodo, createMockSubtask } from "./utils";
-import { todos, subtasks } from "../src/db/schema";
+import { createMockSubtask, createMockTodo } from "./utils";
 
 describe("Database operations", () => {
   describe("Todo operations", () => {
@@ -14,11 +14,7 @@ describe("Database operations", () => {
       await db.insert(todos).values(mockTodo);
 
       // Todoを取得
-      const retrievedTodo = await db
-        .select()
-        .from(todos)
-        .where(eq(todos.id, mockTodo.id))
-        .get();
+      const retrievedTodo = await db.select().from(todos).where(eq(todos.id, mockTodo.id)).get();
 
       expect(retrievedTodo).toBeDefined();
       expect(retrievedTodo?.id).toBe(mockTodo.id);
@@ -34,17 +30,10 @@ describe("Database operations", () => {
 
       // Todoを更新
       const updatedContent = "Updated Todo";
-      await db
-        .update(todos)
-        .set({ content: updatedContent })
-        .where(eq(todos.id, mockTodo.id));
+      await db.update(todos).set({ content: updatedContent }).where(eq(todos.id, mockTodo.id));
 
       // 更新されたTodoを取得
-      const retrievedTodo = await db
-        .select()
-        .from(todos)
-        .where(eq(todos.id, mockTodo.id))
-        .get();
+      const retrievedTodo = await db.select().from(todos).where(eq(todos.id, mockTodo.id)).get();
 
       expect(retrievedTodo).toBeDefined();
       expect(retrievedTodo?.content).toBe(updatedContent);
@@ -61,11 +50,7 @@ describe("Database operations", () => {
       await db.delete(todos).where(eq(todos.id, mockTodo.id));
 
       // Todoが存在しないことを確認
-      const retrievedTodo = await db
-        .select()
-        .from(todos)
-        .where(eq(todos.id, mockTodo.id))
-        .get();
+      const retrievedTodo = await db.select().from(todos).where(eq(todos.id, mockTodo.id)).get();
 
       expect(retrievedTodo).toBeUndefined();
     });
@@ -83,11 +68,7 @@ describe("Database operations", () => {
       await db.insert(subtasks).values(mockSubtask);
 
       // Subtaskを取得
-      const retrievedSubtask = await db
-        .select()
-        .from(subtasks)
-        .where(eq(subtasks.id, mockSubtask.id))
-        .get();
+      const retrievedSubtask = await db.select().from(subtasks).where(eq(subtasks.id, mockSubtask.id)).get();
 
       expect(retrievedSubtask).toBeDefined();
       expect(retrievedSubtask?.id).toBe(mockSubtask.id);
@@ -107,17 +88,10 @@ describe("Database operations", () => {
 
       // Subtaskを更新
       const updatedTitle = "Updated Subtask";
-      await db
-        .update(subtasks)
-        .set({ title: updatedTitle })
-        .where(eq(subtasks.id, mockSubtask.id));
+      await db.update(subtasks).set({ title: updatedTitle }).where(eq(subtasks.id, mockSubtask.id));
 
       // 更新されたSubtaskを取得
-      const retrievedSubtask = await db
-        .select()
-        .from(subtasks)
-        .where(eq(subtasks.id, mockSubtask.id))
-        .get();
+      const retrievedSubtask = await db.select().from(subtasks).where(eq(subtasks.id, mockSubtask.id)).get();
 
       expect(retrievedSubtask).toBeDefined();
       expect(retrievedSubtask?.title).toBe(updatedTitle);
@@ -137,11 +111,7 @@ describe("Database operations", () => {
       await db.delete(subtasks).where(eq(subtasks.id, mockSubtask.id));
 
       // Subtaskが存在しないことを確認
-      const retrievedSubtask = await db
-        .select()
-        .from(subtasks)
-        .where(eq(subtasks.id, mockSubtask.id))
-        .get();
+      const retrievedSubtask = await db.select().from(subtasks).where(eq(subtasks.id, mockSubtask.id)).get();
 
       expect(retrievedSubtask).toBeUndefined();
     });
@@ -157,16 +127,10 @@ describe("Database operations", () => {
       const mockSubtask2 = createMockSubtask({ todoId: mockTodo.id, order: 2 });
       const mockSubtask3 = createMockSubtask({ todoId: mockTodo.id, order: 3 });
 
-      await db
-        .insert(subtasks)
-        .values([mockSubtask1, mockSubtask2, mockSubtask3]);
+      await db.insert(subtasks).values([mockSubtask1, mockSubtask2, mockSubtask3]);
 
       // Todoに関連するすべてのSubtaskを取得
-      const retrievedSubtasks = await db
-        .select()
-        .from(subtasks)
-        .where(eq(subtasks.todoId, mockTodo.id))
-        .all();
+      const retrievedSubtasks = await db.select().from(subtasks).where(eq(subtasks.todoId, mockTodo.id)).all();
 
       expect(retrievedSubtasks).toHaveLength(3);
       expect(retrievedSubtasks.map((s) => s.id)).toContain(mockSubtask1.id);
