@@ -10,6 +10,7 @@ alwaysApply: true
 - Follow the established project structure and coding conventions
 - Apply Domain-Driven Design (DDD) principles
 - Practice Test-Driven Development (TDD)
+- Always run `bun format` after making code changes before committing
 
 ## Tech Stack
 - [Bun](mdc:https:/bun.sh) - JavaScript runtime and package manager
@@ -24,6 +25,8 @@ alwaysApply: true
 - 2 spaces for indentation
 - Maximum line length: 120 characters
 - Run `bun run format` before committing to format code
+- Run `bun run format` after making changes to ensure proper code style
+- If `bun run format` reports errors, fix them before proceeding with further development
 
 ## Project Structure
 - `src/index.ts` - Main application entry point
