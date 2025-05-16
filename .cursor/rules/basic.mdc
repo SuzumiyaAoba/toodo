@@ -6,7 +6,7 @@ alwaysApply: true
 # Toodo Project Guidelines
 
 ## Basic Rules
-- Use English for code, comments, and documentation
+- Use English for code, comments, documentation, and pull request
 - Follow the project structure and coding conventions
 - Apply Domain-Driven Design (DDD) principles
 - Practice Test-Driven Development (TDD)

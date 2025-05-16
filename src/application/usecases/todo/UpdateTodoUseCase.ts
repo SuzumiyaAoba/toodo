@@ -1,0 +1,34 @@
+import { Todo } from "../../../domain/models/Todo";
+import { TodoRepository } from "../../../domain/repositories/TodoRepository";
+
+export interface UpdateTodoDTO {
+  id: string;
+  content?: string;
+  completed?: boolean;
+}
+
+export class UpdateTodoUseCase {
+  constructor(private todoRepository: TodoRepository) {}
+
+  async execute(dto: UpdateTodoDTO): Promise<Todo | null> {
+    const todo = await this.todoRepository.findById(dto.id);
+
+    if (!todo) {
+      return null;
+    }
+
+    if (dto.content !== undefined) {
+      todo.updateContent(dto.content);
+    }
+
+    if (dto.completed !== undefined) {
+      if (dto.completed) {
+        todo.markAsCompleted();
+      } else {
+        todo.markAsIncomplete();
+      }
+    }
+
+    return this.todoRepository.save(todo);
+  }
+}

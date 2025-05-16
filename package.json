@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "dev": "bun src/index.ts",
-    "build": "bun build src/index.ts --outdir dist --target bun",
+    "type-check": "tsc --noEmit",
+    "build": "bun run type-check && bun run build-only",
+    "build-only": "bun build src/index.ts --outdir dist --target bun",
     "start": "bun dist/index.js",
     "test": "bun test",
     "lint": "biome check",
