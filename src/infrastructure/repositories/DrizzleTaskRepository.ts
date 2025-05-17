@@ -8,9 +8,9 @@ import type { PaginationParams, TaskRepository } from "../../domain/repositories
 type DbSchema = typeof schema;
 
 export class DrizzleTaskRepository implements TaskRepository {
-  constructor(private db: BunSQLiteDatabase<DbSchema>) {}
+  constructor(private readonly db: BunSQLiteDatabase<DbSchema>) {}
 
-  async findRootTasks(): Promise<Task[]> {
+  async findRootTasks(): Promise<readonly Task[]> {
     const records = await this.db
       .select()
       .from(schema.tasks)
@@ -18,16 +18,10 @@ export class DrizzleTaskRepository implements TaskRepository {
       .orderBy(asc(schema.tasks.order))
       .all();
 
-    const tasks: Task[] = [];
-    for (const record of records) {
-      const subtasks = await this.findByParentId(record.id as string);
-      tasks.push(this.mapToModel(record as schema.Task, subtasks));
-    }
-
-    return tasks;
+    return this.mapRecordsToTasks(records as schema.Task[]);
   }
 
-  async findRootTasksWithPagination(params: PaginationParams): Promise<Task[]> {
+  async findRootTasksWithPagination(params: PaginationParams): Promise<readonly Task[]> {
     const { page, limit } = params;
     const offset = (page - 1) * limit;
 
@@ -40,16 +34,10 @@ export class DrizzleTaskRepository implements TaskRepository {
       .offset(offset)
       .all();
 
-    const tasks: Task[] = [];
-    for (const record of records) {
-      const subtasks = await this.findByParentId(record.id as string);
-      tasks.push(this.mapToModel(record as schema.Task, subtasks));
-    }
-
-    return tasks;
+    return this.mapRecordsToTasks(records as schema.Task[]);
   }
 
-  async findByParentId(parentId: string): Promise<Task[]> {
+  async findByParentId(parentId: string): Promise<readonly Task[]> {
     const records = await this.db
       .select()
       .from(schema.tasks)
@@ -57,13 +45,7 @@ export class DrizzleTaskRepository implements TaskRepository {
       .orderBy(asc(schema.tasks.order))
       .all();
 
-    const tasks: Task[] = [];
-    for (const record of records) {
-      const subtasks = await this.findByParentId(record.id as string);
-      tasks.push(this.mapToModel(record as schema.Task, subtasks));
-    }
-
-    return tasks;
+    return this.mapRecordsToTasks(records as schema.Task[]);
   }
 
   async findById(id: string, loadHierarchy = true): Promise<Task | null> {
@@ -89,7 +71,7 @@ export class DrizzleTaskRepository implements TaskRepository {
       order: task.order,
       createdAt: task.createdAt,
       updatedAt: task.updatedAt,
-    };
+    } as const;
 
     if (existingTask) {
       await this.db.update(schema.tasks).set(taskData).where(eq(schema.tasks.id, task.id));
@@ -98,59 +80,32 @@ export class DrizzleTaskRepository implements TaskRepository {
     }
 
     if (saveHierarchy) {
-      // Save all subtasks
-      for (const subtask of task.subtasks) {
-        await this.save(subtask, true);
-      }
+      await Promise.all(task.subtasks.map((subtask) => this.save(subtask, true)));
     }
 
-    // To return the object in the most up-to-date state, call findById again
     const updated = await this.findById(task.id, saveHierarchy);
     return updated || task;
   }
 
   async delete(id: string): Promise<void> {
-    // First, handle subtasks recursively
     const subtasks = await this.findByParentId(id);
-    for (const subtask of subtasks) {
-      await this.delete(subtask.id);
-    }
 
-    // Then delete the task itself
+    await Promise.all(subtasks.map((subtask) => this.delete(subtask.id)));
+
     await this.db.delete(schema.tasks).where(eq(schema.tasks.id, id));
   }
 
-  async updateOrder(tasks: Task[]): Promise<Task[]> {
-    // Ensure all tasks are siblings (have the same parent)
-    const parentIds = new Set(tasks.map((task) => task.parentId));
-    if (parentIds.size !== 1) {
-      throw new Error("All tasks must have the same parent");
-    }
+  async updateOrder(tasks: readonly Task[]): Promise<readonly Task[]> {
+    await this.db.transaction(async (tx) => {
+      for (const task of tasks) {
+        await tx
+          .update(schema.tasks)
+          .set({ order: task.order, updatedAt: new Date() })
+          .where(eq(schema.tasks.id, task.id));
+      }
+    });
 
-    const updatedTasks: Task[] = [];
-    for (const [index, task] of tasks.entries()) {
-      // Create a new task with updated order
-      const updatedTask = TaskNamespace.create(
-        task.title,
-        task.parentId,
-        task.description,
-        task.id,
-        task.status,
-        index + 1,
-        task.createdAt,
-        new Date(),
-        task.subtasks,
-      );
-
-      await this.db
-        .update(schema.tasks)
-        .set({ order: updatedTask.order, updatedAt: updatedTask.updatedAt })
-        .where(eq(schema.tasks.id, task.id));
-
-      updatedTasks.push(updatedTask);
-    }
-
-    return updatedTasks;
+    return Promise.all(tasks.map((task) => this.findById(task.id, false) as Promise<Task>));
   }
 
   async findTaskTree(rootId: string): Promise<Task | null> {
@@ -163,31 +118,25 @@ export class DrizzleTaskRepository implements TaskRepository {
       return null;
     }
 
-    // If new parent is specified, validate it exists
     if (newParentId) {
       const newParent = await this.findById(newParentId, false);
       if (!newParent) {
         return null;
       }
 
-      // Check if new parent is not a descendant of the task
-      // (to prevent circular references)
       if (await this.isDescendant(newParentId, taskId)) {
         throw new Error("Cannot move a task to its own descendant");
       }
     }
 
-    // Get sibling tasks at the new location to determine correct order
     const siblingTasks = await this.db
       .select()
       .from(schema.tasks)
       .where(newParentId ? eq(schema.tasks.parentId, newParentId) : isNull(schema.tasks.parentId))
       .all();
 
-    // Calculate new order as last item
     const newOrder = siblingTasks.length > 0 ? Math.max(...siblingTasks.map((t) => (t as schema.Task).order)) + 1 : 1;
 
-    // Create a new Task with updated properties
     const updatedTask = TaskNamespace.create(
       task.title,
       newParentId,
@@ -212,20 +161,24 @@ export class DrizzleTaskRepository implements TaskRepository {
     return this.findById(taskId, true);
   }
 
-  private async isDescendant(taskId: string, potentialAncestorId: string): Promise<boolean> {
-    const task = await this.findById(taskId, false);
-    if (!task || !task.parentId) {
+  private async isDescendant(potentialDescendantId: string, ancestorId: string): Promise<boolean> {
+    const potentialDescendant = await this.findById(potentialDescendantId, false);
+    if (!potentialDescendant) {
       return false;
     }
 
-    if (task.parentId === potentialAncestorId) {
+    if (potentialDescendant.parentId === ancestorId) {
       return true;
     }
 
-    return this.isDescendant(task.parentId, potentialAncestorId);
+    if (potentialDescendant.parentId) {
+      return this.isDescendant(potentialDescendant.parentId, ancestorId);
+    }
+
+    return false;
   }
 
-  private mapToModel(record: schema.Task, subtasks: Task[] = []): Task {
+  private mapToModel(record: schema.Task, subtasks: readonly Task[] = []): Task {
     return TaskNamespace.create(
       record.title,
       record.parentId,
@@ -237,5 +190,16 @@ export class DrizzleTaskRepository implements TaskRepository {
       record.updatedAt ?? new Date(),
       subtasks,
     );
+  }
+
+  private async mapRecordsToTasks(records: schema.Task[]): Promise<readonly Task[]> {
+    const tasks: Task[] = [];
+
+    for (const record of records) {
+      const subtasks = await this.findByParentId(record.id as string);
+      tasks.push(this.mapToModel(record, subtasks));
+    }
+
+    return Object.freeze(tasks);
   }
 }

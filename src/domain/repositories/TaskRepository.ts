@@ -1,25 +1,25 @@
 import type { Task } from "../models/Task";
 
 export type PaginationParams = {
-  page: number;
-  limit: number;
+  readonly page: number;
+  readonly limit: number;
 };
 
 export type TaskRepository = {
   /**
    * Find all root tasks (tasks with no parent)
    */
-  findRootTasks(): Promise<Task[]>;
+  findRootTasks(): Promise<readonly Task[]>;
 
   /**
    * Find root tasks with pagination
    */
-  findRootTasksWithPagination(params: PaginationParams): Promise<Task[]>;
+  findRootTasksWithPagination(params: PaginationParams): Promise<readonly Task[]>;
 
   /**
    * Find all subtasks for a given parent task ID
    */
-  findByParentId(parentId: string): Promise<Task[]>;
+  findByParentId(parentId: string): Promise<readonly Task[]>;
 
   /**
    * Find a task by its ID with all its subtasks loaded hierarchically
@@ -39,7 +39,7 @@ export type TaskRepository = {
   /**
    * Update task orders for a set of sibling tasks
    */
-  updateOrder(tasks: Task[]): Promise<Task[]>;
+  updateOrder(tasks: readonly Task[]): Promise<readonly Task[]>;
 
   /**
    * Find the entire task tree starting from the given root task ID

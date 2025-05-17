@@ -3,14 +3,14 @@ import type { Task as TaskType } from "../../../domain/models/Task";
 import type { TaskRepository } from "../../../domain/repositories/TaskRepository";
 
 type UpdateTaskParams = {
-  id: string;
-  title?: string;
-  description?: string | null;
-  status?: TaskStatus;
+  readonly id: string;
+  readonly title?: string;
+  readonly description?: string | null;
+  readonly status?: TaskStatus;
 };
 
 export class UpdateTaskUseCase {
-  constructor(private taskRepository: TaskRepository) {}
+  constructor(private readonly taskRepository: TaskRepository) {}
 
   async execute(params: UpdateTaskParams): Promise<TaskType | null> {
     const { id, title, description, status } = params;
@@ -21,12 +21,14 @@ export class UpdateTaskUseCase {
       return null;
     }
 
-    // Apply updates
-    let updatedTask = task;
-
+    // イミュータブルな方法でタスクを更新
+    // 更新する値がない場合は元のタスクを返す
     if (title === undefined && description === undefined && status === undefined) {
-      return task; // nothing to do
+      return task;
     }
+
+    // 関数合成を使用してイミュータブルに変更を適用
+    let updatedTask = task;
 
     if (title !== undefined) {
       updatedTask = Task.updateTitle(updatedTask, title);
@@ -37,11 +39,7 @@ export class UpdateTaskUseCase {
     }
 
     if (status !== undefined) {
-      if (status === "completed") {
-        updatedTask = Task.markAsCompleted(updatedTask);
-      } else {
-        updatedTask = Task.markAsIncomplete(updatedTask);
-      }
+      updatedTask = status === "completed" ? Task.markAsCompleted(updatedTask) : Task.markAsIncomplete(updatedTask);
     }
 
     // Save the updated task
