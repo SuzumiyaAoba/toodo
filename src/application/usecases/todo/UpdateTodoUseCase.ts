@@ -1,11 +1,11 @@
 import type { Todo } from "../../../domain/models/Todo";
 import type { TodoRepository } from "../../../domain/repositories/TodoRepository";
 
-export interface UpdateTodoDTO {
+export type UpdateTodoDTO = {
   id: string;
   content?: string;
   completed?: boolean;
-}
+};
 
 export class UpdateTodoUseCase {
   constructor(private todoRepository: TodoRepository) {}

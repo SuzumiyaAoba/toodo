@@ -2,15 +2,15 @@ import { beforeAll, beforeEach, describe, expect, it } from "bun:test";
 import { Hono } from "hono";
 import { v4 as uuidv4 } from "uuid";
 
-interface Todo {
+type Todo = {
   id: string;
   content: string;
   completed: boolean;
   createdAt: Date;
   updatedAt: Date;
-}
+};
 
-interface Subtask {
+type Subtask = {
   id: string;
   todoId: string;
   title: string;
@@ -19,7 +19,7 @@ interface Subtask {
   order: number;
   createdAt: Date;
   updatedAt: Date;
-}
+};
 
 describe("API Tests", () => {
   let app: Hono;

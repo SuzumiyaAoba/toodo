@@ -1,9 +1,9 @@
 import { Todo } from "../../../domain/models/Todo";
 import type { TodoRepository } from "../../../domain/repositories/TodoRepository";
 
-export interface CreateTodoDTO {
+export type CreateTodoDTO = {
   content: string;
-}
+};
 
 export class CreateTodoUseCase {
   constructor(private todoRepository: TodoRepository) {}

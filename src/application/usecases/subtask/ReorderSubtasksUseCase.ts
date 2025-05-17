@@ -1,10 +1,10 @@
 import type { Subtask } from "../../../domain/models/Subtask";
 import type { TodoRepository } from "../../../domain/repositories/TodoRepository";
 
-export interface ReorderSubtasksDTO {
+export type ReorderSubtasksDTO = {
   todoId: string;
   orderMap: Record<string, number>;
-}
+};
 
 export class ReorderSubtasksUseCase {
   constructor(private todoRepository: TodoRepository) {}

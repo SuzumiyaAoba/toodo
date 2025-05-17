@@ -1,14 +1,13 @@
-import type { Subtask } from "../../../domain/models/Subtask";
-import type { SubtaskStatus } from "../../../domain/models/Subtask";
+import type { Subtask, SubtaskStatus } from "../../../domain/models/Subtask";
 import type { SubtaskRepository } from "../../../domain/repositories/SubtaskRepository";
 import type { TodoRepository } from "../../../domain/repositories/TodoRepository";
 
-export interface UpdateSubtaskDTO {
+export type UpdateSubtaskDTO = {
   id: string;
   title?: string;
   description?: string | null;
   status?: SubtaskStatus;
-}
+};
 
 export class UpdateSubtaskUseCase {
   constructor(

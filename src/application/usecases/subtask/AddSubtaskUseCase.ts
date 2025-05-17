@@ -1,11 +1,11 @@
 import type { Subtask } from "../../../domain/models/Subtask";
 import type { TodoRepository } from "../../../domain/repositories/TodoRepository";
 
-export interface AddSubtaskDTO {
+export type AddSubtaskDTO = {
   todoId: string;
   title: string;
   description?: string | null;
-}
+};
 
 export class AddSubtaskUseCase {
   constructor(private todoRepository: TodoRepository) {}
