@@ -29,7 +29,8 @@
     "sqlite3": "^5.1.7",
     "tslog": "^4.9.3",
     "tsyringe": "^4.10.0",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "zod": "^3.24.4"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
