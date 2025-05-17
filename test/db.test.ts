@@ -124,6 +124,12 @@ describe("Database operations", () => {
       expect(retrievedRootTasks.map((t) => t.id)).toContain(rootTask2.id);
       expect(retrievedRootTasks.map((t) => t.id)).toContain(rootTask3.id);
       expect(retrievedRootTasks.map((t) => t.id)).not.toContain(childTask.id);
+
+      // Verify root tasks are ordered correctly
+      const sortedRootTasks = [...retrievedRootTasks].sort((a, b) => a.order - b.order);
+      expect(sortedRootTasks[0].id).toBe(rootTask1.id);
+      expect(sortedRootTasks[1].id).toBe(rootTask2.id);
+      expect(sortedRootTasks[2].id).toBe(rootTask3.id);
     });
 
     it("should prevent circular references when moving tasks", async () => {
@@ -165,6 +171,29 @@ describe("Database operations", () => {
       const movedTask = await taskRepository.moveTask(grandchildTaskRecord.id, null);
       expect(movedTask).not.toBeNull();
       expect(movedTask?.parentId).toBeNull();
+    });
+
+    it("should delete child tasks when parent is deleted", async () => {
+      const db = createTestDb();
+
+      // Create parent task
+      const parentTask = createMockTask();
+      await db.insert(tasks).values(parentTask);
+
+      // Create child task
+      const childTask = createMockChildTask(parentTask.id);
+      await db.insert(tasks).values(childTask);
+
+      // Verify child task exists
+      const retrievedChildTask = await db.select().from(tasks).where(eq(tasks.id, childTask.id)).get();
+      expect(retrievedChildTask).toBeDefined();
+
+      // Delete parent task
+      await db.delete(tasks).where(eq(tasks.id, parentTask.id));
+
+      // Verify child task no longer exists
+      const deletedChildTask = await db.select().from(tasks).where(eq(tasks.id, childTask.id)).get();
+      expect(deletedChildTask).toBeUndefined();
     });
   });
 });

@@ -42,8 +42,12 @@ export class ReorderTasksUseCase {
     // Sort tasks by order in an immutable way
     const sortedTasks = [...tasksToUpdate].sort((a, b) => a.order - b.order);
 
-    // Save updated tasks with new order
-    return this.taskRepository.updateOrder(sortedTasks);
+    // Persist changes
+    const updated = await this.taskRepository.updateOrder(sortedTasks);
+
+    // Merge unchanged siblings and return deterministically sorted list
+    const untouched = tasks.filter((t) => !(t.id in orderMap));
+    return [...updated, ...untouched].sort((a, b) => a.order - b.order);
   }
 
   // Split validation logic into a separate method using a pure functional approach

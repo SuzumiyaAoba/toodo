@@ -1,6 +1,7 @@
 import { inject, injectable, singleton } from "tsyringe";
 import { Task } from "../../../domain/models/Task";
 import type { Task as TaskType } from "../../../domain/models/Task";
+import { ParentTaskNotFoundError } from "../../../domain/models/errors";
 import type { TaskRepository } from "../../../domain/repositories/TaskRepository";
 
 type CreateTaskParams = {
@@ -21,7 +22,7 @@ export class CreateTaskUseCase {
     if (parentId) {
       const parent = await this.taskRepository.findById(parentId);
       if (!parent) {
-        throw new Error(`Parent task ${parentId} not found`);
+        throw new ParentTaskNotFoundError(parentId);
       }
     }
 

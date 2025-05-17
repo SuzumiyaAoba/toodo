@@ -16,7 +16,8 @@ export const tasks = sqliteTable("tasks", {
   updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
 });
 
-// Self-referencing configuration is set directly in SQLite migration
+// Self-referencing foreign key constraint is defined in migrate.ts
+// with `FOREIGN KEY (parent_id) REFERENCES tasks(id) ON DELETE CASCADE`
 
 export type Task = typeof tasks.$inferSelect;
 export type NewTask = typeof tasks.$inferInsert;

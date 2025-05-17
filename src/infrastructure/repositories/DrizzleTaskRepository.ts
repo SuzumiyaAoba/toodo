@@ -93,12 +93,8 @@ export class DrizzleTaskRepository implements TaskRepository {
   }
 
   async delete(id: string): Promise<void> {
-    const subtasks = await this.findByParentId(id);
-
-    for (const subtask of subtasks) {
-      await this.delete(subtask.id);
-    }
-
+    // 外部キー制約 ON DELETE CASCADE が有効なので、親タスクを削除するだけで
+    // 子タスクは自動的に削除されます
     await this.db.delete(schema.tasks).where(eq(schema.tasks.id, id));
   }
 

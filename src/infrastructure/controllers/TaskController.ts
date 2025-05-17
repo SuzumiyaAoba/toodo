@@ -9,6 +9,7 @@ import type { MoveTaskUseCase } from "../../application/usecases/task/MoveTaskUs
 import type { ReorderTasksUseCase } from "../../application/usecases/task/ReorderTasksUseCase";
 import type { UpdateTaskUseCase } from "../../application/usecases/task/UpdateTaskUseCase";
 import type { TaskStatus } from "../../domain/models/Task";
+import { ParentTaskNotFoundError, TaskNotFoundError } from "../../domain/models/errors";
 import {
   type CreateTaskInput,
   type MoveTaskInput,
@@ -103,7 +104,7 @@ export class TaskController {
         return c.json(task, 201);
       } catch (error) {
         // Check for parent not found error
-        if (error instanceof Error && error.message.includes("Parent task") && error.message.includes("not found")) {
+        if (error instanceof ParentTaskNotFoundError) {
           return c.json({ error: error.message }, 404);
         }
         // Re-throw for general error handling
@@ -208,16 +209,22 @@ export class TaskController {
 
       const { taskId, newParentId } = validationResult.data;
 
-      const task = await this.moveTaskUseCase.execute({
-        taskId,
-        newParentId,
-      });
+      try {
+        const task = await this.moveTaskUseCase.execute({
+          taskId,
+          newParentId,
+        });
 
-      if (!task) {
-        return c.json({ error: "Task not found" }, 404);
+        return c.json(task);
+      } catch (error) {
+        if (error instanceof TaskNotFoundError) {
+          return c.json({ error: error.message }, 404);
+        }
+        if (error instanceof ParentTaskNotFoundError) {
+          return c.json({ error: error.message }, 404);
+        }
+        throw error;
       }
-
-      return c.json(task);
     } catch (error) {
       logger.error("Failed to move task:", error);
       return c.json({ error: "Failed to move task" }, 500);

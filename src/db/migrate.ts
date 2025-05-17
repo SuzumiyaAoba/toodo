@@ -12,6 +12,9 @@ async function main() {
   // Create a Bun SQLite database connection
   const sqlite = new Database("data.db");
 
+  // Enable foreign key constraints
+  sqlite.exec("PRAGMA foreign_keys = ON;");
+
   const db = drizzle(sqlite, { schema });
 
   logger.info("Applying SQL migration...");

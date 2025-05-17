@@ -9,6 +9,9 @@ export function createTestDb() {
   // Create in-memory SQLite database
   const db = new Database(":memory:");
 
+  // Enable foreign key constraints
+  db.exec("PRAGMA foreign_keys = ON;");
+
   // Create tasks table
   db.exec(`
     CREATE TABLE IF NOT EXISTS tasks (
