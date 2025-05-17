@@ -83,7 +83,9 @@ export class DrizzleTaskRepository implements TaskRepository {
     }
 
     if (saveHierarchy) {
-      await Promise.all(task.subtasks.map((subtask) => this.save(subtask, true)));
+      for (const subtask of task.subtasks) {
+        await this.save(subtask, true);
+      }
     }
 
     const updated = await this.findById(task.id, saveHierarchy);
@@ -93,7 +95,9 @@ export class DrizzleTaskRepository implements TaskRepository {
   async delete(id: string): Promise<void> {
     const subtasks = await this.findByParentId(id);
 
-    await Promise.all(subtasks.map((subtask) => this.delete(subtask.id)));
+    for (const subtask of subtasks) {
+      await this.delete(subtask.id);
+    }
 
     await this.db.delete(schema.tasks).where(eq(schema.tasks.id, id));
   }
@@ -108,7 +112,16 @@ export class DrizzleTaskRepository implements TaskRepository {
       }
     });
 
-    return Promise.all(tasks.map((task) => this.findById(task.id, false) as Promise<Task>));
+    // Serialize findById calls to avoid potential race conditions
+    const updatedTasks: Task[] = [];
+    for (const task of tasks) {
+      const updatedTask = await this.findById(task.id, false);
+      if (updatedTask) {
+        updatedTasks.push(updatedTask);
+      }
+    }
+
+    return updatedTasks;
   }
 
   async findTaskTree(rootId: string): Promise<Task | null> {
