@@ -21,7 +21,7 @@ export class AddSubtaskUseCase {
     const updatedTodo = TodoNamespace.addSubtask(todo, dto.title, dto.description);
     const savedTodo = await this.todoRepository.save(updatedTodo);
 
-    // 最後に追加された subtask を返す
+    // Return the last added subtask
     if (savedTodo.subtasks.length > 0) {
       const lastSubtask = savedTodo.subtasks[savedTodo.subtasks.length - 1];
       return lastSubtask || null;

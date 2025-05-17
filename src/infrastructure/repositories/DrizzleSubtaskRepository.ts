@@ -75,10 +75,10 @@ export class DrizzleSubtaskRepository implements SubtaskRepository {
       await this.db.insert(schema.subtasks).values(subtaskData);
     }
 
-    // 確実に最新の状態のオブジェクトを返すため、再度 findById を呼び出します
+    // To return the object in the most up-to-date state, call findById again
     return this.findById(subtask.id).then((updated) => {
       if (!updated) {
-        // データがない場合は元のオブジェクトを返す
+        // Return the original object if no data is found
         return subtask;
       }
       return updated;

@@ -8,8 +8,8 @@ import * as schema from "../schema";
 
 const logger = new Logger({ name: "migration-hierarchical-tasks" });
 
-// テーブルが存在するかチェックするヘルパー関数
-function tableExists(db: Database, tableName: string): boolean {
+// Helper function to check if a table exists
+async function tableExists(db: Database, tableName: string): Promise<boolean> {
   const result = db
     .query(`SELECT name FROM sqlite_master WHERE type='table' AND name = $tableName;`)
     .get({ $tableName: tableName });
@@ -25,8 +25,8 @@ async function migrateToHierarchicalTasks() {
   const db = drizzle(sqlite, { schema });
 
   try {
-    // ステップ1: マイグレーションSQLを実行してテーブルを作成（存在しない場合のみ）
-    if (!tableExists(sqlite, "tasks")) {
+    // Step 1: Run migration SQL to create tables (only if they don't exist)
+    if (!(await tableExists(sqlite, "tasks"))) {
       logger.info("Creating tasks table...");
       const migrationPath = resolve(process.cwd(), "src/db/migrations/0003_hierarchical_tasks.sql");
       const migrationSQL = readFileSync(migrationPath, "utf-8");
@@ -38,13 +38,13 @@ async function migrateToHierarchicalTasks() {
       logger.info("Tasks table already exists, skipping creation");
     }
 
-    // ステップ2: テーブルが存在するか確認
+    // Step 2: Check if the table exists
     logger.info("Checking if tasks table exists...");
     try {
       const tasksExists = await db.select().from(schema.tasks).all();
       logger.info(`Tasks table exists with ${tasksExists.length} records`);
 
-      // テーブルにデータが既にある場合は移行をスキップ
+      // Skip migration if the table already has data
       if (tasksExists.length > 0) {
         logger.info("Tasks table already has data. Skipping data migration.");
         return;
@@ -54,11 +54,11 @@ async function migrateToHierarchicalTasks() {
       throw new Error("Failed to access tasks table");
     }
 
-    // ステップ3: Todoレコードを移行
+    // Step 3: Migrate Todo records
     logger.info("Migrating todos to root tasks...");
 
     // todosテーブルが存在するか確認
-    if (!tableExists(sqlite, "todos")) {
+    if (!(await tableExists(sqlite, "todos"))) {
       logger.warn("The todos table does not exist yet. Skipping data migration.");
       logger.info("Migration completed. Only schema has been created.");
       return;
@@ -82,9 +82,9 @@ async function migrateToHierarchicalTasks() {
 
       logger.info(`Migrated todo ${todo.id}`);
 
-      // ステップ4: サブタスクを移行
+      // Step 4: Migrate subtasks
       // subtasksテーブルが存在するか確認
-      if (!tableExists(sqlite, "subtasks")) {
+      if (!(await tableExists(sqlite, "subtasks"))) {
         logger.warn("The subtasks table does not exist yet. Skipping subtask migration.");
         continue;
       }

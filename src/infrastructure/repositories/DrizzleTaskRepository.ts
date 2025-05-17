@@ -82,7 +82,7 @@ export class DrizzleTaskRepository implements TaskRepository {
       }
     }
 
-    // 確実に最新の状態のオブジェクトを返すため、再度 findById を呼び出します
+    // To return the object in the most up-to-date state, call findById again
     const updated = await this.findById(task.id, saveHierarchy);
     return updated || task;
   }

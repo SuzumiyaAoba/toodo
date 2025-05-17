@@ -1,6 +1,6 @@
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
-// 自己参照テーブルの定義
+// Self-referencing table definition
 export const tasks = sqliteTable("tasks", {
   id: text("id").primaryKey(),
   parentId: text("parent_id"),
@@ -16,8 +16,7 @@ export const tasks = sqliteTable("tasks", {
   updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
 });
 
-// 自己参照の設定は SQLite migration で直接設定します
-// DrizzleでのSQLiteの自己参照は型エラーになるため、SQL側で対応
+// Self-referencing configuration is set directly in SQLite migration
 
 // Legacy tables for reference/migration
 export const todos = sqliteTable("todos", {
