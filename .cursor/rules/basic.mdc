@@ -29,6 +29,19 @@ alwaysApply: true
 - Run `bun run format` after making changes to ensure proper code style
 - If `bun run format` reports errors, fix them before proceeding with further development
 
+## Records Over Classes
+- Prefer using plain record objects instead of classes for domain models
+- Use TypeScript types to define the structure of records
+- Create factory functions for object creation instead of constructors
+- Implement domain logic as pure functions that operate on records
+- Keep behavior separate from data by organizing functions in service modules
+- Use namespaces to group related functions that operate on a specific record type
+- Only use classes when truly necessary (e.g., for framework requirements)
+- For complex objects, use factory functions that validate and construct objects
+- Follow the principle that data and behavior should be separate concerns
+- Embrace functional programming principles with immutable data structures
+
+
 ## Immutability
 - Make all domain objects immutable wherever possible
 - Use `readonly` for all properties in TypeScript types and interfaces
