@@ -1,6 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { eq, isNull } from "drizzle-orm";
 import { tasks } from "../src/db/schema";
+import { DrizzleTaskRepository } from "../src/infrastructure/repositories/DrizzleTaskRepository";
 import { createTestDb } from "./setup";
 import { createMockChildTask, createMockTask } from "./utils";
 
@@ -123,6 +124,47 @@ describe("Database operations", () => {
       expect(retrievedRootTasks.map((t) => t.id)).toContain(rootTask2.id);
       expect(retrievedRootTasks.map((t) => t.id)).toContain(rootTask3.id);
       expect(retrievedRootTasks.map((t) => t.id)).not.toContain(childTask.id);
+    });
+
+    it("should prevent circular references when moving tasks", async () => {
+      const db = createTestDb();
+      const taskRepository = new DrizzleTaskRepository(db);
+
+      // Create parent task
+      const parentTaskRecord = createMockTask({ title: "Parent Task" });
+      await db.insert(tasks).values(parentTaskRecord);
+      const parentTask = await taskRepository.findById(parentTaskRecord.id);
+
+      // Create child task with parentId set to parent task id
+      const childTaskRecord = createMockTask({
+        title: "Child Task",
+        parentId: parentTaskRecord.id,
+      });
+      await db.insert(tasks).values(childTaskRecord);
+      const childTask = await taskRepository.findById(childTaskRecord.id);
+
+      // Create grandchild task with parentId set to child task id
+      const grandchildTaskRecord = createMockTask({
+        title: "Grandchild Task",
+        parentId: childTaskRecord.id,
+      });
+      await db.insert(tasks).values(grandchildTaskRecord);
+      const grandchildTask = await taskRepository.findById(grandchildTaskRecord.id);
+
+      // Attempt to move parent to be a child of its own grandchild (should throw)
+      await expect(taskRepository.moveTask(parentTaskRecord.id, grandchildTaskRecord.id)).rejects.toThrow(
+        "Cannot move a task to its own descendant",
+      );
+
+      // Attempt to make a task its own parent (should throw)
+      await expect(taskRepository.moveTask(parentTaskRecord.id, parentTaskRecord.id)).rejects.toThrow(
+        "Cannot set a task as its own parent",
+      );
+
+      // Valid move should work
+      const movedTask = await taskRepository.moveTask(grandchildTaskRecord.id, null);
+      expect(movedTask).not.toBeNull();
+      expect(movedTask?.parentId).toBeNull();
     });
   });
 });
