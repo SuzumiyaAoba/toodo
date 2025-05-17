@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from "uuid";
 import type { NewSubtask, NewTodo } from "../src/db/schema";
 
 /**
- * テスト用のTodoデータを作成する
+ * Create mock Todo data for testing
  */
 export function createMockTodo(override: Partial<NewTodo> = {}): NewTodo {
   return {
@@ -16,7 +16,7 @@ export function createMockTodo(override: Partial<NewTodo> = {}): NewTodo {
 }
 
 /**
- * テスト用のサブタスクデータを作成する
+ * Create mock Subtask data for testing
  */
 export function createMockSubtask(override: Partial<NewSubtask> = {}): NewSubtask {
   return {
