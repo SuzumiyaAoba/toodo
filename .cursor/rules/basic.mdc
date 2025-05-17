@@ -24,6 +24,7 @@ alwaysApply: true
 - Use [Biome](mdc:https:/biomejs.dev) for linting and formatting
 - 2 spaces for indentation
 - Maximum line length: 120 characters
+- Prefer `type` over `interface` for TypeScript type definitions
 - Run `bun run format` before committing to format code
 - Run `bun run format` after making changes to ensure proper code style
 - If `bun run format` reports errors, fix them before proceeding with further development

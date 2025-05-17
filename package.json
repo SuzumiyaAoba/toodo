@@ -36,6 +36,6 @@
     "typescript": "^5.8.2"
   },
   "lint-staged": {
-    "*": "bun run format"
+    "*.{ts,tsx}": "bun run format"
   }
 }
