@@ -1,3 +1,4 @@
+import { inject, injectable, singleton } from "tsyringe";
 import { Task, type TaskStatus } from "../../../domain/models/Task";
 import type { Task as TaskType } from "../../../domain/models/Task";
 import type { TaskRepository } from "../../../domain/repositories/TaskRepository";
@@ -9,8 +10,10 @@ type UpdateTaskParams = {
   readonly status?: TaskStatus;
 };
 
+@injectable()
+@singleton()
 export class UpdateTaskUseCase {
-  constructor(private readonly taskRepository: TaskRepository) {}
+  constructor(@inject("TaskRepository") private readonly taskRepository: TaskRepository) {}
 
   async execute(params: UpdateTaskParams): Promise<TaskType | null> {
     const { id, title, description, status } = params;

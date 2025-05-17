@@ -25,6 +25,7 @@
     "drizzle-orm": "^0.43.1",
     "hono": "^4.7.4",
     "lint-staged": "^15.5.0",
+    "reflect-metadata": "^0.2.2",
     "sqlite3": "^5.1.7",
     "tslog": "^4.9.3",
     "tsyringe": "^4.10.0",

@@ -1,78 +1,78 @@
-# 不変性（Immutability）のベストプラクティス
+# Immutability Best Practices
 
-このドキュメントでは、Toodo プロジェクトで採用している不変性（Immutability）に関するベストプラクティスを説明します。不変性を適用することで、コードの信頼性、予測可能性、保守性が向上します。
+This document explains the best practices for immutability adopted in the Toodo project. Applying immutability improves code reliability, predictability, and maintainability.
 
-## 基本原則
+## Basic Principles
 
-1. **すべてのデータ構造は不変であるべき**
+1. **All data structures should be immutable**
 
-   - オブジェクトの状態を変更するのではなく、新しいオブジェクトを作成する
-   - ミューテーション（変更）ではなく、変換を使用する
-   - 副作用を最小限に抑え、純粋関数の使用を優先する
+   - Create new objects instead of modifying object state
+   - Use transformations instead of mutations
+   - Minimize side effects and prioritize pure functions
 
-2. **TypeScript の型システムを活用する**
+2. **Leverage TypeScript's type system**
 
-   - `readonly` 修飾子を使用して不変性を強制する
-   - `Readonly<T>` や `readonly T[]` などの型を使用する
-   - 型の定義時に不変性を考慮する
+   - Use the `readonly` modifier to enforce immutability
+   - Use types like `Readonly<T>` and `readonly T[]`
+   - Consider immutability when defining types
 
-3. **不変性を保証するパターン**
-   - ファクトリ関数を使用してオブジェクトを作成する
-   - コピーと修正を使用して新しいオブジェクトを作成する
-   - コレクションを操作する際は常に新しいコレクションを返す
+3. **Patterns to guarantee immutability**
+   - Use factory functions to create objects
+   - Use copy and modify to create new objects
+   - Always return new collections when manipulating collections
 
-## 実装パターン
+## Implementation Patterns
 
-### 1. ドメインモデルの定義
+### 1. Domain Model Definition
 
 ```typescript
-// 不変性を型レベルで強制
+// Enforce immutability at the type level
 export type Task = Readonly<{
   id: string;
   title: string;
-  // ...その他のプロパティ
-  subtasks: readonly Task[]; // 不変の配列
+  // ...other properties
+  subtasks: readonly Task[]; // Immutable array
 }>;
 ```
 
-### 2. ファクトリ関数の使用
+### 2. Use of Factory Functions
 
 ```typescript
-// ファクトリ関数はバリデーションを含み、新しいオブジェクトを返す
+// Factory functions include validation and return new objects
 export function create(...): Task {
-  // バリデーション
+  // Validation
   if (!title.trim()) {
     throw new Error("Task title cannot be empty");
   }
 
-  // 新しいオブジェクトを返す
+  // Return a new object
   return {
     id: id || uuidv4(),
-    // ...その他のプロパティ
-    subtasks: [...subtasks], // コピーを作成
+    // ...other properties
+    subtasks: [...subtasks], // Create a copy
   };
 }
 ```
 
-### 3. 変更操作のパターン
+### 3. Modification Operation Patterns
 
 ```typescript
-// 変更関数は元のオブジェクトを変更せず、新しいオブジェクトを返す
+// Modification functions don't change the original object but return a new object
 export function updateTitle(task: Task, title: string): Task {
   return {
-    ...task, // スプレッド構文でコピー
-    title, // 新しい値を設定
+    ...task, // Copy using spread syntax
+    title, // Set new value
     updatedAt: new Date(),
   };
 }
 ```
 
-### 4. コレクション操作
+### 4. Collection Operations
 
 ```typescript
-// 変更可能な配列の代わりに、常に新しい配列を返す
+// Always return new arrays instead of mutable arrays
 function reorderSubtasks(task: Task, orderMap: Record<string, number>): Task {
-  // 新しい配列をマップで作成
+  // Create a new array with map
   const updatedSubtasks = task.subtasks.map((subtask) => {
     const orderValue = orderMap[subtask.id];
     if (orderValue !== undefined) {
@@ -81,10 +81,10 @@ function reorderSubtasks(task: Task, orderMap: Record<string, number>): Task {
     return subtask;
   });
 
-  // ソートも新しい配列を作成
+  // Sorting also creates a new array
   const sortedSubtasks = [...updatedSubtasks].sort((a, b) => a.order - b.order);
 
-  // 新しいタスクオブジェクトを返す
+  // Return a new task object
   return {
     ...task,
     updatedAt: new Date(),
@@ -93,22 +93,22 @@ function reorderSubtasks(task: Task, orderMap: Record<string, number>): Task {
 }
 ```
 
-### 5. 関数型パラダイムの活用
+### 5. Utilizing Functional Paradigms
 
 ```typescript
-// filter、map、reduceなどの関数型メソッドを使用
+// Use functional methods like filter, map, reduce
 const tasksToUpdate = tasks
   .filter((task) => orderMap[task.id] !== undefined)
   .map((task) => {
-    // 変更を適用した新しいオブジェクトを返す
+    // Return a new object with changes applied
     return Task.updateOrder(task, orderMap[task.id]);
   });
 ```
 
-### 6. 型安全なフィルタリング
+### 6. Type-Safe Filtering
 
 ```typescript
-// 型の絞り込みを使用した型安全なフィルタリング
+// Type-safe filtering using type narrowing
 const tasksWithOrderValues = tasks
   .map((task) => {
     const newOrder = orderMap[task.id];
@@ -120,10 +120,10 @@ const tasksWithOrderValues = tasks
   );
 ```
 
-### 7. トランザクション的アプローチ
+### 7. Transactional Approach
 
 ```typescript
-// 複数の変更を段階的に適用する
+// Apply multiple changes step by step
 let updatedTask = task;
 if (title !== undefined) {
   updatedTask = Task.updateTitle(updatedTask, title);
@@ -133,16 +133,16 @@ if (description !== undefined) {
 }
 ```
 
-## 不変性の利点
+## Benefits of Immutability
 
-1. **予測可能性**: 状態変更が制御されるため、動作が予測しやすくなる
-2. **デバッグのしやすさ**: オブジェクトの状態が変わらないため、変更箇所を特定しやすい
-3. **並行処理**: 不変オブジェクトは安全に並行処理できる
-4. **参照の透明性**: 関数の結果が入力だけに依存するため、テストや最適化が容易になる
-5. **設計の簡素化**: 不変性を前提とすることで、全体的な設計がよりシンプルに
+1. **Predictability**: State changes are controlled, making behavior easier to predict
+2. **Easier Debugging**: Object states don't change, making it easier to identify changes
+3. **Concurrent Processing**: Immutable objects can be safely processed concurrently
+4. **Referential Transparency**: Function results depend only on inputs, making testing and optimization easier
+5. **Design Simplification**: Assuming immutability leads to simpler overall design
 
-## 注意点
+## Considerations
 
-1. **パフォーマンス**: 大量のオブジェクト生成が必要な場合、メモリ使用量と GC の負荷に注意
-2. **複雑な更新**: 深くネストされたオブジェクトの更新には、イミュータブルなヘルパーライブラリの使用を検討する
-3. **チーム教育**: 不変性のパラダイムは、命令型プログラミングの経験者には馴染みがないかもしれない
+1. **Performance**: Be mindful of memory usage and GC load when creating many objects
+2. **Complex Updates**: Consider using immutable helper libraries for updating deeply nested objects
+3. **Team Education**: The immutability paradigm may be unfamiliar to those experienced with imperative programming

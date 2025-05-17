@@ -1,5 +1,6 @@
 import type { Context } from "hono";
 import { Logger } from "tslog";
+import { inject, injectable, singleton } from "tsyringe";
 import type { CreateTaskUseCase } from "../../application/usecases/task/CreateTaskUseCase";
 import type { DeleteTaskUseCase } from "../../application/usecases/task/DeleteTaskUseCase";
 import type { GetRootTasksUseCase } from "../../application/usecases/task/GetRootTasksUseCase";
@@ -11,14 +12,19 @@ import type { TaskStatus } from "../../domain/models/Task";
 
 const logger = new Logger({ name: "TaskController" });
 
+@injectable()
+@singleton()
 export class TaskController {
   constructor(
+    @inject("GetRootTasksUseCase")
     private getRootTasksUseCase: GetRootTasksUseCase,
+    @inject("GetTaskByIdUseCase")
     private getTaskByIdUseCase: GetTaskByIdUseCase,
-    private createTaskUseCase: CreateTaskUseCase,
-    private updateTaskUseCase: UpdateTaskUseCase,
-    private deleteTaskUseCase: DeleteTaskUseCase,
-    private moveTaskUseCase: MoveTaskUseCase,
+    @inject("CreateTaskUseCase") private createTaskUseCase: CreateTaskUseCase,
+    @inject("UpdateTaskUseCase") private updateTaskUseCase: UpdateTaskUseCase,
+    @inject("DeleteTaskUseCase") private deleteTaskUseCase: DeleteTaskUseCase,
+    @inject("MoveTaskUseCase") private moveTaskUseCase: MoveTaskUseCase,
+    @inject("ReorderTasksUseCase")
     private reorderTasksUseCase: ReorderTasksUseCase,
   ) {}
 

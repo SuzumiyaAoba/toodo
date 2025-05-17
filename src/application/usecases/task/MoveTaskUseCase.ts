@@ -1,3 +1,4 @@
+import { inject, injectable, singleton } from "tsyringe";
 import type { Task } from "../../../domain/models/Task";
 import type { TaskRepository } from "../../../domain/repositories/TaskRepository";
 
@@ -6,8 +7,10 @@ type MoveTaskParams = {
   newParentId: string | null;
 };
 
+@injectable()
+@singleton()
 export class MoveTaskUseCase {
-  constructor(private taskRepository: TaskRepository) {}
+  constructor(@inject("TaskRepository") private taskRepository: TaskRepository) {}
 
   async execute(params: MoveTaskParams): Promise<Task | null> {
     const { taskId, newParentId } = params;

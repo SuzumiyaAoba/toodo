@@ -1,10 +1,12 @@
+import "reflect-metadata";
 import { Hono } from "hono";
-import { DependencyContainer } from "./application/services/DependencyContainer";
+import { getTaskController, initializeContainer } from "./application/services/DependencyContainer";
+
+// Initialize dependency injection container
+initializeContainer();
 
 const app = new Hono();
-const container = new DependencyContainer();
-
-const taskController = container.getTaskController();
+const taskController = getTaskController();
 
 app.get("/", (c) => {
   return c.text("Hello Hono!");

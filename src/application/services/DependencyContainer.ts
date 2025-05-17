@@ -1,3 +1,4 @@
+import { container } from "tsyringe";
 import { db } from "../../db";
 import { TaskController } from "../../infrastructure/controllers/TaskController";
 import { DrizzleTaskRepository } from "../../infrastructure/repositories/DrizzleTaskRepository";
@@ -9,48 +10,39 @@ import { MoveTaskUseCase } from "../usecases/task/MoveTaskUseCase";
 import { ReorderTasksUseCase } from "../usecases/task/ReorderTasksUseCase";
 import { UpdateTaskUseCase } from "../usecases/task/UpdateTaskUseCase";
 
-export class DependencyContainer {
-  // Repository
-  private taskRepository: DrizzleTaskRepository;
+/**
+ * Initialize the dependency injection container
+ */
+export function initializeContainer(): void {
+  // Register database instance
+  container.register("DB", { useValue: db });
 
-  // Task usecases
-  private getRootTasksUseCase: GetRootTasksUseCase;
-  private getTaskByIdUseCase: GetTaskByIdUseCase;
-  private createTaskUseCase: CreateTaskUseCase;
-  private updateTaskUseCase: UpdateTaskUseCase;
-  private deleteTaskUseCase: DeleteTaskUseCase;
-  private moveTaskUseCase: MoveTaskUseCase;
-  private reorderTasksUseCase: ReorderTasksUseCase;
+  // Register repositories
+  container.register("TaskRepository", { useClass: DrizzleTaskRepository });
 
-  // Controller
-  private taskController: TaskController;
+  // Register use cases
+  container.register("GetRootTasksUseCase", { useClass: GetRootTasksUseCase });
+  container.register("GetTaskByIdUseCase", { useClass: GetTaskByIdUseCase });
+  container.register("CreateTaskUseCase", { useClass: CreateTaskUseCase });
+  container.register("UpdateTaskUseCase", { useClass: UpdateTaskUseCase });
+  container.register("DeleteTaskUseCase", { useClass: DeleteTaskUseCase });
+  container.register("MoveTaskUseCase", { useClass: MoveTaskUseCase });
+  container.register("ReorderTasksUseCase", { useClass: ReorderTasksUseCase });
 
-  constructor() {
-    // Repository
-    this.taskRepository = new DrizzleTaskRepository(db);
+  // Register controllers
+  container.register("TaskController", { useClass: TaskController });
+}
 
-    // Task UseCases
-    this.getRootTasksUseCase = new GetRootTasksUseCase(this.taskRepository);
-    this.getTaskByIdUseCase = new GetTaskByIdUseCase(this.taskRepository);
-    this.createTaskUseCase = new CreateTaskUseCase(this.taskRepository);
-    this.updateTaskUseCase = new UpdateTaskUseCase(this.taskRepository);
-    this.deleteTaskUseCase = new DeleteTaskUseCase(this.taskRepository);
-    this.moveTaskUseCase = new MoveTaskUseCase(this.taskRepository);
-    this.reorderTasksUseCase = new ReorderTasksUseCase(this.taskRepository);
+/**
+ * Get a single instance from the container
+ */
+export function resolve<T>(token: string | symbol): T {
+  return container.resolve<T>(token);
+}
 
-    // Task Controller
-    this.taskController = new TaskController(
-      this.getRootTasksUseCase,
-      this.getTaskByIdUseCase,
-      this.createTaskUseCase,
-      this.updateTaskUseCase,
-      this.deleteTaskUseCase,
-      this.moveTaskUseCase,
-      this.reorderTasksUseCase,
-    );
-  }
-
-  getTaskController(): TaskController {
-    return this.taskController;
-  }
+/**
+ * Get the task controller
+ */
+export function getTaskController(): TaskController {
+  return resolve<TaskController>("TaskController");
 }

@@ -1,7 +1,10 @@
+import { inject, injectable, singleton } from "tsyringe";
 import type { TaskRepository } from "../../../domain/repositories/TaskRepository";
 
+@injectable()
+@singleton()
 export class DeleteTaskUseCase {
-  constructor(private taskRepository: TaskRepository) {}
+  constructor(@inject("TaskRepository") private taskRepository: TaskRepository) {}
 
   async execute(id: string): Promise<boolean> {
     const task = await this.taskRepository.findById(id, false);
