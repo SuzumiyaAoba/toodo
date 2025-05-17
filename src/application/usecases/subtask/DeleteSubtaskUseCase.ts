@@ -19,8 +19,8 @@ export class DeleteSubtaskUseCase {
 
     const todo = await this.todoRepository.findById(todoId);
     if (todo) {
-      todo.updateCompletionStatus();
-      await this.todoRepository.save(todo);
+      const updatedTodo = todo.updateCompletionStatus();
+      await this.todoRepository.save(updatedTodo);
     }
 
     return true;

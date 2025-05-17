@@ -76,7 +76,14 @@ export class DrizzleTodoRepository implements TodoRepository {
       await this.subtaskRepository.save(subtask);
     }
 
-    return todo;
+    // 確実に最新の状態のオブジェクトを返すため、再度 findById を呼び出します
+    return this.findById(todo.id).then((updated) => {
+      if (!updated) {
+        // データがない場合は元のオブジェクトを返す
+        return todo;
+      }
+      return updated;
+    });
   }
 
   async delete(id: string): Promise<void> {

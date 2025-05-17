@@ -81,7 +81,9 @@ export class DrizzleTaskRepository implements TaskRepository {
       }
     }
 
-    return task;
+    // 確実に最新の状態のオブジェクトを返すため、再度 findById を呼び出します
+    const updated = await this.findById(task.id, saveHierarchy);
+    return updated || task;
   }
 
   async delete(id: string): Promise<void> {
@@ -102,15 +104,30 @@ export class DrizzleTaskRepository implements TaskRepository {
       throw new Error("All tasks must have the same parent");
     }
 
+    const updatedTasks: Task[] = [];
     for (const [index, task] of tasks.entries()) {
-      task.order = index + 1;
+      // Create a new task with updated order
+      const updatedTask = new Task(
+        task.title,
+        task.parentId,
+        task.description,
+        task.id,
+        task.status,
+        index + 1,
+        task.createdAt,
+        new Date(),
+        task.subtasks,
+      );
+
       await this.db
         .update(schema.tasks)
-        .set({ order: task.order, updatedAt: new Date() })
+        .set({ order: updatedTask.order, updatedAt: updatedTask.updatedAt })
         .where(eq(schema.tasks.id, task.id));
+
+      updatedTasks.push(updatedTask);
     }
 
-    return tasks;
+    return updatedTasks;
   }
 
   async findTaskTree(rootId: string): Promise<Task | null> {
@@ -147,17 +164,25 @@ export class DrizzleTaskRepository implements TaskRepository {
     // Calculate new order as last item
     const newOrder = siblingTasks.length > 0 ? Math.max(...siblingTasks.map((t) => (t as schema.Task).order)) + 1 : 1;
 
-    // Update the task
-    task.parentId = newParentId;
-    task.order = newOrder;
-    task.updatedAt = new Date();
+    // Create a new Task with updated properties
+    const updatedTask = new Task(
+      task.title,
+      newParentId,
+      task.description,
+      task.id,
+      task.status,
+      newOrder,
+      task.createdAt,
+      new Date(),
+      task.subtasks,
+    );
 
     await this.db
       .update(schema.tasks)
       .set({
-        parentId: task.parentId,
-        order: task.order,
-        updatedAt: task.updatedAt,
+        parentId: updatedTask.parentId,
+        order: updatedTask.order,
+        updatedAt: updatedTask.updatedAt,
       })
       .where(eq(schema.tasks.id, taskId));
 

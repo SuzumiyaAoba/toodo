@@ -17,9 +17,15 @@ export class AddSubtaskUseCase {
       return null;
     }
 
-    const subtask = todo.addSubtask(dto.title, dto.description);
-    await this.todoRepository.save(todo);
+    const updatedTodo = todo.addSubtask(dto.title, dto.description);
+    const savedTodo = await this.todoRepository.save(updatedTodo);
 
-    return subtask;
+    // 最後に追加された subtask を返す
+    if (savedTodo.subtasks.length > 0) {
+      const lastSubtask = savedTodo.subtasks[savedTodo.subtasks.length - 1];
+      return lastSubtask || null;
+    }
+
+    return null;
   }
 }

@@ -16,22 +16,22 @@ export class UpdateSubtaskUseCase {
   ) {}
 
   async execute(dto: UpdateSubtaskCmd): Promise<Subtask | null> {
-    const subtask = await this.subtaskRepository.findById(dto.id);
+    let subtask = await this.subtaskRepository.findById(dto.id);
 
     if (!subtask) {
       return null;
     }
 
     if (dto.title !== undefined) {
-      subtask.updateTitle(dto.title);
+      subtask = subtask.updateTitle(dto.title);
     }
 
     if (dto.description !== undefined) {
-      subtask.updateDescription(dto.description);
+      subtask = subtask.updateDescription(dto.description);
     }
 
     if (dto.status !== undefined) {
-      subtask.updateStatus(dto.status);
+      subtask = subtask.updateStatus(dto.status);
     }
 
     const updatedSubtask = await this.subtaskRepository.save(subtask);
@@ -39,8 +39,8 @@ export class UpdateSubtaskUseCase {
     if (dto.status !== undefined) {
       const todo = await this.todoRepository.findById(subtask.todoId);
       if (todo) {
-        todo.updateCompletionStatus();
-        await this.todoRepository.save(todo);
+        const updatedTodo = todo.updateCompletionStatus();
+        await this.todoRepository.save(updatedTodo);
       }
     }
 

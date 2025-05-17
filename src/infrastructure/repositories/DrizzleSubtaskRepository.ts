@@ -74,7 +74,14 @@ export class DrizzleSubtaskRepository implements SubtaskRepository {
       await this.db.insert(schema.subtasks).values(subtaskData);
     }
 
-    return subtask;
+    // 確実に最新の状態のオブジェクトを返すため、再度 findById を呼び出します
+    return this.findById(subtask.id).then((updated) => {
+      if (!updated) {
+        // データがない場合は元のオブジェクトを返す
+        return subtask;
+      }
+      return updated;
+    });
   }
 
   async delete(id: string): Promise<void> {
@@ -82,9 +89,13 @@ export class DrizzleSubtaskRepository implements SubtaskRepository {
   }
 
   async updateOrder(subtasks: Subtask[]): Promise<Subtask[]> {
+    const updatedSubtasks: Subtask[] = [];
+
     for (const subtask of subtasks) {
-      await this.save(subtask);
+      const updated = await this.save(subtask);
+      updatedSubtasks.push(updated);
     }
-    return subtasks;
+
+    return updatedSubtasks;
   }
 }

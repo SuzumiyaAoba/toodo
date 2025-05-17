@@ -16,9 +16,9 @@ export class ReorderSubtasksUseCase {
       return null;
     }
 
-    todo.reorderSubtasks(dto.orderMap);
-    await this.todoRepository.save(todo);
+    const updatedTodo = todo.reorderSubtasks(dto.orderMap);
+    const savedTodo = await this.todoRepository.save(updatedTodo);
 
-    return todo.subtasks;
+    return [...savedTodo.subtasks];
   }
 }

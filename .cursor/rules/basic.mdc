@@ -29,6 +29,18 @@ alwaysApply: true
 - Run `bun run format` after making changes to ensure proper code style
 - If `bun run format` reports errors, fix them before proceeding with further development
 
+## Immutability
+- Make all domain objects immutable wherever possible
+- Use `readonly` for all properties in TypeScript types and interfaces
+- Use `as const` with object literals to make them readonly
+- Never modify object properties directly; create a new object instead
+- Use immutable data structures or patterns (e.g., copy-on-write)
+- For collections, use methods that return new arrays (map, filter, reduce) instead of modifying existing arrays
+- Apply functional programming principles where appropriate
+- Use constructor parameters with readonly properties for domain objects
+- Implement factory methods to create new instances with modified values
+- For complex state transitions, implement methods that return new instances
+
 ## Project Structure
 - `src/index.ts` - Main application entry point
 - `src/db/` - Database related files

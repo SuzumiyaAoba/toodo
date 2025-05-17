@@ -11,21 +11,21 @@ export class UpdateTodoUseCase {
   constructor(private todoRepository: TodoRepository) {}
 
   async execute(dto: UpdateTodoCmd): Promise<Todo | null> {
-    const todo = await this.todoRepository.findById(dto.id);
+    let todo = await this.todoRepository.findById(dto.id);
 
     if (!todo) {
       return null;
     }
 
     if (dto.content !== undefined) {
-      todo.updateContent(dto.content);
+      todo = todo.updateContent(dto.content);
     }
 
     if (dto.completed !== undefined) {
       if (dto.completed) {
-        todo.markAsCompleted();
+        todo = todo.markAsCompleted();
       } else {
-        todo.markAsIncomplete();
+        todo = todo.markAsIncomplete();
       }
     }
 

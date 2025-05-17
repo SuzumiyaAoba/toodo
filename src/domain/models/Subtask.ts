@@ -3,14 +3,14 @@ import { v4 as uuidv4 } from "uuid";
 export type SubtaskStatus = "completed" | "incomplete";
 
 export class Subtask {
-  id: string;
-  todoId: string;
-  title: string;
-  description: string | null;
-  status: SubtaskStatus;
-  order: number;
-  createdAt: Date;
-  updatedAt: Date;
+  readonly id: string;
+  readonly todoId: string;
+  readonly title: string;
+  readonly description: string | null;
+  readonly status: SubtaskStatus;
+  readonly order: number;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
 
   constructor(
     todoId: string,
@@ -32,33 +32,81 @@ export class Subtask {
     this.updatedAt = updatedAt || new Date();
   }
 
-  updateTitle(title: string): void {
-    this.title = title;
-    this.updatedAt = new Date();
+  updateTitle(title: string): Subtask {
+    return new Subtask(
+      this.todoId,
+      title,
+      this.order,
+      this.description,
+      this.id,
+      this.status,
+      this.createdAt,
+      new Date(),
+    );
   }
 
-  updateDescription(description: string | null): void {
-    this.description = description;
-    this.updatedAt = new Date();
+  updateDescription(description: string | null): Subtask {
+    return new Subtask(
+      this.todoId,
+      this.title,
+      this.order,
+      description,
+      this.id,
+      this.status,
+      this.createdAt,
+      new Date(),
+    );
   }
 
-  updateStatus(status: SubtaskStatus): void {
-    this.status = status;
-    this.updatedAt = new Date();
+  updateStatus(status: SubtaskStatus): Subtask {
+    return new Subtask(
+      this.todoId,
+      this.title,
+      this.order,
+      this.description,
+      this.id,
+      status,
+      this.createdAt,
+      new Date(),
+    );
   }
 
-  updateOrder(order: number): void {
-    this.order = order;
-    this.updatedAt = new Date();
+  updateOrder(order: number): Subtask {
+    return new Subtask(
+      this.todoId,
+      this.title,
+      order,
+      this.description,
+      this.id,
+      this.status,
+      this.createdAt,
+      new Date(),
+    );
   }
 
-  markAsCompleted(): void {
-    this.status = "completed";
-    this.updatedAt = new Date();
+  markAsCompleted(): Subtask {
+    return new Subtask(
+      this.todoId,
+      this.title,
+      this.order,
+      this.description,
+      this.id,
+      "completed",
+      this.createdAt,
+      new Date(),
+    );
   }
 
-  markAsIncomplete(): void {
-    this.status = "incomplete";
-    this.updatedAt = new Date();
+  markAsIncomplete(): Subtask {
+    return new Subtask(
+      this.todoId,
+      this.title,
+      this.order,
+      this.description,
+      this.id,
+      "incomplete",
+      this.createdAt,
+      new Date(),
+    );
   }
 }
