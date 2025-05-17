@@ -15,7 +15,6 @@
     "format": "biome check --write",
     "generate": "drizzle-kit generate",
     "migrate": "bun run src/db/migrate.ts",
-    "migrate:hierarchical": "bun run src/db/migrations/migrateToHierarchicalTasks.ts",
     "studio": "drizzle-kit studio"
   },
   "dependencies": {
