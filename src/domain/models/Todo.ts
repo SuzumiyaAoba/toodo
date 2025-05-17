@@ -59,8 +59,9 @@ export class Todo {
 
   reorderSubtasks(orderMap: Record<string, number>): void {
     for (const subtask of this.subtasks) {
-      if (orderMap[subtask.id] !== undefined) {
-        subtask.updateOrder(orderMap[subtask.id]);
+      const orderValue = orderMap[subtask.id];
+      if (orderValue !== undefined) {
+        subtask.updateOrder(orderValue);
       }
     }
 

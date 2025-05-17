@@ -1,20 +1,13 @@
 {
+  "extends": "@tsconfig/strictest/tsconfig.json",
   "compilerOptions": {
-    "strict": true,
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx",
     "module": "esnext",
     "moduleResolution": "node",
     "target": "esnext",
     "lib": ["esnext"],
-    "esModuleInterop": true,
-    "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "noImplicitAny": true,
-    "noImplicitReturns": true,
-    "noImplicitThis": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
     "outDir": "dist",
     "rootDir": "src"
   },

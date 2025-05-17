@@ -28,6 +28,7 @@ export default app;
 
 // For direct execution with bun run
 if (import.meta.main) {
+  // @ts-ignore
   const port = process.env.PORT ? Number.parseInt(process.env.PORT, 10) : 3001;
   console.log(`Server listening on http://localhost:${port}`);
   Bun.serve({

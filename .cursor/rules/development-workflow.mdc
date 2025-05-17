@@ -7,86 +7,75 @@ alwaysApply: true
 
 ## Development Flow
 
-The following development workflow **MUST** be adhered to:
+The following workflow **MUST** be followed:
 
 1. **Domain Design (DDD)**
-
    - Identify and define domain models
-   - Establish ubiquitous language
+   - Establish common language
    - Define bounded contexts
    - Identify aggregates and entities
 
 2. **Endpoint Design**
-
    - Define RESTful APIs
    - Design request/response structures
    - Define error handling strategies
    - Specify authentication/authorization requirements
 
 3. **Database Design**
-
    - Define table structures
    - Define relationships
    - Design indexes
    - Establish migration strategies
 
 4. **Module Design**
-
    - Design classes/components
    - Organize dependencies
    - Define interfaces
    - Define architecture
 
 5. **Design Verification**
-
-   - Verify that design documentation exists for the feature being implemented
-   - If design is insufficient, return to the design phase
+   - Verify design documentation exists for the feature
+   - Return to design phase if documentation is insufficient
 
 6. **TDD Implementation**
-
-   - Create tests for minimal functionality (methods)
-   - Verify that tests fail initially
+   - Create tests for smallest functional units
+   - Verify tests fail initially
    - Develop implementation
    - Iterate until tests pass
 
 7. **Iteration and Progress**
-   - Move on to implementing the next method only after current tests pass
+   - Move to next method only after current tests pass
    - Revisit design as needed
 
 ## Mandatory Checklists
 
 ### Domain Design Checklist
-
-- [ ] Domain models MUST be clearly defined
-- [ ] Ubiquitous language MUST be documented
-- [ ] Bounded contexts MUST be appropriately separated
-- [ ] Aggregate boundaries MUST be clear
+- [ ] Domain models clearly defined
+- [ ] Common language documented
+- [ ] Bounded contexts appropriately separated
+- [ ] Aggregate boundaries clear
 
 ### Endpoint Design Checklist
-
-- [ ] All necessary endpoints MUST be defined
-- [ ] Request/response structures MUST be appropriate
-- [ ] Error handling MUST be consistent
-- [ ] Security requirements MUST be considered
+- [ ] All necessary endpoints defined
+- [ ] Request/response structures appropriate
+- [ ] Error handling consistent
+- [ ] Security requirements considered
 
 ### Database Design Checklist
-
-- [ ] Schema MUST be normalized
-- [ ] Indexes MUST be appropriately set
-- [ ] Migration strategy MUST be defined
-- [ ] Performance requirements MUST be considered
+- [ ] Schema normalized
+- [ ] Indexes appropriately set
+- [ ] Migration strategy defined
+- [ ] Performance requirements considered
 
 ### Test Implementation Checklist
-
-- [ ] Tests MUST accurately reflect functional requirements
-- [ ] Edge cases MUST be covered
-- [ ] Tests MUST be independent and reproducible
-- [ ] Test code MUST be readable and maintainable
+- [ ] Tests accurately reflect requirements
+- [ ] Edge cases covered
+- [ ] Tests independent and reproducible
+- [ ] Test code readable and maintainable
 
 ## Required Practices
-
-- Design documentation MUST be kept up-to-date
-- Design MUST be reviewed before implementation
-- TDD cycles MUST be maintained for all functional units
-- Consistency with design MUST be verified during code reviews
-- Regular refactoring MUST be performed to reduce technical debt
+- Keep design documentation up-to-date
+- Review design before implementation
+- Maintain TDD cycles for all functional units
+- Verify design consistency during code reviews
+- Perform regular refactoring to reduce technical debt
