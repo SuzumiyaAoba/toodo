@@ -2,7 +2,7 @@ import type { Subtask, SubtaskStatus } from "../../../domain/models/Subtask";
 import type { SubtaskRepository } from "../../../domain/repositories/SubtaskRepository";
 import type { TodoRepository } from "../../../domain/repositories/TodoRepository";
 
-export type UpdateSubtaskDTO = {
+export type UpdateSubtaskCmd = {
   id: string;
   title?: string;
   description?: string | null;
@@ -15,7 +15,7 @@ export class UpdateSubtaskUseCase {
     private todoRepository: TodoRepository,
   ) {}
 
-  async execute(dto: UpdateSubtaskDTO): Promise<Subtask | null> {
+  async execute(dto: UpdateSubtaskCmd): Promise<Subtask | null> {
     const subtask = await this.subtaskRepository.findById(dto.id);
 
     if (!subtask) {

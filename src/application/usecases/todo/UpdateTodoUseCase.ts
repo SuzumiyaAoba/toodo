@@ -1,7 +1,7 @@
 import type { Todo } from "../../../domain/models/Todo";
 import type { TodoRepository } from "../../../domain/repositories/TodoRepository";
 
-export type UpdateTodoDTO = {
+export type UpdateTodoCmd = {
   id: string;
   content?: string;
   completed?: boolean;
@@ -10,7 +10,7 @@ export type UpdateTodoDTO = {
 export class UpdateTodoUseCase {
   constructor(private todoRepository: TodoRepository) {}
 
-  async execute(dto: UpdateTodoDTO): Promise<Todo | null> {
+  async execute(dto: UpdateTodoCmd): Promise<Todo | null> {
     const todo = await this.todoRepository.findById(dto.id);
 
     if (!todo) {
