@@ -93,13 +93,22 @@ export class TaskController {
 
       const { title, description, parentId } = validationResult.data;
 
-      const task = await this.createTaskUseCase.execute({
-        title,
-        description: description === undefined ? null : description,
-        parentId: parentId === undefined ? null : parentId,
-      });
+      try {
+        const task = await this.createTaskUseCase.execute({
+          title,
+          description: description === undefined ? null : description,
+          parentId: parentId === undefined ? null : parentId,
+        });
 
-      return c.json(task, 201);
+        return c.json(task, 201);
+      } catch (error) {
+        // Check for parent not found error
+        if (error instanceof Error && error.message.includes("Parent task") && error.message.includes("not found")) {
+          return c.json({ error: error.message }, 404);
+        }
+        // Re-throw for general error handling
+        throw error;
+      }
     } catch (error) {
       logger.error("Failed to create task:", error);
       return c.json({ error: "Failed to create task" }, 500);

@@ -17,6 +17,14 @@ export class CreateTaskUseCase {
   async execute(params: CreateTaskParams): Promise<TaskType> {
     const { title, description = null, parentId = null } = params;
 
+    // Validate parent exists if parentId is provided
+    if (parentId) {
+      const parent = await this.taskRepository.findById(parentId);
+      if (!parent) {
+        throw new Error(`Parent task ${parentId} not found`);
+      }
+    }
+
     // Create task with provided parameters
     const task = Task.create(title, parentId, description);
 

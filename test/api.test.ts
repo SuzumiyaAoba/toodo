@@ -217,5 +217,29 @@ describe("API Tests", () => {
       expect(taskWithChildren.subtasks.map((t) => t.title)).toContain(childTask2.title);
       expect(taskWithChildren.subtasks.map((t) => t.title)).toContain(childTask3.title);
     });
+
+    it("should return 404 when creating a task with non-existent parent", async () => {
+      // Attempt to create a task with a non-existent parent ID
+      const nonExistentParentId = uuidv4(); // Generate a random UUID that doesn't exist
+      const taskData = {
+        title: "Task with Bad Parent",
+        parentId: nonExistentParentId,
+      };
+
+      const response = await app.request("/api/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(taskData),
+      });
+
+      // Verify we get a 404 status code
+      expect(response.status).toBe(404);
+
+      // Verify the error message
+      const responseBody = await response.json();
+      expect(responseBody.error).toBeDefined();
+      expect(responseBody.error).toContain("Parent task");
+      expect(responseBody.error).toContain("not found");
+    });
   });
 });
