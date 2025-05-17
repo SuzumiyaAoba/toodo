@@ -26,6 +26,18 @@ export namespace Task {
     updatedAt?: Date,
     subtasks: readonly Task[] = [],
   ): Task {
+    if (!title.trim()) {
+      throw new Error("Task title cannot be empty");
+    }
+
+    if (order < 1) {
+      throw new Error("Task order must be a positive number");
+    }
+
+    if (!["completed", "incomplete"].includes(status)) {
+      throw new Error(`Task status must be "completed" or "incomplete", got "${status}"`);
+    }
+
     return {
       id: id || uuidv4(),
       parentId,

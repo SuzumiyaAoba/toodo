@@ -3,7 +3,7 @@ import type { BunSQLiteDatabase } from "drizzle-orm/bun-sqlite";
 import * as schema from "../../db/schema";
 import { Task as TaskNamespace, type TaskStatus } from "../../domain/models/Task";
 import type { Task } from "../../domain/models/Task";
-import type { TaskRepository } from "../../domain/repositories/TaskRepository";
+import type { PaginationParams, TaskRepository } from "../../domain/repositories/TaskRepository";
 
 type DbSchema = typeof schema;
 
@@ -16,6 +16,28 @@ export class DrizzleTaskRepository implements TaskRepository {
       .from(schema.tasks)
       .where(isNull(schema.tasks.parentId))
       .orderBy(asc(schema.tasks.order))
+      .all();
+
+    const tasks: Task[] = [];
+    for (const record of records) {
+      const subtasks = await this.findByParentId(record.id as string);
+      tasks.push(this.mapToModel(record as schema.Task, subtasks));
+    }
+
+    return tasks;
+  }
+
+  async findRootTasksWithPagination(params: PaginationParams): Promise<Task[]> {
+    const { page, limit } = params;
+    const offset = (page - 1) * limit;
+
+    const records = await this.db
+      .select()
+      .from(schema.tasks)
+      .where(isNull(schema.tasks.parentId))
+      .orderBy(asc(schema.tasks.order))
+      .limit(limit)
+      .offset(offset)
       .all();
 
     const tasks: Task[] = [];

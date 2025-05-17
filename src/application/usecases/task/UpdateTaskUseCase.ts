@@ -24,6 +24,10 @@ export class UpdateTaskUseCase {
     // Apply updates
     let updatedTask = task;
 
+    if (title === undefined && description === undefined && status === undefined) {
+      return task; // nothing to do
+    }
+
     if (title !== undefined) {
       updatedTask = Task.updateTitle(updatedTask, title);
     }

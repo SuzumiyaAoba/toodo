@@ -24,7 +24,16 @@ export class TaskController {
 
   getRootTasks = async (c: Context) => {
     try {
-      const tasks = await this.getRootTasksUseCase.execute();
+      // Get pagination parameters from query
+      const page = Number.parseInt(c.req.query("page") || "1", 10);
+      const limit = Number.parseInt(c.req.query("limit") || "20", 10);
+
+      // Validate pagination parameters
+      if (Number.isNaN(page) || page < 1 || Number.isNaN(limit) || limit < 1 || limit > 100) {
+        return c.json({ error: "Invalid pagination parameters" }, 400);
+      }
+
+      const tasks = await this.getRootTasksUseCase.execute({ page, limit });
       return c.json(tasks);
     } catch (error) {
       logger.error("Failed to get root tasks:", error);

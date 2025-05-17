@@ -1,10 +1,20 @@
 import type { Task } from "../models/Task";
 
+export type PaginationParams = {
+  page: number;
+  limit: number;
+};
+
 export type TaskRepository = {
   /**
    * Find all root tasks (tasks with no parent)
    */
   findRootTasks(): Promise<Task[]>;
+
+  /**
+   * Find root tasks with pagination
+   */
+  findRootTasksWithPagination(params: PaginationParams): Promise<Task[]>;
 
   /**
    * Find all subtasks for a given parent task ID

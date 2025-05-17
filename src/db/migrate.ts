@@ -29,6 +29,9 @@ async function main() {
       updated_at INTEGER,
       FOREIGN KEY (parent_id) REFERENCES tasks(id) ON DELETE CASCADE
     );
+
+    -- Create index on parent_id for better query performance
+    CREATE INDEX IF NOT EXISTS idx_tasks_parent_id ON tasks(parent_id);
   `);
 
   logger.info("Database setup completed successfully!");

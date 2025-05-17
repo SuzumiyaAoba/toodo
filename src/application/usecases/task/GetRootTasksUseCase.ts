@@ -1,10 +1,13 @@
 import type { Task } from "../../../domain/models/Task";
-import type { TaskRepository } from "../../../domain/repositories/TaskRepository";
+import type { PaginationParams, TaskRepository } from "../../../domain/repositories/TaskRepository";
 
 export class GetRootTasksUseCase {
   constructor(private taskRepository: TaskRepository) {}
 
-  async execute(): Promise<Task[]> {
+  async execute(params?: PaginationParams): Promise<Task[]> {
+    if (params) {
+      return this.taskRepository.findRootTasksWithPagination(params);
+    }
     return this.taskRepository.findRootTasks();
   }
 }
