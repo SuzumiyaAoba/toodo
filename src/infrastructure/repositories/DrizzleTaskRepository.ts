@@ -1,4 +1,4 @@
-import { asc, eq, isNull } from "drizzle-orm";
+import { asc, eq, inArray, isNull } from "drizzle-orm";
 import type { BunSQLiteDatabase } from "drizzle-orm/bun-sqlite";
 import { inject, injectable, singleton } from "tsyringe";
 import * as schema from "../../db/schema";
@@ -209,13 +209,70 @@ export class DrizzleTaskRepository implements TaskRepository {
   }
 
   private async mapRecordsToTasks(records: schema.Task[]): Promise<readonly Task[]> {
-    const tasks: Task[] = [];
-
-    for (const record of records) {
-      const subtasks = await this.findByParentId(record.id as string);
-      tasks.push(this.mapToModel(record, subtasks));
+    if (records.length === 0) {
+      return [];
     }
 
+    // Extract all record IDs
+    const parentIds = records.map((record) => record.id);
+
+    // Fetch all subtasks for all parent IDs in a single query
+    const allSubtasksRecords = (await this.db
+      .select()
+      .from(schema.tasks)
+      .where(inArray(schema.tasks.parentId, parentIds))
+      .orderBy(asc(schema.tasks.order))
+      .all()) as schema.Task[];
+
+    // Create a map of parentId -> subtasks records
+    const subtasksByParentId = new Map<string, schema.Task[]>();
+
+    // Initialize empty arrays for all parent IDs
+    for (const id of parentIds) {
+      subtasksByParentId.set(id, []);
+    }
+
+    // Group subtasks by their parent ID
+    for (const subtask of allSubtasksRecords) {
+      if (subtask.parentId) {
+        const parentSubtasks = subtasksByParentId.get(subtask.parentId) || [];
+        parentSubtasks.push(subtask);
+        subtasksByParentId.set(subtask.parentId, parentSubtasks);
+      }
+    }
+
+    // Process subtasks recursively for each level
+    const subtaskEntries = Array.from(subtasksByParentId.entries());
+    if (subtaskEntries.length > 0) {
+      // Recursive call to process nested subtasks
+      const processedSubtasks = await this.mapRecordsToTasks(allSubtasksRecords);
+
+      // Create a map of subtask ID -> processed subtask with its own children
+      const processedSubtasksById = new Map<string, Task>();
+      for (const subtask of processedSubtasks) {
+        processedSubtasksById.set(subtask.id, subtask);
+      }
+
+      // Map record to task model with all subtasks
+      const tasks: Task[] = records.map((record) => {
+        const recordSubtasks = subtasksByParentId.get(record.id) || [];
+        const mappedSubtasks: Task[] = recordSubtasks.map((subtaskRecord) => {
+          // Use the already processed subtask if available (with its own children)
+          return (
+            processedSubtasksById.get(subtaskRecord.id) ||
+            // Fallback to creating a new task without children if not found
+            this.mapToModel(subtaskRecord, [])
+          );
+        });
+
+        return this.mapToModel(record, mappedSubtasks);
+      });
+
+      return Object.freeze(tasks);
+    }
+
+    // If there are no subtasks, just map the records to tasks without children
+    const tasks: Task[] = records.map((record) => this.mapToModel(record, []));
     return Object.freeze(tasks);
   }
 }
