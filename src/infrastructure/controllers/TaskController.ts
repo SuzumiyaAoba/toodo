@@ -9,6 +9,20 @@ import type { MoveTaskUseCase } from "../../application/usecases/task/MoveTaskUs
 import type { ReorderTasksUseCase } from "../../application/usecases/task/ReorderTasksUseCase";
 import type { UpdateTaskUseCase } from "../../application/usecases/task/UpdateTaskUseCase";
 import type { TaskStatus } from "../../domain/models/Task";
+import {
+  type CreateTaskInput,
+  type MoveTaskInput,
+  type PaginationInput,
+  type ReorderTasksInput,
+  type UpdateTaskInput,
+  createTaskSchema,
+  idSchema,
+  moveTaskSchema,
+  paginationSchema,
+  reorderTasksSchema,
+  updateTaskSchema,
+} from "../../domain/models/schema/TaskSchema";
+import { validateQuery, validateRequest } from "../utils/ValidationUtils";
 
 const logger = new Logger({ name: "TaskController" });
 
@@ -30,26 +44,32 @@ export class TaskController {
 
   getRootTasks = async (c: Context) => {
     try {
-      // Get pagination parameters from query
-      const page = Number.parseInt(c.req.query("page") || "1", 10);
-      const limit = Number.parseInt(c.req.query("limit") || "20", 10);
-
-      // Validate pagination parameters
-      if (Number.isNaN(page) || page < 1 || Number.isNaN(limit) || limit < 1 || limit > 100) {
-        return c.json({ error: "Invalid pagination parameters" }, 400);
+      // Validate query parameters
+      const validationResult = validateQuery<PaginationInput>(c, paginationSchema);
+      if (!("success" in validationResult)) {
+        return validationResult;
       }
 
+      const { page, limit } = validationResult.data;
       const tasks = await this.getRootTasksUseCase.execute({ page, limit });
       return c.json(tasks);
     } catch (error) {
       logger.error("Failed to get root tasks:", error);
-      return c.json({ error: "Failed to get root tasks" }, 500);
+      return c.json({ error: "Failed to get task list" }, 500);
     }
   };
 
   getTaskById = async (c: Context) => {
     try {
       const id = c.req.param("id");
+
+      // Validate ID
+      try {
+        idSchema.parse(id);
+      } catch (error) {
+        return c.json({ error: "Invalid task ID" }, 400);
+      }
+
       const task = await this.getTaskByIdUseCase.execute(id);
 
       if (!task) {
@@ -65,16 +85,18 @@ export class TaskController {
 
   create = async (c: Context) => {
     try {
-      const { title, description = null, parentId = null } = await c.req.json();
-
-      if (!title) {
-        return c.json({ error: "Title is required" }, 400);
+      // Validate request body
+      const validationResult = await validateRequest<CreateTaskInput>(c, createTaskSchema);
+      if (!("success" in validationResult)) {
+        return validationResult;
       }
+
+      const { title, description, parentId } = validationResult.data;
 
       const task = await this.createTaskUseCase.execute({
         title,
-        description,
-        parentId,
+        description: description === undefined ? null : description,
+        parentId: parentId === undefined ? null : parentId,
       });
 
       return c.json(task, 201);
@@ -87,19 +109,42 @@ export class TaskController {
   update = async (c: Context) => {
     try {
       const id = c.req.param("id");
-      const { title, description, status } = await c.req.json();
 
-      // Validate status if provided
-      if (status && !["completed", "incomplete"].includes(status)) {
-        return c.json({ error: "Invalid status. Must be 'completed' or 'incomplete'" }, 400);
+      // Validate ID and request body together
+      const validationResult = await validateRequest<UpdateTaskInput>(
+        c,
+        updateTaskSchema.extend({
+          id: idSchema.default(id), // Use ID from URL parameter as default
+        }),
+      );
+
+      if (!("success" in validationResult)) {
+        return validationResult;
       }
 
-      const task = await this.updateTaskUseCase.execute({
-        id,
-        title,
-        description,
-        status: status as TaskStatus,
-      });
+      const { title, description, status } = validationResult.data;
+
+      // Create update object removing undefined properties
+      const updateData: {
+        id: string;
+        title?: string;
+        description?: string | null;
+        status?: TaskStatus;
+      } = { id };
+
+      if (title !== undefined) {
+        updateData.title = title;
+      }
+
+      if (description !== undefined) {
+        updateData.description = description;
+      }
+
+      if (status !== undefined) {
+        updateData.status = status;
+      }
+
+      const task = await this.updateTaskUseCase.execute(updateData);
 
       if (!task) {
         return c.json({ error: "Task not found" }, 404);
@@ -115,6 +160,13 @@ export class TaskController {
   delete = async (c: Context) => {
     try {
       const id = c.req.param("id");
+
+      // Validate ID
+      try {
+        idSchema.parse(id);
+      } catch (error) {
+        return c.json({ error: "Invalid task ID" }, 400);
+      }
 
       const success = await this.deleteTaskUseCase.execute(id);
 
@@ -132,11 +184,24 @@ export class TaskController {
   move = async (c: Context) => {
     try {
       const id = c.req.param("id");
-      const { parentId } = await c.req.json();
+
+      // Validate ID and request body together
+      const validationResult = await validateRequest<MoveTaskInput>(
+        c,
+        moveTaskSchema.extend({
+          taskId: idSchema.default(id), // Use ID from URL parameter as default
+        }),
+      );
+
+      if (!("success" in validationResult)) {
+        return validationResult;
+      }
+
+      const { taskId, newParentId } = validationResult.data;
 
       const task = await this.moveTaskUseCase.execute({
-        taskId: id,
-        newParentId: parentId,
+        taskId,
+        newParentId,
       });
 
       if (!task) {
@@ -153,11 +218,20 @@ export class TaskController {
   reorder = async (c: Context) => {
     try {
       const parentId = c.req.param("parentId") || null;
-      const { orderMap } = await c.req.json();
 
-      if (!orderMap || typeof orderMap !== "object") {
-        return c.json({ error: "orderMap is required and must be an object" }, 400);
+      // Validate request body
+      const validationResult = await validateRequest<ReorderTasksInput>(
+        c,
+        reorderTasksSchema.extend({
+          parentId: parentId ? idSchema.default(parentId) : idSchema.nullable().default(null),
+        }),
+      );
+
+      if (!("success" in validationResult)) {
+        return validationResult;
       }
+
+      const { orderMap } = validationResult.data;
 
       const tasks = await this.reorderTasksUseCase.execute({
         parentId,
