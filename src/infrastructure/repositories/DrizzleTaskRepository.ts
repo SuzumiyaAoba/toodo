@@ -134,6 +134,10 @@ export class DrizzleTaskRepository implements TaskRepository {
       return null;
     }
 
+    if (newParentId === taskId) {
+      throw new Error("Cannot set a task as its own parent");
+    }
+
     if (newParentId) {
       const newParent = await this.findById(newParentId, false);
       if (!newParent) {

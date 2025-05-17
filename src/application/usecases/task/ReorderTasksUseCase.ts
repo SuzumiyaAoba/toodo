@@ -21,11 +21,11 @@ export class ReorderTasksUseCase {
       ? await this.taskRepository.findByParentId(parentId)
       : await this.taskRepository.findRootTasks();
 
-    // 防御的チェック - イミュータブルな方法で
+    // Defensive validation in an immutable way
     this.validateOrderMap(tasks, orderMap);
 
-    // Update order for each task based on orderMap - イミュータブルな処理
-    // フィルタリングと処理を一度で行い、型安全性を確保
+    // Update order for each task based on orderMap - immutable processing
+    // Filtering and processing in a single pass, ensuring type safety
     const tasksWithOrderValues = tasks
       .map((task) => {
         const newOrder = orderMap[task.id];
@@ -39,14 +39,14 @@ export class ReorderTasksUseCase {
       return tasks;
     }
 
-    // Sort tasks by order - イミュータブルな方法で
+    // Sort tasks by order in an immutable way
     const sortedTasks = [...tasksToUpdate].sort((a, b) => a.order - b.order);
 
     // Save updated tasks with new order
     return this.taskRepository.updateOrder(sortedTasks);
   }
 
-  // 検証ロジックを別のメソッドに分割して純粋関数的アプローチを適用
+  // Split validation logic into a separate method using a pure functional approach
   private validateOrderMap(tasks: readonly TaskType[], orderMap: Readonly<Record<string, number>>): void {
     const siblingIds = new Set(tasks.map((t) => t.id));
     const unknownIds = Object.keys(orderMap).filter((id) => !siblingIds.has(id));
@@ -69,6 +69,25 @@ export class ReorderTasksUseCase {
 
     if (duplicateOrders.length) {
       throw new Error(`orderMap contains duplicate order values: ${duplicateOrders.join(", ")}`);
+    }
+
+    // Check for continuous sequence (ensures order values are sequential integers starting from 0 or 1)
+    const sortedOrders = [...orders].sort((a, b) => a - b);
+    const startValue = sortedOrders[0];
+
+    // Only allow start values of 0 or 1
+    if (startValue !== 0 && startValue !== 1) {
+      throw new Error(`Order values must start with 0 or 1, found: ${startValue}`);
+    }
+
+    // Check for continuous sequence
+    for (let i = 0; i < sortedOrders.length; i++) {
+      const expectedValue = startValue + i;
+      if (sortedOrders[i] !== expectedValue) {
+        throw new Error(
+          `Order values must form a continuous sequence starting at ${startValue}; missing ${expectedValue}`,
+        );
+      }
     }
   }
 }
