@@ -5,7 +5,7 @@ import type { TaskRepository } from "../../../domain/repositories/TaskRepository
 
 type ReorderTasksParams = {
   readonly parentId: string | null;
-  readonly orderMap: Readonly<Record<string, number>>;
+  readonly orderMap: Readonly<Partial<Record<string, number>>>;
 };
 
 @injectable()
@@ -47,7 +47,7 @@ export class ReorderTasksUseCase {
   }
 
   // Split validation logic into a separate method using a pure functional approach
-  private validateOrderMap(tasks: readonly TaskType[], orderMap: Readonly<Record<string, number>>): void {
+  private validateOrderMap(tasks: readonly TaskType[], orderMap: Readonly<Partial<Record<string, number>>>): void {
     const siblingIds = new Set(tasks.map((t) => t.id));
     const unknownIds = Object.keys(orderMap).filter((id) => !siblingIds.has(id));
 
@@ -57,9 +57,13 @@ export class ReorderTasksUseCase {
       );
     }
 
-    const orders = Object.values(orderMap);
+    // Filter out undefined values
+    const orders = Object.values(orderMap).filter((order): order is number => order !== undefined);
+    const existingOrders = tasks.filter((t) => !(t.id in orderMap)).map((t) => t.order);
+    const allOrders = [...orders, ...existingOrders];
+
     const seenOrders = new Set<number>();
-    const duplicateOrders = orders.filter((order) => {
+    const duplicateOrders = allOrders.filter((order) => {
       if (seenOrders.has(order)) {
         return true;
       }
@@ -72,8 +76,8 @@ export class ReorderTasksUseCase {
     }
 
     // Check for continuous sequence (ensures order values are sequential integers starting from 0 or 1)
-    const sortedOrders = [...orders].sort((a, b) => a - b);
-    const startValue = sortedOrders[0];
+    const sortedAllOrders = [...allOrders].sort((a, b) => a - b);
+    const startValue = sortedAllOrders[0];
 
     // Only allow start values of 0 or 1
     if (startValue !== 0 && startValue !== 1) {
@@ -81,9 +85,9 @@ export class ReorderTasksUseCase {
     }
 
     // Check for continuous sequence
-    for (let i = 0; i < sortedOrders.length; i++) {
+    for (let i = 0; i < sortedAllOrders.length; i++) {
       const expectedValue = startValue + i;
-      if (sortedOrders[i] !== expectedValue) {
+      if (sortedAllOrders[i] !== expectedValue) {
         throw new Error(
           `Order values must form a continuous sequence starting at ${startValue}; missing ${expectedValue}`,
         );
