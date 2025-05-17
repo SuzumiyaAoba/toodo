@@ -1,125 +1,125 @@
-# Toodo - タスク管理アプリケーション
+# Toodo - Task Management Application
 
-Toodo は、階層的なタスク管理を可能にするシンプルなアプリケーションです。ドメイン駆動設計（DDD）とテスト駆動開発（TDD）の原則に基づいて開発されています。
+Toodo is a simple application that enables hierarchical task management. It is developed based on the principles of Domain-Driven Design (DDD) and Test-Driven Development (TDD).
 
-## 技術スタック
+## Tech Stack
 
-- [Bun](https://bun.sh) - JavaScript ランタイムとパッケージマネージャー
-- [Hono](https://hono.dev) - 高速で軽量な Web フレームワーク
-- [SQLite](https://www.sqlite.org) - データベース (Bun SQLite 経由)
-- [Drizzle ORM](https://orm.drizzle.team) - データベース操作用 TypeScript ORM
-- [tslog](https://tslog.js.org) - ロギングライブラリ
-- [UUID](https://www.npmjs.com/package/uuid) - 一意の ID 生成
+- [Bun](https://bun.sh) - JavaScript runtime and package manager
+- [Hono](https://hono.dev) - Fast, lightweight web framework
+- [SQLite](https://www.sqlite.org) - Database (via Bun SQLite)
+- [Drizzle ORM](https://orm.drizzle.team) - TypeScript ORM for database operations
+- [tslog](https://tslog.js.org) - Logging library
+- [UUID](https://www.npmjs.com/package/uuid) - Unique ID generation
 
-## プロジェクト構造
+## Project Structure
 
 ```
 src/
-├── application/          # アプリケーション層
-│   ├── services/         # サービス
-│   └── usecases/         # ユースケース
-│       └── task/         # タスク関連のユースケース
-├── domain/               # ドメイン層
-│   ├── models/           # ドメインモデル
-│   └── repositories/     # リポジトリインターフェース
-├── infrastructure/       # インフラストラクチャ層
-│   ├── controllers/      # コントローラー
-│   └── repositories/     # リポジトリ実装
-└── db/                   # データベース関連
-    ├── migrations/       # マイグレーションファイル
-    ├── schema.ts         # データベーススキーマ
-    └── migrate.ts        # マイグレーションスクリプト
+├── application/          # Application layer
+│   ├── services/         # Services
+│   └── usecases/         # Use cases
+│       └── task/         # Task-related use cases
+├── domain/               # Domain layer
+│   ├── models/           # Domain models
+│   └── repositories/     # Repository interfaces
+├── infrastructure/       # Infrastructure layer
+│   ├── controllers/      # Controllers
+│   └── repositories/     # Repository implementations
+└── db/                   # Database related
+    ├── migrations/       # Migration files
+    ├── schema.ts         # Database schema
+    └── migrate.ts        # Migration script
 ```
 
-## 主な機能
+## Key Features
 
-- 階層的なタスク管理（親タスクと子タスク）
-- タスクの作成、更新、削除
-- タスクのステータス管理（完了/未完了）
-- タスクの並べ替え
-- タスクの移動（親タスクの変更）
+- Hierarchical task management (parent and child tasks)
+- Create, update, and delete tasks
+- Task status management (completed/incomplete)
+- Task reordering
+- Task movement (changing parent tasks)
 
 ## API
 
-| エンドポイント                 | メソッド | 説明                                             |
-| ------------------------------ | -------- | ------------------------------------------------ |
-| `/api/tasks`                   | GET      | すべてのルートタスク（親を持たないタスク）を取得 |
-| `/api/tasks/:id`               | GET      | 指定された ID のタスクを取得                     |
-| `/api/tasks`                   | POST     | 新しいタスクを作成                               |
-| `/api/tasks/:id`               | PATCH    | タスクを更新                                     |
-| `/api/tasks/:id`               | DELETE   | タスクを削除                                     |
-| `/api/tasks/:id/move`          | PATCH    | タスクを別の親タスクに移動                       |
-| `/api/tasks/reorder`           | PUT      | ルートタスクの順序を更新                         |
-| `/api/tasks/:parentId/reorder` | PUT      | 特定の親タスクの子タスクの順序を更新             |
+| Endpoint                       | Method | Description                                       |
+| ------------------------------ | ------ | ------------------------------------------------- |
+| `/api/tasks`                   | GET    | Get all root tasks (tasks without parents)        |
+| `/api/tasks/:id`               | GET    | Get a task with the specified ID                  |
+| `/api/tasks`                   | POST   | Create a new task                                 |
+| `/api/tasks/:id`               | PATCH  | Update a task                                     |
+| `/api/tasks/:id`               | DELETE | Delete a task                                     |
+| `/api/tasks/:id/move`          | PATCH  | Move a task to a different parent task            |
+| `/api/tasks/reorder`           | PUT    | Update the order of root tasks                    |
+| `/api/tasks/:parentId/reorder` | PUT    | Update the order of child tasks for a parent task |
 
-## 開発
+## Development
 
-### 環境のセットアップ
+### Environment Setup
 
-1. リポジトリをクローン：
+1. Clone the repository:
 
    ```
    git clone <repository-url>
    cd toodo
    ```
 
-2. 依存関係をインストール：
+2. Install dependencies:
 
    ```
    bun install
    ```
 
-3. データベースをセットアップ：
+3. Set up the database:
 
    ```
    bun run migrate
    ```
 
-4. 開発サーバーを起動：
+4. Start the development server:
    ```
    bun run dev
    ```
-   アプリケーションはデフォルトで `http://localhost:3001` で実行されます。
+   The application runs at `http://localhost:3001` by default.
 
-### 開発コマンド
+### Development Commands
 
-- `bun run dev` - 開発サーバーを起動
-- `bun run test` - テストを実行
-- `bun run format` - コードをフォーマット
-- `bun run lint` - コードをリント
-- `bun run migrate` - データベースマイグレーションを実行
-- `bun run studio` - Drizzle Studio でデータベースを管理
+- `bun run dev` - Start the development server
+- `bun run test` - Run tests
+- `bun run format` - Format code
+- `bun run lint` - Lint code
+- `bun run migrate` - Run database migrations
+- `bun run studio` - Manage the database with Drizzle Studio
 
-## ドメインモデル
+## Domain Model
 
-このプロジェクトでは、レコードとファクトリ関数を使用した不変のドメインモデルを採用しています。
-クラスではなくレコードを使用し、オブジェクトの変更には常に新しいインスタンスを作成します。
+This project adopts immutable domain models using records and factory functions.
+It uses records instead of classes and creates new instances for object changes.
 
-### タスクモデル
+### Task Model
 
-タスクは以下の属性を持ちます：
+Tasks have the following attributes:
 
-- `id` - タスクの一意の識別子
-- `parentId` - 親タスクの ID（ルートタスクの場合は null）
-- `title` - タスクのタイトル
-- `description` - タスクの説明（オプション）
-- `status` - タスクの状態（"completed"または"incomplete"）
-- `order` - 同じ階層内でのタスクの順序
-- `createdAt` - タスク作成日時
-- `updatedAt` - タスク更新日時
-- `subtasks` - 子タスクの配列
+- `id` - Unique identifier for the task
+- `parentId` - ID of the parent task (null for root tasks)
+- `title` - Task title
+- `description` - Task description (optional)
+- `status` - Task status ("completed" or "incomplete")
+- `order` - Order of the task within the same hierarchy
+- `createdAt` - Task creation date/time
+- `updatedAt` - Task update date/time
+- `subtasks` - Array of child tasks
 
-## コード規約
+## Code Conventions
 
-- Biome を使用してコードをリントおよびフォーマット
-- インデントには 2 スペースを使用
-- 最大行長：120 文字
-- TypeScript の型定義には`interface`よりも`type`を優先
-- コミット前に`bun run format`を実行
+- Use Biome for code linting and formatting
+- Use 2 spaces for indentation
+- Maximum line length: 120 characters
+- Prefer `type` over `interface` for TypeScript type definitions
+- Run `bun run format` before committing
 
-## 貢献
+## Contributing
 
-プルリクエストを提出する前に、すべてのテストが通過していることと、コードがフォーマットされていることを確認してください。
+Before submitting a pull request, make sure all tests pass and the code is formatted.
 
 ## License
 
