@@ -1,73 +1,56 @@
 import { db } from "../../db";
-import { SubtaskController } from "../../infrastructure/controllers/SubtaskController";
-import { TodoController } from "../../infrastructure/controllers/TodoController";
-import { DrizzleSubtaskRepository } from "../../infrastructure/repositories/DrizzleSubtaskRepository";
-import { DrizzleTodoRepository } from "../../infrastructure/repositories/DrizzleTodoRepository";
-import { AddSubtaskUseCase } from "../usecases/subtask/AddSubtaskUseCase";
-import { DeleteSubtaskUseCase } from "../usecases/subtask/DeleteSubtaskUseCase";
-import { ReorderSubtasksUseCase } from "../usecases/subtask/ReorderSubtasksUseCase";
-import { UpdateSubtaskUseCase } from "../usecases/subtask/UpdateSubtaskUseCase";
-import { CreateTodoUseCase } from "../usecases/todo/CreateTodoUseCase";
-import { DeleteTodoUseCase } from "../usecases/todo/DeleteTodoUseCase";
-import { GetAllTodosUseCase } from "../usecases/todo/GetAllTodosUseCase";
-import { UpdateTodoUseCase } from "../usecases/todo/UpdateTodoUseCase";
+import { TaskController } from "../../infrastructure/controllers/TaskController";
+import { DrizzleTaskRepository } from "../../infrastructure/repositories/DrizzleTaskRepository";
+import { CreateTaskUseCase } from "../usecases/task/CreateTaskUseCase";
+import { DeleteTaskUseCase } from "../usecases/task/DeleteTaskUseCase";
+import { GetRootTasksUseCase } from "../usecases/task/GetRootTasksUseCase";
+import { GetTaskByIdUseCase } from "../usecases/task/GetTaskByIdUseCase";
+import { MoveTaskUseCase } from "../usecases/task/MoveTaskUseCase";
+import { ReorderTasksUseCase } from "../usecases/task/ReorderTasksUseCase";
+import { UpdateTaskUseCase } from "../usecases/task/UpdateTaskUseCase";
 
 export class DependencyContainer {
-  private subtaskRepository: DrizzleSubtaskRepository;
-  private todoRepository: DrizzleTodoRepository;
+  // Repository
+  private taskRepository: DrizzleTaskRepository;
 
-  private getAllTodosUseCase: GetAllTodosUseCase;
-  private createTodoUseCase: CreateTodoUseCase;
-  private updateTodoUseCase: UpdateTodoUseCase;
-  private deleteTodoUseCase: DeleteTodoUseCase;
+  // Task usecases
+  private getRootTasksUseCase: GetRootTasksUseCase;
+  private getTaskByIdUseCase: GetTaskByIdUseCase;
+  private createTaskUseCase: CreateTaskUseCase;
+  private updateTaskUseCase: UpdateTaskUseCase;
+  private deleteTaskUseCase: DeleteTaskUseCase;
+  private moveTaskUseCase: MoveTaskUseCase;
+  private reorderTasksUseCase: ReorderTasksUseCase;
 
-  private addSubtaskUseCase: AddSubtaskUseCase;
-  private updateSubtaskUseCase: UpdateSubtaskUseCase;
-  private deleteSubtaskUseCase: DeleteSubtaskUseCase;
-  private reorderSubtasksUseCase: ReorderSubtasksUseCase;
-
-  private todoController: TodoController;
-  private subtaskController: SubtaskController;
+  // Controller
+  private taskController: TaskController;
 
   constructor() {
-    // Repositories
-    this.subtaskRepository = new DrizzleSubtaskRepository(db);
-    this.todoRepository = new DrizzleTodoRepository(db, this.subtaskRepository);
+    // Repository
+    this.taskRepository = new DrizzleTaskRepository(db);
 
-    // Todo UseCases
-    this.getAllTodosUseCase = new GetAllTodosUseCase(this.todoRepository);
-    this.createTodoUseCase = new CreateTodoUseCase(this.todoRepository);
-    this.updateTodoUseCase = new UpdateTodoUseCase(this.todoRepository);
-    this.deleteTodoUseCase = new DeleteTodoUseCase(this.todoRepository);
+    // Task UseCases
+    this.getRootTasksUseCase = new GetRootTasksUseCase(this.taskRepository);
+    this.getTaskByIdUseCase = new GetTaskByIdUseCase(this.taskRepository);
+    this.createTaskUseCase = new CreateTaskUseCase(this.taskRepository);
+    this.updateTaskUseCase = new UpdateTaskUseCase(this.taskRepository);
+    this.deleteTaskUseCase = new DeleteTaskUseCase(this.taskRepository);
+    this.moveTaskUseCase = new MoveTaskUseCase(this.taskRepository);
+    this.reorderTasksUseCase = new ReorderTasksUseCase(this.taskRepository);
 
-    // Subtask UseCases
-    this.addSubtaskUseCase = new AddSubtaskUseCase(this.todoRepository);
-    this.updateSubtaskUseCase = new UpdateSubtaskUseCase(this.subtaskRepository, this.todoRepository);
-    this.deleteSubtaskUseCase = new DeleteSubtaskUseCase(this.subtaskRepository, this.todoRepository);
-    this.reorderSubtasksUseCase = new ReorderSubtasksUseCase(this.todoRepository);
-
-    // Controllers
-    this.todoController = new TodoController(
-      this.getAllTodosUseCase,
-      this.createTodoUseCase,
-      this.updateTodoUseCase,
-      this.deleteTodoUseCase,
-    );
-
-    this.subtaskController = new SubtaskController(
-      this.subtaskRepository,
-      this.addSubtaskUseCase,
-      this.updateSubtaskUseCase,
-      this.deleteSubtaskUseCase,
-      this.reorderSubtasksUseCase,
+    // Task Controller
+    this.taskController = new TaskController(
+      this.getRootTasksUseCase,
+      this.getTaskByIdUseCase,
+      this.createTaskUseCase,
+      this.updateTaskUseCase,
+      this.deleteTaskUseCase,
+      this.moveTaskUseCase,
+      this.reorderTasksUseCase,
     );
   }
 
-  getTodoController(): TodoController {
-    return this.todoController;
-  }
-
-  getSubtaskController(): SubtaskController {
-    return this.subtaskController;
+  getTaskController(): TaskController {
+    return this.taskController;
   }
 }

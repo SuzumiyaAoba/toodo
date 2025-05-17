@@ -9,26 +9,17 @@ export function createTestDb() {
   // Create in-memory SQLite database
   const db = new Database(":memory:");
 
-  // Create tables
+  // Create tasks table
   db.exec(`
-    CREATE TABLE IF NOT EXISTS todos (
+    CREATE TABLE IF NOT EXISTS tasks (
       id TEXT PRIMARY KEY NOT NULL,
-      content TEXT NOT NULL,
-      completed INTEGER DEFAULT 0 NOT NULL,
-      created_at INTEGER NOT NULL,
-      updated_at INTEGER
-    );
-
-    CREATE TABLE IF NOT EXISTS subtasks (
-      id TEXT PRIMARY KEY NOT NULL,
-      todo_id TEXT NOT NULL,
+      parent_id TEXT REFERENCES tasks(id) ON DELETE CASCADE,
       title TEXT NOT NULL,
       description TEXT,
       status TEXT DEFAULT 'incomplete' NOT NULL,
-      "order" INTEGER NOT NULL,
+      "order" INTEGER DEFAULT 1 NOT NULL,
       created_at INTEGER NOT NULL,
-      updated_at INTEGER,
-      FOREIGN KEY (todo_id) REFERENCES todos(id) ON UPDATE NO ACTION ON DELETE NO ACTION
+      updated_at INTEGER
     );
   `);
 

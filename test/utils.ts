@@ -1,14 +1,17 @@
 import { v4 as uuidv4 } from "uuid";
-import type { NewSubtask, NewTodo } from "../src/db/schema";
+import type { NewTask } from "../src/db/schema";
 
 /**
- * Create mock Todo data for testing
+ * Create mock Task data for testing (root task)
  */
-export function createMockTodo(override: Partial<NewTodo> = {}): NewTodo {
+export function createMockTask(override: Partial<NewTask> = {}): NewTask {
   return {
     id: uuidv4(),
-    content: "Test Todo",
-    completed: false,
+    parentId: null,
+    title: "Test Task",
+    description: "Test Description",
+    status: "incomplete",
+    order: 1,
     createdAt: new Date(),
     updatedAt: new Date(),
     ...override,
@@ -16,14 +19,14 @@ export function createMockTodo(override: Partial<NewTodo> = {}): NewTodo {
 }
 
 /**
- * Create mock Subtask data for testing
+ * Create mock Child Task (subtask) data for testing
  */
-export function createMockSubtask(override: Partial<NewSubtask> = {}): NewSubtask {
+export function createMockChildTask(parentId: string, override: Partial<NewTask> = {}): NewTask {
   return {
     id: uuidv4(),
-    todoId: uuidv4(),
-    title: "Test Subtask",
-    description: "Test Description",
+    parentId,
+    title: "Test Child Task",
+    description: "Test Child Description",
     status: "incomplete",
     order: 1,
     createdAt: new Date(),

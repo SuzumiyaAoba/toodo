@@ -1,141 +1,128 @@
 import { describe, expect, it } from "bun:test";
-import { eq } from "drizzle-orm";
-import { subtasks, todos } from "../src/db/schema";
+import { eq, isNull } from "drizzle-orm";
+import { tasks } from "../src/db/schema";
 import { createTestDb } from "./setup";
-import { createMockSubtask, createMockTodo } from "./utils";
+import { createMockChildTask, createMockTask } from "./utils";
 
 describe("Database operations", () => {
-  describe("Todo operations", () => {
-    it("should insert and retrieve a todo", async () => {
+  describe("Task operations", () => {
+    it("should insert and retrieve a task", async () => {
       const db = createTestDb();
-      const mockTodo = createMockTodo();
+      const mockTask = createMockTask();
 
-      // Insert Todo
-      await db.insert(todos).values(mockTodo);
+      // Insert Task
+      await db.insert(tasks).values(mockTask);
 
-      // Retrieve Todo
-      const retrievedTodo = await db.select().from(todos).where(eq(todos.id, mockTodo.id)).get();
+      // Retrieve Task
+      const retrievedTask = await db.select().from(tasks).where(eq(tasks.id, mockTask.id)).get();
 
-      expect(retrievedTodo).toBeDefined();
-      expect(retrievedTodo?.id).toBe(mockTodo.id);
-      expect(retrievedTodo?.content).toBe(mockTodo.content);
+      expect(retrievedTask).toBeDefined();
+      expect(retrievedTask?.id).toBe(mockTask.id);
+      expect(retrievedTask?.title).toBe(mockTask.title);
+      expect(retrievedTask?.parentId).toBeNull();
     });
 
-    it("should update a todo", async () => {
+    it("should update a task", async () => {
       const db = createTestDb();
-      const mockTodo = createMockTodo();
+      const mockTask = createMockTask();
 
-      // Insert Todo
-      await db.insert(todos).values(mockTodo);
+      // Insert Task
+      await db.insert(tasks).values(mockTask);
 
-      // Update Todo
-      const updatedContent = "Updated Todo";
-      await db.update(todos).set({ content: updatedContent }).where(eq(todos.id, mockTodo.id));
+      // Update Task
+      const updatedTitle = "Updated Task";
+      await db.update(tasks).set({ title: updatedTitle }).where(eq(tasks.id, mockTask.id));
 
-      // Retrieve updated Todo
-      const retrievedTodo = await db.select().from(todos).where(eq(todos.id, mockTodo.id)).get();
+      // Retrieve updated Task
+      const retrievedTask = await db.select().from(tasks).where(eq(tasks.id, mockTask.id)).get();
 
-      expect(retrievedTodo).toBeDefined();
-      expect(retrievedTodo?.content).toBe(updatedContent);
+      expect(retrievedTask).toBeDefined();
+      expect(retrievedTask?.title).toBe(updatedTitle);
     });
 
-    it("should delete a todo", async () => {
+    it("should delete a task", async () => {
       const db = createTestDb();
-      const mockTodo = createMockTodo();
+      const mockTask = createMockTask();
 
-      // Insert Todo
-      await db.insert(todos).values(mockTodo);
+      // Insert Task
+      await db.insert(tasks).values(mockTask);
 
-      // Delete Todo
-      await db.delete(todos).where(eq(todos.id, mockTodo.id));
+      // Delete Task
+      await db.delete(tasks).where(eq(tasks.id, mockTask.id));
 
-      // Verify Todo no longer exists
-      const retrievedTodo = await db.select().from(todos).where(eq(todos.id, mockTodo.id)).get();
+      // Verify Task no longer exists
+      const retrievedTask = await db.select().from(tasks).where(eq(tasks.id, mockTask.id)).get();
 
-      expect(retrievedTodo).toBeUndefined();
+      expect(retrievedTask).toBeUndefined();
     });
   });
 
-  describe("Subtask operations", () => {
-    it("should insert and retrieve a subtask", async () => {
+  describe("Task hierarchy operations", () => {
+    it("should insert and retrieve child tasks", async () => {
       const db = createTestDb();
-      // Create Todo first
-      const mockTodo = createMockTodo();
-      await db.insert(todos).values(mockTodo);
 
-      // Create Subtask (linked to Todo)
-      const mockSubtask = createMockSubtask({ todoId: mockTodo.id });
-      await db.insert(subtasks).values(mockSubtask);
+      // Create parent task first
+      const parentTask = createMockTask();
+      await db.insert(tasks).values(parentTask);
 
-      // Retrieve Subtask
-      const retrievedSubtask = await db.select().from(subtasks).where(eq(subtasks.id, mockSubtask.id)).get();
+      // Create child task
+      const childTask = createMockChildTask(parentTask.id);
+      await db.insert(tasks).values(childTask);
 
-      expect(retrievedSubtask).toBeDefined();
-      expect(retrievedSubtask?.id).toBe(mockSubtask.id);
-      expect(retrievedSubtask?.todoId).toBe(mockTodo.id);
-      expect(retrievedSubtask?.title).toBe(mockSubtask.title);
+      // Retrieve child task
+      const retrievedChildTask = await db.select().from(tasks).where(eq(tasks.id, childTask.id)).get();
+
+      expect(retrievedChildTask).toBeDefined();
+      expect(retrievedChildTask?.id).toBe(childTask.id);
+      expect(retrievedChildTask?.parentId).toBe(parentTask.id);
+      expect(retrievedChildTask?.title).toBe(childTask.title);
     });
 
-    it("should update a subtask", async () => {
+    it("should retrieve all child tasks for a parent", async () => {
       const db = createTestDb();
-      // Create Todo first
-      const mockTodo = createMockTodo();
-      await db.insert(todos).values(mockTodo);
 
-      // Create Subtask
-      const mockSubtask = createMockSubtask({ todoId: mockTodo.id });
-      await db.insert(subtasks).values(mockSubtask);
+      // Create parent task first
+      const parentTask = createMockTask();
+      await db.insert(tasks).values(parentTask);
 
-      // Update Subtask
-      const updatedTitle = "Updated Subtask";
-      await db.update(subtasks).set({ title: updatedTitle }).where(eq(subtasks.id, mockSubtask.id));
+      // Create multiple child tasks
+      const childTask1 = createMockChildTask(parentTask.id, { order: 1 });
+      const childTask2 = createMockChildTask(parentTask.id, { order: 2 });
+      const childTask3 = createMockChildTask(parentTask.id, { order: 3 });
 
-      // Retrieve updated Subtask
-      const retrievedSubtask = await db.select().from(subtasks).where(eq(subtasks.id, mockSubtask.id)).get();
+      await db.insert(tasks).values([childTask1, childTask2, childTask3]);
 
-      expect(retrievedSubtask).toBeDefined();
-      expect(retrievedSubtask?.title).toBe(updatedTitle);
+      // Retrieve all child tasks
+      const retrievedChildTasks = await db.select().from(tasks).where(eq(tasks.parentId, parentTask.id)).all();
+
+      expect(retrievedChildTasks).toHaveLength(3);
+      expect(retrievedChildTasks.map((t) => t.id)).toContain(childTask1.id);
+      expect(retrievedChildTasks.map((t) => t.id)).toContain(childTask2.id);
+      expect(retrievedChildTasks.map((t) => t.id)).toContain(childTask3.id);
     });
 
-    it("should delete a subtask", async () => {
+    it("should retrieve all root tasks", async () => {
       const db = createTestDb();
-      // Create Todo first
-      const mockTodo = createMockTodo();
-      await db.insert(todos).values(mockTodo);
 
-      // Create Subtask
-      const mockSubtask = createMockSubtask({ todoId: mockTodo.id });
-      await db.insert(subtasks).values(mockSubtask);
+      // Create multiple root tasks
+      const rootTask1 = createMockTask({ order: 1 });
+      const rootTask2 = createMockTask({ order: 2 });
+      const rootTask3 = createMockTask({ order: 3 });
 
-      // Delete Subtask
-      await db.delete(subtasks).where(eq(subtasks.id, mockSubtask.id));
+      await db.insert(tasks).values([rootTask1, rootTask2, rootTask3]);
 
-      // Verify Subtask no longer exists
-      const retrievedSubtask = await db.select().from(subtasks).where(eq(subtasks.id, mockSubtask.id)).get();
+      // Create a child task (should not be returned with root tasks)
+      const childTask = createMockChildTask(rootTask1.id);
+      await db.insert(tasks).values(childTask);
 
-      expect(retrievedSubtask).toBeUndefined();
-    });
+      // Retrieve all root tasks
+      const retrievedRootTasks = await db.select().from(tasks).where(isNull(tasks.parentId)).all();
 
-    it("should retrieve all subtasks for a todo", async () => {
-      const db = createTestDb();
-      // Create Todo first
-      const mockTodo = createMockTodo();
-      await db.insert(todos).values(mockTodo);
-
-      // Create multiple Subtasks
-      const mockSubtask1 = createMockSubtask({ todoId: mockTodo.id, order: 1 });
-      const mockSubtask2 = createMockSubtask({ todoId: mockTodo.id, order: 2 });
-      const mockSubtask3 = createMockSubtask({ todoId: mockTodo.id, order: 3 });
-
-      await db.insert(subtasks).values([mockSubtask1, mockSubtask2, mockSubtask3]);
-
-      // Retrieve all Subtasks related to Todo
-      const retrievedSubtasks = await db.select().from(subtasks).where(eq(subtasks.todoId, mockTodo.id)).all();
-
-      expect(retrievedSubtasks).toHaveLength(3);
-      expect(retrievedSubtasks.map((s) => s.id)).toContain(mockSubtask1.id);
-      expect(retrievedSubtasks.map((s) => s.id)).toContain(mockSubtask2.id);
-      expect(retrievedSubtasks.map((s) => s.id)).toContain(mockSubtask3.id);
+      expect(retrievedRootTasks).toHaveLength(3);
+      expect(retrievedRootTasks.map((t) => t.id)).toContain(rootTask1.id);
+      expect(retrievedRootTasks.map((t) => t.id)).toContain(rootTask2.id);
+      expect(retrievedRootTasks.map((t) => t.id)).toContain(rootTask3.id);
+      expect(retrievedRootTasks.map((t) => t.id)).not.toContain(childTask.id);
     });
   });
 });

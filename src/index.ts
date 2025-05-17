@@ -4,25 +4,21 @@ import { DependencyContainer } from "./application/services/DependencyContainer"
 const app = new Hono();
 const container = new DependencyContainer();
 
-const todoController = container.getTodoController();
-const subtaskController = container.getSubtaskController();
+const taskController = container.getTaskController();
 
 app.get("/", (c) => {
   return c.text("Hello Hono!");
 });
 
-// Todo API
-app.get("/api/todos", todoController.getAll);
-app.post("/api/todos", todoController.create);
-app.patch("/api/todos/:id", todoController.update);
-app.delete("/api/todos/:id", todoController.delete);
-
-// Subtask API
-app.get("/api/todos/:todoId/subtasks", subtaskController.getByTodoId);
-app.post("/api/todos/:todoId/subtasks", subtaskController.add);
-app.put("/api/subtasks/:id", subtaskController.update);
-app.delete("/api/subtasks/:id", subtaskController.delete);
-app.put("/api/todos/:todoId/subtasks/reorder", subtaskController.reorder);
+// Task API
+app.get("/api/tasks", taskController.getRootTasks);
+app.get("/api/tasks/:id", taskController.getTaskById);
+app.post("/api/tasks", taskController.create);
+app.patch("/api/tasks/:id", taskController.update);
+app.delete("/api/tasks/:id", taskController.delete);
+app.patch("/api/tasks/:id/move", taskController.move);
+app.put("/api/tasks/reorder", taskController.reorder);
+app.put("/api/tasks/:parentId/reorder", taskController.reorder);
 
 export default app;
 
