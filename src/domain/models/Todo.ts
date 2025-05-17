@@ -3,76 +3,98 @@ import { Subtask } from "./Subtask";
 
 export type TodoStatus = "completed" | "incomplete";
 
-export class Todo {
-  readonly id: string;
-  readonly content: string;
-  readonly completed: boolean;
-  readonly createdAt: Date;
-  readonly updatedAt: Date;
-  readonly subtasks: readonly Subtask[];
+export type Todo = Readonly<{
+  id: string;
+  content: string;
+  completed: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  subtasks: readonly Subtask[];
+}>;
 
-  constructor(
+export namespace Todo {
+  export function create(
     content: string,
     id?: string,
     completed?: boolean,
     createdAt?: Date,
     updatedAt?: Date,
     subtasks: readonly Subtask[] = [],
-  ) {
-    this.id = id || uuidv4();
-    this.content = content;
-    this.completed = completed ?? false;
-    this.createdAt = createdAt || new Date();
-    this.updatedAt = updatedAt || new Date();
-    this.subtasks = [...subtasks]; // Create a copy to ensure immutability
+  ): Todo {
+    return {
+      id: id || uuidv4(),
+      content,
+      completed: completed ?? false,
+      createdAt: createdAt || new Date(),
+      updatedAt: updatedAt || new Date(),
+      subtasks: [...subtasks], // Create a copy to ensure immutability
+    };
   }
 
-  addSubtask(title: string, description?: string | null): Todo {
-    const order = this.subtasks.length > 0 ? Math.max(...this.subtasks.map((subtask) => subtask.order)) + 1 : 1;
+  export function addSubtask(todo: Todo, title: string, description?: string | null): Todo {
+    const order = todo.subtasks.length > 0 ? Math.max(...todo.subtasks.map((subtask) => subtask.order)) + 1 : 1;
 
-    const subtask = new Subtask(this.id, title, order, description);
-    const newSubtasks = [...this.subtasks, subtask];
+    const subtask = Subtask.create(todo.id, title, order, description);
+    const newSubtasks = [...todo.subtasks, subtask];
 
-    return new Todo(
-      this.content,
-      this.id,
-      this.subtasks.length > 0 ? newSubtasks.every((subtask) => subtask.status === "completed") : false,
-      this.createdAt,
-      new Date(),
-      newSubtasks,
-    );
+    return {
+      ...todo,
+      completed: todo.subtasks.length > 0 ? newSubtasks.every((subtask) => subtask.status === "completed") : false,
+      updatedAt: new Date(),
+      subtasks: newSubtasks,
+    };
   }
 
-  updateContent(content: string): Todo {
-    return new Todo(content, this.id, this.completed, this.createdAt, new Date(), this.subtasks);
+  export function updateContent(todo: Todo, content: string): Todo {
+    return {
+      ...todo,
+      content,
+      updatedAt: new Date(),
+    };
   }
 
-  updateCompletionStatus(): Todo {
+  export function updateCompletionStatus(todo: Todo): Todo {
     const completed =
-      this.subtasks.length > 0 ? this.subtasks.every((subtask) => subtask.status === "completed") : false;
+      todo.subtasks.length > 0 ? todo.subtasks.every((subtask) => subtask.status === "completed") : false;
 
-    return new Todo(this.content, this.id, completed, this.createdAt, new Date(), this.subtasks);
+    return {
+      ...todo,
+      completed,
+      updatedAt: new Date(),
+    };
   }
 
-  markAsCompleted(): Todo {
-    return new Todo(this.content, this.id, true, this.createdAt, new Date(), this.subtasks);
+  export function markAsCompleted(todo: Todo): Todo {
+    return {
+      ...todo,
+      completed: true,
+      updatedAt: new Date(),
+    };
   }
 
-  markAsIncomplete(): Todo {
-    return new Todo(this.content, this.id, false, this.createdAt, new Date(), this.subtasks);
+  export function markAsIncomplete(todo: Todo): Todo {
+    return {
+      ...todo,
+      completed: false,
+      updatedAt: new Date(),
+    };
   }
 
-  reorderSubtasks(orderMap: Record<string, number>): Todo {
-    const updatedSubtasks: Subtask[] = this.subtasks.map((subtask) => {
+  export function reorderSubtasks(todo: Todo, orderMap: Record<string, number>): Todo {
+    const updatedSubtasks: Subtask[] = todo.subtasks.map((subtask) => {
       const orderValue = orderMap[subtask.id];
       if (orderValue !== undefined) {
-        return subtask.updateOrder(orderValue);
+        return Subtask.updateOrder(subtask, orderValue);
       }
       return subtask;
     });
 
     const sortedSubtasks = [...updatedSubtasks].sort((a, b) => a.order - b.order);
 
-    return new Todo(this.content, this.id, this.completed, this.createdAt, new Date(), sortedSubtasks);
+    return {
+      ...todo,
+      updatedAt: new Date(),
+      subtasks: sortedSubtasks,
+    };
   }
 }

@@ -2,18 +2,20 @@ import { v4 as uuidv4 } from "uuid";
 
 export type TaskStatus = "completed" | "incomplete";
 
-export class Task {
-  readonly id: string;
-  readonly parentId: string | null;
-  readonly title: string;
-  readonly description: string | null;
-  readonly status: TaskStatus;
-  readonly order: number;
-  readonly createdAt: Date;
-  readonly updatedAt: Date;
-  readonly subtasks: readonly Task[];
+export type Task = Readonly<{
+  id: string;
+  parentId: string | null;
+  title: string;
+  description: string | null;
+  status: TaskStatus;
+  order: number;
+  createdAt: Date;
+  updatedAt: Date;
+  subtasks: readonly Task[];
+}>;
 
-  constructor(
+export namespace Task {
+  export function create(
     title: string,
     parentId: string | null = null,
     description: string | null = null,
@@ -23,181 +25,134 @@ export class Task {
     createdAt?: Date,
     updatedAt?: Date,
     subtasks: readonly Task[] = [],
-  ) {
-    this.id = id || uuidv4();
-    this.parentId = parentId;
-    this.title = title;
-    this.description = description;
-    this.status = status;
-    this.order = order;
-    this.createdAt = createdAt || new Date();
-    this.updatedAt = updatedAt || new Date();
-    this.subtasks = [...subtasks]; // Create a copy to ensure immutability
+  ): Task {
+    return {
+      id: id || uuidv4(),
+      parentId,
+      title,
+      description,
+      status,
+      order,
+      createdAt: createdAt || new Date(),
+      updatedAt: updatedAt || new Date(),
+      subtasks: [...subtasks], // Create a copy to ensure immutability
+    };
   }
 
-  addSubtask(title: string, description?: string | null): Task {
-    const order = this.subtasks.length > 0 ? Math.max(...this.subtasks.map((subtask) => subtask.order)) + 1 : 1;
+  export function addSubtask(task: Task, title: string, description?: string | null): Task {
+    const order = task.subtasks.length > 0 ? Math.max(...task.subtasks.map((subtask) => subtask.order)) + 1 : 1;
 
-    const subtask = new Task(title, this.id, description || null, undefined, "incomplete", order);
-
-    const newSubtasks = [...this.subtasks, subtask];
+    const subtask = create(title, task.id, description || null, undefined, "incomplete", order);
+    const newSubtasks = [...task.subtasks, subtask];
 
     // Create a new Task with updated subtasks
-    const updatedTask = new Task(
-      this.title,
-      this.parentId,
-      this.description,
-      this.id,
-      this.calculateStatus(newSubtasks),
-      this.order,
-      this.createdAt,
-      new Date(),
-      newSubtasks,
-    );
-
-    return updatedTask;
+    return {
+      ...task,
+      status: calculateStatus(newSubtasks, task.status),
+      updatedAt: new Date(),
+      subtasks: newSubtasks,
+    };
   }
 
-  updateTitle(title: string): Task {
-    return new Task(
+  export function updateTitle(task: Task, title: string): Task {
+    return {
+      ...task,
       title,
-      this.parentId,
-      this.description,
-      this.id,
-      this.status,
-      this.order,
-      this.createdAt,
-      new Date(),
-      this.subtasks,
-    );
+      updatedAt: new Date(),
+    };
   }
 
-  updateDescription(description: string | null): Task {
-    return new Task(
-      this.title,
-      this.parentId,
+  export function updateDescription(task: Task, description: string | null): Task {
+    return {
+      ...task,
       description,
-      this.id,
-      this.status,
-      this.order,
-      this.createdAt,
-      new Date(),
-      this.subtasks,
-    );
+      updatedAt: new Date(),
+    };
   }
 
-  updateStatus(): Task {
-    const newStatus = this.calculateStatus(this.subtasks);
+  export function updateStatus(task: Task): Task {
+    const newStatus = calculateStatus(task.subtasks, task.status);
 
-    return new Task(
-      this.title,
-      this.parentId,
-      this.description,
-      this.id,
-      newStatus,
-      this.order,
-      this.createdAt,
-      new Date(),
-      this.subtasks,
-    );
+    return {
+      ...task,
+      status: newStatus,
+      updatedAt: new Date(),
+    };
   }
 
-  updateOrder(order: number): Task {
-    return new Task(
-      this.title,
-      this.parentId,
-      this.description,
-      this.id,
-      this.status,
+  export function updateOrder(task: Task, order: number): Task {
+    return {
+      ...task,
       order,
-      this.createdAt,
-      new Date(),
-      this.subtasks,
-    );
+      updatedAt: new Date(),
+    };
   }
 
-  markAsCompleted(): Task {
+  export function markAsCompleted(task: Task): Task {
     // Mark all subtasks as completed as well
-    const completedSubtasks = this.subtasks.map((subtask) => subtask.markAsCompleted());
+    const completedSubtasks = task.subtasks.map((subtask) => markAsCompleted(subtask));
 
-    return new Task(
-      this.title,
-      this.parentId,
-      this.description,
-      this.id,
-      "completed",
-      this.order,
-      this.createdAt,
-      new Date(),
-      completedSubtasks,
-    );
+    return {
+      ...task,
+      status: "completed",
+      updatedAt: new Date(),
+      subtasks: completedSubtasks,
+    };
   }
 
-  markAsIncomplete(): Task {
-    return new Task(
-      this.title,
-      this.parentId,
-      this.description,
-      this.id,
-      "incomplete",
-      this.order,
-      this.createdAt,
-      new Date(),
-      this.subtasks,
-    );
+  export function markAsIncomplete(task: Task): Task {
+    return {
+      ...task,
+      status: "incomplete",
+      updatedAt: new Date(),
+    };
   }
 
-  reorderSubtasks(orderMap: Record<string, number>): Task {
-    const updatedSubtasks: Task[] = this.subtasks.map((subtask) => {
+  export function reorderSubtasks(task: Task, orderMap: Record<string, number>): Task {
+    const updatedSubtasks: Task[] = task.subtasks.map((subtask) => {
       const orderValue = orderMap[subtask.id];
       if (orderValue !== undefined) {
-        return subtask.updateOrder(orderValue);
+        return updateOrder(subtask, orderValue);
       }
       return subtask;
     });
 
     const sortedSubtasks = [...updatedSubtasks].sort((a, b) => a.order - b.order);
 
-    return new Task(
-      this.title,
-      this.parentId,
-      this.description,
-      this.id,
-      this.status,
-      this.order,
-      this.createdAt,
-      new Date(),
-      sortedSubtasks,
-    );
+    return {
+      ...task,
+      updatedAt: new Date(),
+      subtasks: sortedSubtasks,
+    };
   }
 
-  // Helper method for calculating status based on subtasks
-  private calculateStatus(subtasks: readonly Task[]): TaskStatus {
+  // Helper function for calculating status based on subtasks
+  function calculateStatus(subtasks: readonly Task[], currentStatus: TaskStatus): TaskStatus {
     if (subtasks.length > 0) {
       return subtasks.every((subtask) => subtask.status === "completed") ? "completed" : "incomplete";
     }
-    return this.status;
+    return currentStatus;
   }
 
-  // Methods to support hierarchical task structure
-  getTaskHierarchy(): Task[] {
+  // Functions to support hierarchical task structure
+  export function getTaskHierarchy(task: Task): Task[] {
     // Returns this task and all subtasks in a flattened array
-    const result: Task[] = [this];
+    const result: Task[] = [task];
 
-    for (const subtask of this.subtasks) {
-      result.push(...subtask.getTaskHierarchy());
+    for (const subtask of task.subtasks) {
+      result.push(...getTaskHierarchy(subtask));
     }
 
     return result;
   }
 
-  findTaskById(id: string): Task | null {
-    if (this.id === id) {
-      return this;
+  export function findTaskById(task: Task, id: string): Task | null {
+    if (task.id === id) {
+      return task;
     }
 
-    for (const subtask of this.subtasks) {
-      const found = subtask.findTaskById(id);
+    for (const subtask of task.subtasks) {
+      const found = findTaskById(subtask, id);
       if (found) {
         return found;
       }
@@ -206,7 +161,7 @@ export class Task {
     return null;
   }
 
-  getDepth(): number {
-    return this.parentId === null ? 0 : 1 + Math.max(...this.subtasks.map((task) => task.getDepth()), 0);
+  export function getDepth(task: Task): number {
+    return task.parentId === null ? 0 : 1 + Math.max(...task.subtasks.map(getDepth), 0);
   }
 }

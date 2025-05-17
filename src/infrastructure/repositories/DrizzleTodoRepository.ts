@@ -2,7 +2,8 @@ import { eq } from "drizzle-orm";
 import type { BunSQLiteDatabase } from "drizzle-orm/bun-sqlite";
 import { todos } from "../../db/schema";
 import type * as schema from "../../db/schema";
-import { Todo } from "../../domain/models/Todo";
+import { Todo as TodoNamespace } from "../../domain/models/Todo";
+import type { Todo } from "../../domain/models/Todo";
 import type { SubtaskRepository } from "../../domain/repositories/SubtaskRepository";
 import type { TodoRepository } from "../../domain/repositories/TodoRepository";
 
@@ -21,7 +22,7 @@ export class DrizzleTodoRepository implements TodoRepository {
     for (const record of todoRecords) {
       const subtasks = await this.subtaskRepository.findByTodoId(record.id);
       result.push(
-        new Todo(
+        TodoNamespace.create(
           record.content,
           record.id,
           record.completed,
@@ -44,7 +45,7 @@ export class DrizzleTodoRepository implements TodoRepository {
 
     const subtasks = await this.subtaskRepository.findByTodoId(id);
 
-    return new Todo(
+    return TodoNamespace.create(
       record.content,
       record.id,
       record.completed,

@@ -1,7 +1,8 @@
 import { asc, eq, isNull } from "drizzle-orm";
 import type { BunSQLiteDatabase } from "drizzle-orm/bun-sqlite";
 import * as schema from "../../db/schema";
-import { Task, type TaskStatus } from "../../domain/models/Task";
+import { Task as TaskNamespace, type TaskStatus } from "../../domain/models/Task";
+import type { Task } from "../../domain/models/Task";
 import type { TaskRepository } from "../../domain/repositories/TaskRepository";
 
 type DbSchema = typeof schema;
@@ -107,7 +108,7 @@ export class DrizzleTaskRepository implements TaskRepository {
     const updatedTasks: Task[] = [];
     for (const [index, task] of tasks.entries()) {
       // Create a new task with updated order
-      const updatedTask = new Task(
+      const updatedTask = TaskNamespace.create(
         task.title,
         task.parentId,
         task.description,
@@ -165,7 +166,7 @@ export class DrizzleTaskRepository implements TaskRepository {
     const newOrder = siblingTasks.length > 0 ? Math.max(...siblingTasks.map((t) => (t as schema.Task).order)) + 1 : 1;
 
     // Create a new Task with updated properties
-    const updatedTask = new Task(
+    const updatedTask = TaskNamespace.create(
       task.title,
       newParentId,
       task.description,
@@ -203,7 +204,7 @@ export class DrizzleTaskRepository implements TaskRepository {
   }
 
   private mapToModel(record: schema.Task, subtasks: Task[] = []): Task {
-    return new Task(
+    return TaskNamespace.create(
       record.title,
       record.parentId,
       record.description,

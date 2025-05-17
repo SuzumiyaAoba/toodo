@@ -1,4 +1,5 @@
 import type { Subtask } from "../../../domain/models/Subtask";
+import { Todo as TodoNamespace } from "../../../domain/models/Todo";
 import type { TodoRepository } from "../../../domain/repositories/TodoRepository";
 
 export type ReorderSubtasksCmd = {
@@ -16,7 +17,7 @@ export class ReorderSubtasksUseCase {
       return null;
     }
 
-    const updatedTodo = todo.reorderSubtasks(dto.orderMap);
+    const updatedTodo = TodoNamespace.reorderSubtasks(todo, dto.orderMap);
     const savedTodo = await this.todoRepository.save(updatedTodo);
 
     return [...savedTodo.subtasks];

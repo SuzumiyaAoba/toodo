@@ -9,7 +9,7 @@ export class CreateTodoUseCase {
   constructor(private todoRepository: TodoRepository) {}
 
   async execute(dto: CreateTodoCmd): Promise<Todo> {
-    const todo = new Todo(dto.content);
+    const todo = Todo.create(dto.content);
     return this.todoRepository.save(todo);
   }
 }

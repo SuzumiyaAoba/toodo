@@ -1,7 +1,8 @@
 import { asc, eq } from "drizzle-orm";
 import type { BunSQLiteDatabase } from "drizzle-orm/bun-sqlite";
 import * as schema from "../../db/schema";
-import { Subtask, type SubtaskStatus } from "../../domain/models/Subtask";
+import { Subtask as SubtaskNamespace, type SubtaskStatus } from "../../domain/models/Subtask";
+import type { Subtask } from "../../domain/models/Subtask";
 import type { SubtaskRepository } from "../../domain/repositories/SubtaskRepository";
 
 type DbSchema = typeof schema;
@@ -28,7 +29,7 @@ export class DrizzleSubtaskRepository implements SubtaskRepository {
     createdAt: Date;
     updatedAt: Date | null;
   }): Subtask {
-    return new Subtask(
+    return SubtaskNamespace.create(
       record.todoId,
       record.title,
       record.order,

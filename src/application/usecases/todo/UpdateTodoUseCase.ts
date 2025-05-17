@@ -1,4 +1,5 @@
 import type { Todo } from "../../../domain/models/Todo";
+import { Todo as TodoNamespace } from "../../../domain/models/Todo";
 import type { TodoRepository } from "../../../domain/repositories/TodoRepository";
 
 export type UpdateTodoCmd = {
@@ -18,14 +19,14 @@ export class UpdateTodoUseCase {
     }
 
     if (dto.content !== undefined) {
-      todo = todo.updateContent(dto.content);
+      todo = TodoNamespace.updateContent(todo, dto.content);
     }
 
     if (dto.completed !== undefined) {
       if (dto.completed) {
-        todo = todo.markAsCompleted();
+        todo = TodoNamespace.markAsCompleted(todo);
       } else {
-        todo = todo.markAsIncomplete();
+        todo = TodoNamespace.markAsIncomplete(todo);
       }
     }
 

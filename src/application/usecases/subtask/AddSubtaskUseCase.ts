@@ -1,4 +1,5 @@
 import type { Subtask } from "../../../domain/models/Subtask";
+import { Todo as TodoNamespace } from "../../../domain/models/Todo";
 import type { TodoRepository } from "../../../domain/repositories/TodoRepository";
 
 export type AddSubtaskCmd = {
@@ -17,7 +18,7 @@ export class AddSubtaskUseCase {
       return null;
     }
 
-    const updatedTodo = todo.addSubtask(dto.title, dto.description);
+    const updatedTodo = TodoNamespace.addSubtask(todo, dto.title, dto.description);
     const savedTodo = await this.todoRepository.save(updatedTodo);
 
     // 最後に追加された subtask を返す

@@ -1,4 +1,6 @@
 import type { Subtask, SubtaskStatus } from "../../../domain/models/Subtask";
+import { Subtask as SubtaskNamespace } from "../../../domain/models/Subtask";
+import { Todo as TodoNamespace } from "../../../domain/models/Todo";
 import type { SubtaskRepository } from "../../../domain/repositories/SubtaskRepository";
 import type { TodoRepository } from "../../../domain/repositories/TodoRepository";
 
@@ -23,15 +25,15 @@ export class UpdateSubtaskUseCase {
     }
 
     if (dto.title !== undefined) {
-      subtask = subtask.updateTitle(dto.title);
+      subtask = SubtaskNamespace.updateTitle(subtask, dto.title);
     }
 
     if (dto.description !== undefined) {
-      subtask = subtask.updateDescription(dto.description);
+      subtask = SubtaskNamespace.updateDescription(subtask, dto.description);
     }
 
     if (dto.status !== undefined) {
-      subtask = subtask.updateStatus(dto.status);
+      subtask = SubtaskNamespace.updateStatus(subtask, dto.status);
     }
 
     const updatedSubtask = await this.subtaskRepository.save(subtask);
@@ -39,7 +41,7 @@ export class UpdateSubtaskUseCase {
     if (dto.status !== undefined) {
       const todo = await this.todoRepository.findById(subtask.todoId);
       if (todo) {
-        const updatedTodo = todo.updateCompletionStatus();
+        const updatedTodo = TodoNamespace.updateCompletionStatus(todo);
         await this.todoRepository.save(updatedTodo);
       }
     }

@@ -1,3 +1,4 @@
+import { Todo as TodoNamespace } from "../../../domain/models/Todo";
 import type { SubtaskRepository } from "../../../domain/repositories/SubtaskRepository";
 import type { TodoRepository } from "../../../domain/repositories/TodoRepository";
 
@@ -19,7 +20,7 @@ export class DeleteSubtaskUseCase {
 
     const todo = await this.todoRepository.findById(todoId);
     if (todo) {
-      const updatedTodo = todo.updateCompletionStatus();
+      const updatedTodo = TodoNamespace.updateCompletionStatus(todo);
       await this.todoRepository.save(updatedTodo);
     }
 
