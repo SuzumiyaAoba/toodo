@@ -1,6 +1,7 @@
 import type { Context } from "hono";
 import { Logger } from "tslog";
 import { inject, injectable, singleton } from "tsyringe";
+import { z } from "zod";
 import type { CreateTaskUseCase } from "../../application/usecases/task/CreateTaskUseCase";
 import type { DeleteTaskUseCase } from "../../application/usecases/task/DeleteTaskUseCase";
 import type { GetRootTasksUseCase } from "../../application/usecases/task/GetRootTasksUseCase";
@@ -9,7 +10,12 @@ import type { MoveTaskUseCase } from "../../application/usecases/task/MoveTaskUs
 import type { ReorderTasksUseCase } from "../../application/usecases/task/ReorderTasksUseCase";
 import type { UpdateTaskUseCase } from "../../application/usecases/task/UpdateTaskUseCase";
 import type { TaskStatus } from "../../domain/models/Task";
-import { ParentTaskNotFoundError, TaskNotFoundError } from "../../domain/models/errors";
+import {
+  CircularReferenceError,
+  ParentTaskNotFoundError,
+  SelfReferenceError,
+  TaskNotFoundError,
+} from "../../domain/models/errors";
 import {
   type CreateTaskInput,
   type MoveTaskInput,
@@ -198,9 +204,19 @@ export class TaskController {
       // Validate ID and request body together
       const validationResult = await validateRequest<MoveTaskInput>(
         c,
-        moveTaskSchema.extend({
-          taskId: idSchema.default(id), // Use ID from URL parameter as default
-        }),
+        moveTaskSchema
+          .extend({
+            taskId: idSchema.default(id), // Use ID from URL parameter as default
+          })
+          .superRefine((data, ctx) => {
+            if (data.taskId !== id) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Body taskId must match URL parameter",
+                path: ["taskId"],
+              });
+            }
+          }),
       );
 
       if (!("success" in validationResult)) {
@@ -222,6 +238,9 @@ export class TaskController {
         }
         if (error instanceof ParentTaskNotFoundError) {
           return c.json({ error: error.message }, 404);
+        }
+        if (error instanceof CircularReferenceError || error instanceof SelfReferenceError) {
+          return c.json({ error: error.message }, 400);
         }
         throw error;
       }

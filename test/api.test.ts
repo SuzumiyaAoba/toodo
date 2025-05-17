@@ -9,8 +9,8 @@ type Task = {
   description: string | null;
   status: "completed" | "incomplete";
   order: number;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string; // ISO-8601 timestamp
+  updatedAt: string;
 };
 
 type TaskWithChildren = Task & {
@@ -88,8 +88,8 @@ describe("API Tests", () => {
         description,
         status: "incomplete",
         order,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
 
       taskStore[newTask.id] = newTask;

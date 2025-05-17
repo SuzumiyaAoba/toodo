@@ -1,6 +1,11 @@
 import { inject, injectable, singleton } from "tsyringe";
 import type { Task } from "../../../domain/models/Task";
-import { ParentTaskNotFoundError, TaskNotFoundError } from "../../../domain/models/errors";
+import {
+  CircularReferenceError,
+  ParentTaskNotFoundError,
+  SelfReferenceError,
+  TaskNotFoundError,
+} from "../../../domain/models/errors";
 import type { TaskRepository } from "../../../domain/repositories/TaskRepository";
 
 type MoveTaskParams = {
@@ -22,15 +27,47 @@ export class MoveTaskUseCase {
       throw new TaskNotFoundError(taskId);
     }
 
+    // Check for self-reference
+    if (newParentId === taskId) {
+      throw new SelfReferenceError(taskId);
+    }
+
     // Validate parent exists if newParentId is provided
     if (newParentId) {
       const parent = await this.taskRepository.findById(newParentId);
       if (!parent) {
         throw new ParentTaskNotFoundError(newParentId);
       }
+
+      // Check for circular reference
+      const isCircular = await this.checkForCircularReference(newParentId, taskId);
+      if (isCircular) {
+        throw new CircularReferenceError(
+          `Cannot move task ${taskId} to parent ${newParentId} as it would create a circular reference`,
+        );
+      }
     }
 
     // Move task using repository
     return await this.taskRepository.moveTask(taskId, newParentId);
+  }
+
+  private async checkForCircularReference(parentId: string, taskId: string): Promise<boolean> {
+    // Check if parentId is a descendant of taskId
+    const parent = await this.taskRepository.findById(parentId, false);
+
+    if (!parent) {
+      return false;
+    }
+
+    if (parent.parentId === taskId) {
+      return true;
+    }
+
+    if (parent.parentId) {
+      return this.checkForCircularReference(parent.parentId, taskId);
+    }
+
+    return false;
   }
 }

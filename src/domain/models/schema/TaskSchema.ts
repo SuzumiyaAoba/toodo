@@ -35,8 +35,8 @@ export const reorderTasksSchema = z.object({
 
 // Schema for pagination
 export const paginationSchema = z.object({
-  page: z.number().int().positive().default(1),
-  limit: z.number().int().positive().max(100).default(20),
+  page: z.preprocess((v) => (typeof v === "string" ? Number(v) : v), z.number().int().positive()).default(1),
+  limit: z.preprocess((v) => (typeof v === "string" ? Number(v) : v), z.number().int().positive().max(100)).default(20),
 });
 
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;
