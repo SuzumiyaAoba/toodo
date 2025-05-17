@@ -7,6 +7,16 @@
   },
   "linter": {
     "enabled": true,
-    "ignore": [".cursor/**/*"]
+    "rules": {
+      "correctness": {
+        "noUnusedImports": "error"
+      }
+    },
+    "ignore": [".cursor/**/*", "dist/**/*"]
+  },
+  "javascript": {
+    "parser": {
+      "unsafeParameterDecoratorsEnabled": true
+    }
   }
 }

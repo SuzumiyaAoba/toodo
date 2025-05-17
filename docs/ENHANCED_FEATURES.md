@@ -87,7 +87,8 @@ interface RecurringTodoPattern {
 
 - Adding, editing, and deleting subtasks
 - Reordering subtasks
-- Option to automatically complete the main task when all subtasks are completed
+- Automatic parent task completion when all subtasks are completed
+- Automatic parent task incompletion when at least one subtask is incomplete
 
 #### 3.3 Data Model
 
@@ -103,6 +104,33 @@ interface Subtask {
   updatedAt: Date; // Update date/time
 }
 ```
+
+#### 3.4 Implementation Status
+
+1. **Database Schema:**
+
+   - ✅ Created `subtasks` table with all required fields
+   - ✅ Foreign key reference to parent todo
+
+2. **API Endpoints:**
+
+   - ✅ `GET /api/todos/:todoId/subtasks` - Get all subtasks for a todo
+   - ✅ `POST /api/todos/:todoId/subtasks` - Create a new subtask
+   - ✅ `PUT /api/subtasks/:id` - Update a subtask
+   - ✅ `DELETE /api/subtasks/:id` - Delete a subtask and reorder remaining subtasks
+   - ✅ `PUT /api/todos/:todoId/subtasks/reorder` - Reorder subtasks
+
+3. **Business Logic:**
+
+   - ✅ Subtask creation with automatic ordering
+   - ✅ Subtask status updates
+   - ✅ Parent todo status synchronization based on subtask completion
+   - ✅ Automatic reordering of subtasks after deletion
+   - ✅ Manual reordering of subtasks through the API
+
+4. **Testing:**
+   - ✅ Unit tests for subtask CRUD operations
+   - ✅ Integration tests for subtask ordering
 
 ### 4. Tag System
 

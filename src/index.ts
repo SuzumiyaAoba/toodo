@@ -1,87 +1,36 @@
-import { eq } from "drizzle-orm";
+import "reflect-metadata";
 import { Hono } from "hono";
-import { Logger } from "tslog";
-import { v4 as uuidv4 } from "uuid";
-import { db, todos } from "./db";
+import { getTaskController, initializeContainer } from "./application/services/DependencyContainer";
 
-const logger = new Logger({ name: "api" });
+// Initialize dependency injection container
+initializeContainer();
+
 const app = new Hono();
+const taskController = getTaskController();
 
 app.get("/", (c) => {
   return c.text("Hello Hono!");
 });
 
-// Todo API
-app.get("/api/todos", async (c) => {
-  try {
-    const todoList = await db.select().from(todos).all();
-    return c.json(todoList);
-  } catch (error) {
-    logger.error("Failed to get todos:", error);
-    return c.json({ error: "Failed to get todos" }, 500);
-  }
-});
-
-app.post("/api/todos", async (c) => {
-  try {
-    const { content } = await c.req.json();
-    if (!content) {
-      return c.json({ error: "Content is required" }, 400);
-    }
-
-    const newTodo = {
-      id: uuidv4(),
-      content,
-      completed: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    await db.insert(todos).values(newTodo);
-    return c.json(newTodo, 201);
-  } catch (error) {
-    logger.error("Failed to create todo:", error);
-    return c.json({ error: "Failed to create todo" }, 500);
-  }
-});
-
-app.patch("/api/todos/:id", async (c) => {
-  try {
-    const id = c.req.param("id");
-    const { content, completed } = await c.req.json();
-
-    const updatedTodo = {
-      ...(content !== undefined && { content }),
-      ...(completed !== undefined && { completed }),
-      updatedAt: new Date(),
-    };
-
-    await db.update(todos).set(updatedTodo).where(eq(todos.id, id));
-
-    const todo = await db.select().from(todos).where(eq(todos.id, id)).get();
-
-    if (!todo) {
-      return c.json({ error: "Todo not found" }, 404);
-    }
-
-    return c.json(todo);
-  } catch (error) {
-    logger.error("Failed to update todo:", error);
-    return c.json({ error: "Failed to update todo" }, 500);
-  }
-});
-
-app.delete("/api/todos/:id", async (c) => {
-  try {
-    const id = c.req.param("id");
-
-    await db.delete(todos).where(eq(todos.id, id));
-
-    return c.json({ success: true });
-  } catch (error) {
-    logger.error("Failed to delete todo:", error);
-    return c.json({ error: "Failed to delete todo" }, 500);
-  }
-});
+// Task API
+app.get("/api/tasks", taskController.getRootTasks);
+app.get("/api/tasks/:id", taskController.getTaskById);
+app.post("/api/tasks", taskController.create);
+app.patch("/api/tasks/:id", taskController.update);
+app.delete("/api/tasks/:id", taskController.delete);
+app.patch("/api/tasks/:id/move", taskController.move);
+app.put("/api/tasks/reorder", taskController.reorder);
+app.put("/api/tasks/:parentId/reorder", taskController.reorder);
 
 export default app;
+
+// For direct execution with bun run
+if (import.meta.main) {
+  // @ts-ignore
+  const port = process.env.PORT ? Number.parseInt(process.env.PORT, 10) : 3001;
+  console.log(`Server listening on http://localhost:${port}`);
+  Bun.serve({
+    port,
+    fetch: app.fetch,
+  });
+}

@@ -12,26 +12,36 @@ async function main() {
   // Create a Bun SQLite database connection
   const sqlite = new Database("data.db");
 
+  // Enable foreign key constraints
+  sqlite.exec("PRAGMA foreign_keys = ON;");
+
   const db = drizzle(sqlite, { schema });
 
   logger.info("Applying SQL migration...");
 
-  // Execute SQL directly to create tables
+  // Execute SQL directly to create the tasks table
   db.run(sql`
-    CREATE TABLE IF NOT EXISTS todos (
+    CREATE TABLE IF NOT EXISTS tasks (
       id TEXT PRIMARY KEY NOT NULL,
-      content TEXT NOT NULL,
-      completed INTEGER DEFAULT 0 NOT NULL,
+      parent_id TEXT,
+      title TEXT NOT NULL,
+      description TEXT,
+      status TEXT DEFAULT 'incomplete' NOT NULL,
+      "order" INTEGER DEFAULT 1 NOT NULL,
       created_at INTEGER NOT NULL,
-      updated_at INTEGER
+      updated_at INTEGER,
+      FOREIGN KEY (parent_id) REFERENCES tasks(id) ON DELETE CASCADE
     );
+
+    -- Create index on parent_id for better query performance
+    CREATE INDEX IF NOT EXISTS idx_tasks_parent_id ON tasks(parent_id);
   `);
 
   logger.info("Database setup completed successfully!");
   process.exit(0);
 }
 
-main().catch((e) => {
-  logger.error("Database setup failed!", e);
+main().catch((error) => {
+  logger.error("Failed to setup database:", error);
   process.exit(1);
 });
