@@ -6,159 +6,185 @@ This document provides detailed functional and non-functional requirements for t
 
 ## Terminology
 
-- **Todo Item**: The basic unit representing a task created by a user
-- **Status**: The state of a Todo item (incomplete, completed, etc.)
-- **Priority**: An indicator of the importance of a Todo item
-- **Category**: A label used to classify Todo items
+- **Task**: The basic unit representing a task created by a user
+- **Status**: The state of a Task (incomplete, completed)
+- **Order**: A numeric value that determines the display order of tasks at the same hierarchical level
+- **Subtask**: A task that is hierarchically nested under a parent task
 
 ## Functional Requirements
 
-### 1. Todo Management
+### 1. Task Management
 
-#### 1.1 Creating Todo Items
-- Users can create Todo items by entering a title and description (optional)
-- Due date and category can be set during creation (optional)
-- Newly created Todos have a default status of "incomplete"
+#### 1.1 Creating Tasks
 
-#### 1.2 Listing Todo Items
-- Users can view a list of all their Todo items
-- Lists can be filtered by status, due date, and category
-- By default, items are displayed in descending order of creation date
+- Users can create tasks by entering a title and description (optional)
+- Users can create subtasks under existing tasks
+- Newly created tasks have a default status of "incomplete"
+- Tasks are assigned an order value based on their position in the list
 
-#### 1.3 Viewing Todo Details
-- Users can view detailed information about a Todo item
-- Details include title, description, creation date/time, update date/time, due date, status, and category
+#### 1.2 Listing Tasks
 
-#### 1.4 Updating Todo Items
-- Users can update the title, description, due date, and category of a Todo item
+- Users can view a list of all their root-level tasks (tasks without parents)
+- Tasks are displayed in order according to their order property
+- Subtasks are displayed under their parent tasks in a hierarchical view
+
+#### 1.3 Viewing Task Details
+
+- Users can view detailed information about a task
+- Details include title, description, creation date/time, update date/time, status, and subtasks
+
+#### 1.4 Updating Tasks
+
+- Users can update the title and description of a task
 - Status can be changed to "completed" or "incomplete"
+- Marking a parent task as completed will mark all subtasks as completed
 
-#### 1.5 Deleting Todo Items
-- Users can delete Todo items that are no longer needed
-- Confirmation is requested before deletion
+#### 1.5 Moving Tasks
 
-### 2. Category Management
+- Users can move tasks in the hierarchy
+- Tasks can be moved to be subtasks of another task
+- Tasks can be moved from being a subtask to a root-level task
 
-#### 2.1 Creating Categories
-- Users can create categories by specifying a name and color (optional)
+#### 1.6 Reordering Tasks
 
-#### 2.2 Listing Categories
-- Users can view a list of all categories they have created
+- Users can change the display order of tasks at the same level
+- Reordering updates the order property of affected tasks
 
-#### 2.3 Updating Categories
-- Users can update the name and color of a category
+#### 1.7 Deleting Tasks
 
-#### 2.4 Deleting Categories
-- Users can delete categories
-- When a category is deleted, related Todo items will have their category set to undefined
+- Users can delete tasks
+- Deleting a task also deletes all of its subtasks
 
 ## API Endpoint Specifications
 
-### Todo API
+### Task API
 
-#### `GET /api/todos`
-- **Function**: Retrieve a list of Todo items
-- **Query Parameters**: 
-  - `status`: Filter by status ("completed", "incomplete")
-  - `category`: Filter by category ID
-  - `sort`: Sort order ("createdAt", "dueDate")
-  - `order`: Sort direction ("asc", "desc")
-- **Response**: Array of Todo items
+#### `GET /api/tasks`
 
-#### `GET /api/todos/:id`
-- **Function**: Retrieve a specific Todo item
-- **Path Parameters**: 
-  - `id`: Todo item ID
-- **Response**: Todo item object
+- **Function**: Retrieve a list of root-level tasks
+- **Response**: Array of Task objects with their subtasks
 
-#### `POST /api/todos`
-- **Function**: Create a new Todo item
-- **Request Body**:
-  - `title`: Todo item title (required)
-  - `description`: Todo item description (optional)
-  - `dueDate`: Due date (optional)
-  - `categoryId`: Category ID (optional)
-- **Response**: Created Todo item object
+#### `GET /api/tasks/:id`
 
-#### `PUT /api/todos/:id`
-- **Function**: Update a specific Todo item
+- **Function**: Retrieve a specific task with its subtasks
 - **Path Parameters**:
-  - `id`: Todo item ID
+  - `id`: Task ID
+- **Response**: Task object with nested subtasks
+
+#### `POST /api/tasks`
+
+- **Function**: Create a new task
 - **Request Body**:
-  - `title`: Todo item title (optional)
-  - `description`: Todo item description (optional)
+  - `title`: Task title (required)
+  - `description`: Task description (optional)
+  - `parentId`: Parent task ID (optional, for creating subtasks)
+- **Response**: Created Task object
+
+#### `PATCH /api/tasks/:id`
+
+- **Function**: Update a specific task
+- **Path Parameters**:
+  - `id`: Task ID
+- **Request Body**:
+  - `title`: Task title (optional)
+  - `description`: Task description (optional)
   - `status`: Status (optional)
-  - `dueDate`: Due date (optional)
-  - `categoryId`: Category ID (optional)
-- **Response**: Updated Todo item object
+- **Response**: Updated Task object
 
-#### `DELETE /api/todos/:id`
-- **Function**: Delete a specific Todo item
+#### `PATCH /api/tasks/:id/move`
+
+- **Function**: Move a task in the hierarchy
 - **Path Parameters**:
-  - `id`: Todo item ID
-- **Response**: Deletion confirmation
-
-### Category API
-
-#### `GET /api/categories`
-- **Function**: Retrieve a list of categories
-- **Response**: Array of categories
-
-#### `GET /api/categories/:id`
-- **Function**: Retrieve a specific category
-- **Path Parameters**:
-  - `id`: Category ID
-- **Response**: Category object
-
-#### `POST /api/categories`
-- **Function**: Create a new category
+  - `id`: Task ID
 - **Request Body**:
-  - `name`: Category name (required)
-  - `color`: Category color (optional)
-- **Response**: Created category object
+  - `parentId`: New parent task ID or null for root-level
+- **Response**: Updated Task object
 
-#### `PUT /api/categories/:id`
-- **Function**: Update a specific category
-- **Path Parameters**:
-  - `id`: Category ID
+#### `PUT /api/tasks/reorder`
+
+- **Function**: Reorder root-level tasks
 - **Request Body**:
-  - `name`: Category name (optional)
-  - `color`: Category color (optional)
-- **Response**: Updated category object
+  - `orderMap`: Object mapping task IDs to new order values
+- **Response**: Success confirmation
 
-#### `DELETE /api/categories/:id`
-- **Function**: Delete a specific category
+#### `PUT /api/tasks/:parentId/reorder`
+
+- **Function**: Reorder subtasks under a specific parent
 - **Path Parameters**:
-  - `id`: Category ID
+  - `parentId`: Parent task ID
+- **Request Body**:
+  - `orderMap`: Object mapping task IDs to new order values
+- **Response**: Success confirmation
+
+#### `DELETE /api/tasks/:id`
+
+- **Function**: Delete a specific task and all its subtasks
+- **Path Parameters**:
+  - `id`: Task ID
 - **Response**: Deletion confirmation
 
 ## Data Models
 
-### Todo Item
+### Task
 
 ```typescript
-interface Todo {
-  id: string;            // Unique identifier for the Todo item
-  title: string;         // Title
-  description?: string;  // Description (optional)
-  status: 'completed' | 'incomplete'; // Status
-  dueDate?: Date;        // Due date (optional)
-  categoryId?: string;   // Category ID (optional)
-  createdAt: Date;       // Creation date/time
-  updatedAt: Date;       // Update date/time
-}
+type Task = Readonly<{
+  id: string; // Unique identifier for the task
+  parentId: string | null; // Parent task ID or null for root tasks
+  title: string; // Title
+  description: string | null; // Description (optional)
+  status: "completed" | "incomplete"; // Status
+  order: number; // Display order within the same level
+  createdAt: Date; // Creation date/time
+  updatedAt: Date; // Update date/time
+  subtasks: readonly Task[]; // Nested subtasks
+}>;
 ```
 
-### Category
+## Task Domain Operations
+
+### Creation and Structure
 
 ```typescript
-interface Category {
-  id: string;            // Unique identifier for the category
-  name: string;          // Category name
-  color?: string;        // Category color (optional)
-  createdAt: Date;       // Creation date/time
-  updatedAt: Date;       // Update date/time
-}
+// Create a new task
+function create(
+  title: string,
+  parentId?: string | null,
+  description?: string | null
+): Task;
+
+// Add a subtask to an existing task
+function addSubtask(
+  task: Task,
+  title: string,
+  description?: string | null
+): Task;
+```
+
+### Updates and Status Management
+
+```typescript
+// Update task properties
+function updateTitle(task: Task, title: string): Task;
+function updateDescription(task: Task, description: string | null): Task;
+function updateStatus(task: Task): Task;
+function updateOrder(task: Task, order: number): Task;
+
+// Status changes
+function markAsCompleted(task: Task): Task;
+function markAsIncomplete(task: Task): Task;
+```
+
+### Task Organization
+
+```typescript
+// Reordering tasks
+function reorderSubtasks(task: Task, orderMap: Record<string, number>): Task;
+
+// Task hierarchy operations
+function getTaskHierarchy(task: Task): Task[];
+function findTaskById(task: Task, id: string): Task | null;
+function getDepth(task: Task): number;
 ```
 
 ## Non-Functional Requirements
@@ -186,4 +212,5 @@ interface Category {
 ### 5. Maintainability
 
 - Code should include clear documentation and appropriate comments
-- Test coverage target is 80% or higher 
+- Test coverage target is 80% or higher
+- Domain models should be immutable to prevent unexpected state changes

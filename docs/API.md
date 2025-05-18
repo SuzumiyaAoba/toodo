@@ -26,22 +26,15 @@ Content-Type: application/json
 
 ## Endpoints
 
-### Todo API
+### Task API
 
-#### List Todo Items
+#### List Root Tasks
 
 ```
-GET /todos
+GET /api/tasks
 ```
 
-##### Query Parameters
-
-| Parameter | Type   | Required | Description                                         |
-| --------- | ------ | -------- | --------------------------------------------------- |
-| status    | string | No       | Filter by status ("completed" or "incomplete")      |
-| category  | string | No       | Filter by category ID                               |
-| sort      | string | No       | Sort criteria ("createdAt" or "dueDate")            |
-| order     | string | No       | Sort direction ("asc" or "desc", default is "desc") |
+Returns all top-level tasks (tasks with no parent).
 
 ##### Response
 
@@ -50,53 +43,43 @@ Success status code: `200 OK`
 Example response body:
 
 ```json
-{
-  "todos": [
-    {
-      "id": "123e4567-e89b-12d3-a456-426614174000",
-      "title": "Go shopping",
-      "description": "Buy milk and eggs",
-      "status": "incomplete",
-      "dueDate": "2023-12-31T15:00:00.000Z",
-      "categoryId": "123e4567-e89b-12d3-a456-426614174001",
-      "category": {
-        "id": "123e4567-e89b-12d3-a456-426614174001",
-        "name": "Shopping",
-        "color": "#ff0000"
-      },
-      "createdAt": "2023-12-01T10:30:00.000Z",
-      "updatedAt": "2023-12-01T10:30:00.000Z"
-    },
-    {
-      "id": "123e4567-e89b-12d3-a456-426614174002",
-      "title": "Write report",
-      "description": "Create progress report for the project",
-      "status": "incomplete",
-      "dueDate": "2023-12-15T17:00:00.000Z",
-      "categoryId": "123e4567-e89b-12d3-a456-426614174003",
-      "category": {
-        "id": "123e4567-e89b-12d3-a456-426614174003",
-        "name": "Work",
-        "color": "#0000ff"
-      },
-      "createdAt": "2023-12-01T11:30:00.000Z",
-      "updatedAt": "2023-12-01T11:30:00.000Z"
-    }
-  ]
-}
+[
+  {
+    "id": "123e4567-e89b-12d3-a456-426614174000",
+    "parentId": null,
+    "title": "Go shopping",
+    "description": "Buy milk and eggs",
+    "status": "incomplete",
+    "order": 1,
+    "createdAt": "2023-12-01T10:30:00.000Z",
+    "updatedAt": "2023-12-01T10:30:00.000Z",
+    "subtasks": []
+  },
+  {
+    "id": "123e4567-e89b-12d3-a456-426614174002",
+    "parentId": null,
+    "title": "Write report",
+    "description": "Create progress report for the project",
+    "status": "incomplete",
+    "order": 2,
+    "createdAt": "2023-12-01T11:30:00.000Z",
+    "updatedAt": "2023-12-01T11:30:00.000Z",
+    "subtasks": []
+  }
+]
 ```
 
-#### Get a Specific Todo Item
+#### Get a Specific Task
 
 ```
-GET /todos/:id
+GET /api/tasks/:id
 ```
 
 ##### Path Parameters
 
-| Parameter | Type   | Required | Description         |
-| --------- | ------ | -------- | ------------------- |
-| id        | string | Yes      | ID of the Todo item |
+| Parameter | Type   | Required | Description    |
+| --------- | ------ | -------- | -------------- |
+| id        | string | Yes      | ID of the Task |
 
 ##### Response
 
@@ -106,21 +89,27 @@ Example response body:
 
 ```json
 {
-  "todo": {
-    "id": "123e4567-e89b-12d3-a456-426614174000",
-    "title": "Go shopping",
-    "description": "Buy milk and eggs",
-    "status": "incomplete",
-    "dueDate": "2023-12-31T15:00:00.000Z",
-    "categoryId": "123e4567-e89b-12d3-a456-426614174001",
-    "category": {
+  "id": "123e4567-e89b-12d3-a456-426614174000",
+  "parentId": null,
+  "title": "Go shopping",
+  "description": "Buy milk and eggs",
+  "status": "incomplete",
+  "order": 1,
+  "createdAt": "2023-12-01T10:30:00.000Z",
+  "updatedAt": "2023-12-01T10:30:00.000Z",
+  "subtasks": [
+    {
       "id": "123e4567-e89b-12d3-a456-426614174001",
-      "name": "Shopping",
-      "color": "#ff0000"
-    },
-    "createdAt": "2023-12-01T10:30:00.000Z",
-    "updatedAt": "2023-12-01T10:30:00.000Z"
-  }
+      "parentId": "123e4567-e89b-12d3-a456-426614174000",
+      "title": "Buy milk",
+      "description": null,
+      "status": "completed",
+      "order": 1,
+      "createdAt": "2023-12-01T10:35:00.000Z",
+      "updatedAt": "2023-12-01T10:40:00.000Z",
+      "subtasks": []
+    }
+  ]
 }
 ```
 
@@ -130,24 +119,23 @@ Example error response:
 
 ```json
 {
-  "error": "Todo not found"
+  "error": "Task not found"
 }
 ```
 
-#### Create a New Todo Item
+#### Create a New Task
 
 ```
-POST /todos
+POST /api/tasks
 ```
 
 ##### Request Body
 
-| Field       | Type   | Required | Description                |
-| ----------- | ------ | -------- | -------------------------- |
-| title       | string | Yes      | Todo item title            |
-| description | string | No       | Todo item description      |
-| dueDate     | string | No       | Due date (ISO 8601 format) |
-| categoryId  | string | No       | Category ID                |
+| Field       | Type   | Required | Description                           |
+| ----------- | ------ | -------- | ------------------------------------- |
+| title       | string | Yes      | Task title                            |
+| description | string | No       | Task description                      |
+| parentId    | string | No       | Parent task ID for hierarchical tasks |
 
 Example request body:
 
@@ -155,8 +143,7 @@ Example request body:
 {
   "title": "Buy milk",
   "description": "Purchase low-fat milk",
-  "dueDate": "2023-12-31T15:00:00.000Z",
-  "categoryId": "123e4567-e89b-12d3-a456-426614174001"
+  "parentId": "123e4567-e89b-12d3-a456-426614174000"
 }
 ```
 
@@ -168,16 +155,15 @@ Example response body:
 
 ```json
 {
-  "todo": {
-    "id": "123e4567-e89b-12d3-a456-426614174005",
-    "title": "Buy milk",
-    "description": "Purchase low-fat milk",
-    "status": "incomplete",
-    "dueDate": "2023-12-31T15:00:00.000Z",
-    "categoryId": "123e4567-e89b-12d3-a456-426614174001",
-    "createdAt": "2023-12-05T14:30:00.000Z",
-    "updatedAt": "2023-12-05T14:30:00.000Z"
-  }
+  "id": "123e4567-e89b-12d3-a456-426614174005",
+  "parentId": "123e4567-e89b-12d3-a456-426614174000",
+  "title": "Buy milk",
+  "description": "Purchase low-fat milk",
+  "status": "incomplete",
+  "order": 2,
+  "createdAt": "2023-12-05T14:30:00.000Z",
+  "updatedAt": "2023-12-05T14:30:00.000Z",
+  "subtasks": []
 }
 ```
 
@@ -194,27 +180,25 @@ Example error response:
 }
 ```
 
-#### Update a Todo Item
+#### Update a Task
 
 ```
-PUT /todos/:id
+PATCH /api/tasks/:id
 ```
 
 ##### Path Parameters
 
-| Parameter | Type   | Required | Description         |
-| --------- | ------ | -------- | ------------------- |
-| id        | string | Yes      | ID of the Todo item |
+| Parameter | Type   | Required | Description    |
+| --------- | ------ | -------- | -------------- |
+| id        | string | Yes      | ID of the Task |
 
 ##### Request Body
 
 | Field       | Type   | Required | Description                          |
 | ----------- | ------ | -------- | ------------------------------------ |
-| title       | string | No       | Todo item title                      |
-| description | string | No       | Todo item description                |
+| title       | string | No       | Task title                           |
+| description | string | No       | Task description                     |
 | status      | string | No       | Status ("completed" or "incomplete") |
-| dueDate     | string | No       | Due date (ISO 8601 format)           |
-| categoryId  | string | No       | Category ID                          |
 
 Example request body:
 
@@ -233,35 +217,144 @@ Example response body:
 
 ```json
 {
-  "todo": {
-    "id": "123e4567-e89b-12d3-a456-426614174005",
-    "title": "Buy milk",
-    "description": "Purchased 1 liter of low-fat milk",
-    "status": "completed",
-    "dueDate": "2023-12-31T15:00:00.000Z",
-    "categoryId": "123e4567-e89b-12d3-a456-426614174001",
-    "createdAt": "2023-12-05T14:30:00.000Z",
-    "updatedAt": "2023-12-05T15:45:00.000Z"
-  }
+  "id": "123e4567-e89b-12d3-a456-426614174005",
+  "parentId": "123e4567-e89b-12d3-a456-426614174000",
+  "title": "Buy milk",
+  "description": "Purchased 1 liter of low-fat milk",
+  "status": "completed",
+  "order": 2,
+  "createdAt": "2023-12-05T14:30:00.000Z",
+  "updatedAt": "2023-12-05T15:45:00.000Z",
+  "subtasks": []
 }
 ```
 
 Error status codes:
 
 - `400 Bad Request` - Invalid input data
-- `404 Not Found` - Todo item with the specified ID does not exist
+- `404 Not Found` - Task with the specified ID does not exist
 
-#### Delete a Todo Item
+#### Move a Task
 
 ```
-DELETE /todos/:id
+PATCH /api/tasks/:id/move
+```
+
+Moves a task to a new parent.
+
+##### Path Parameters
+
+| Parameter | Type   | Required | Description    |
+| --------- | ------ | -------- | -------------- |
+| id        | string | Yes      | ID of the Task |
+
+##### Request Body
+
+| Field    | Type         | Required | Description                          |
+| -------- | ------------ | -------- | ------------------------------------ |
+| parentId | string, null | Yes      | New parent ID or null for root-level |
+
+Example request body:
+
+```json
+{
+  "parentId": "123e4567-e89b-12d3-a456-426614174000"
+}
+```
+
+##### Response
+
+Success status code: `200 OK`
+
+Example response body:
+
+```json
+{
+  "id": "123e4567-e89b-12d3-a456-426614174005",
+  "parentId": "123e4567-e89b-12d3-a456-426614174000",
+  "title": "Buy milk",
+  "description": "Purchase low-fat milk",
+  "status": "incomplete",
+  "order": 1,
+  "createdAt": "2023-12-05T14:30:00.000Z",
+  "updatedAt": "2023-12-05T15:45:00.000Z",
+  "subtasks": []
+}
+```
+
+#### Reorder Tasks
+
+```
+PUT /api/tasks/reorder
+```
+
+Reorders root-level tasks.
+
+##### Request Body
+
+| Field    | Type   | Required | Description                                      |
+| -------- | ------ | -------- | ------------------------------------------------ |
+| orderMap | object | Yes      | Object with task IDs as keys and order as values |
+
+Example request body:
+
+```json
+{
+  "orderMap": {
+    "123e4567-e89b-12d3-a456-426614174000": 2,
+    "123e4567-e89b-12d3-a456-426614174002": 1
+  }
+}
+```
+
+##### Response
+
+Success status code: `200 OK`
+
+```
+PUT /api/tasks/:parentId/reorder
+```
+
+Reorders subtasks of a specific parent task.
+
+##### Path Parameters
+
+| Parameter | Type   | Required | Description           |
+| --------- | ------ | -------- | --------------------- |
+| parentId  | string | Yes      | ID of the parent task |
+
+##### Request Body
+
+| Field    | Type   | Required | Description                                      |
+| -------- | ------ | -------- | ------------------------------------------------ |
+| orderMap | object | Yes      | Object with task IDs as keys and order as values |
+
+Example request body:
+
+```json
+{
+  "orderMap": {
+    "123e4567-e89b-12d3-a456-426614174001": 2,
+    "123e4567-e89b-12d3-a456-426614174005": 1
+  }
+}
+```
+
+##### Response
+
+Success status code: `200 OK`
+
+#### Delete a Task
+
+```
+DELETE /api/tasks/:id
 ```
 
 ##### Path Parameters
 
-| Parameter | Type   | Required | Description         |
-| --------- | ------ | -------- | ------------------- |
-| id        | string | Yes      | ID of the Todo item |
+| Parameter | Type   | Required | Description    |
+| --------- | ------ | -------- | -------------- |
+| id        | string | Yes      | ID of the Task |
 
 ##### Response
 
@@ -273,212 +366,7 @@ Example error response:
 
 ```json
 {
-  "error": "Todo not found"
-}
-```
-
-### Category API
-
-#### List Categories
-
-```
-GET /categories
-```
-
-##### Response
-
-Success status code: `200 OK`
-
-Example response body:
-
-```json
-{
-  "categories": [
-    {
-      "id": "123e4567-e89b-12d3-a456-426614174001",
-      "name": "Shopping",
-      "color": "#ff0000",
-      "createdAt": "2023-11-15T09:30:00.000Z",
-      "updatedAt": "2023-11-15T09:30:00.000Z"
-    },
-    {
-      "id": "123e4567-e89b-12d3-a456-426614174003",
-      "name": "Work",
-      "color": "#0000ff",
-      "createdAt": "2023-11-15T09:35:00.000Z",
-      "updatedAt": "2023-11-15T09:35:00.000Z"
-    }
-  ]
-}
-```
-
-#### Get a Specific Category
-
-```
-GET /categories/:id
-```
-
-##### Path Parameters
-
-| Parameter | Type   | Required | Description        |
-| --------- | ------ | -------- | ------------------ |
-| id        | string | Yes      | ID of the category |
-
-##### Response
-
-Success status code: `200 OK`
-
-Example response body:
-
-```json
-{
-  "category": {
-    "id": "123e4567-e89b-12d3-a456-426614174001",
-    "name": "Shopping",
-    "color": "#ff0000",
-    "createdAt": "2023-11-15T09:30:00.000Z",
-    "updatedAt": "2023-11-15T09:30:00.000Z"
-  }
-}
-```
-
-Error status code: `404 Not Found`
-
-Example error response:
-
-```json
-{
-  "error": "Category not found"
-}
-```
-
-#### Create a New Category
-
-```
-POST /categories
-```
-
-##### Request Body
-
-| Field | Type   | Required | Description                     |
-| ----- | ------ | -------- | ------------------------------- |
-| name  | string | Yes      | Category name                   |
-| color | string | No       | Category color (hex color code) |
-
-Example request body:
-
-```json
-{
-  "name": "Hobbies",
-  "color": "#00ff00"
-}
-```
-
-##### Response
-
-Success status code: `201 Created`
-
-Example response body:
-
-```json
-{
-  "category": {
-    "id": "123e4567-e89b-12d3-a456-426614174007",
-    "name": "Hobbies",
-    "color": "#00ff00",
-    "createdAt": "2023-12-05T16:30:00.000Z",
-    "updatedAt": "2023-12-05T16:30:00.000Z"
-  }
-}
-```
-
-Error status code: `400 Bad Request`
-
-Example error response:
-
-```json
-{
-  "error": "Validation error",
-  "details": {
-    "name": "Name is required"
-  }
-}
-```
-
-#### Update a Category
-
-```
-PUT /categories/:id
-```
-
-##### Path Parameters
-
-| Parameter | Type   | Required | Description        |
-| --------- | ------ | -------- | ------------------ |
-| id        | string | Yes      | ID of the category |
-
-##### Request Body
-
-| Field | Type   | Required | Description                     |
-| ----- | ------ | -------- | ------------------------------- |
-| name  | string | No       | Category name                   |
-| color | string | No       | Category color (hex color code) |
-
-Example request body:
-
-```json
-{
-  "name": "Personal hobbies",
-  "color": "#00aa00"
-}
-```
-
-##### Response
-
-Success status code: `200 OK`
-
-Example response body:
-
-```json
-{
-  "category": {
-    "id": "123e4567-e89b-12d3-a456-426614174007",
-    "name": "Personal hobbies",
-    "color": "#00aa00",
-    "createdAt": "2023-12-05T16:30:00.000Z",
-    "updatedAt": "2023-12-05T17:15:00.000Z"
-  }
-}
-```
-
-Error status codes:
-
-- `400 Bad Request` - Invalid input data
-- `404 Not Found` - Category with the specified ID does not exist
-
-#### Delete a Category
-
-```
-DELETE /categories/:id
-```
-
-##### Path Parameters
-
-| Parameter | Type   | Required | Description        |
-| --------- | ------ | -------- | ------------------ |
-| id        | string | Yes      | ID of the category |
-
-##### Response
-
-Success status code: `204 No Content`
-
-Error status code: `404 Not Found`
-
-Example error response:
-
-```json
-{
-  "error": "Category not found"
+  "error": "Task not found"
 }
 ```
 
@@ -519,12 +407,13 @@ API version management is done via URL paths. The current version is implicitly 
 In the future, explicit versioning may be introduced in the following format:
 
 ```
-/api/v1/todos
-/api/v2/todos
+/api/v1/tasks
+/api/v2/tasks
 ```
 
 ## Change History
 
-| Date       | Version | Changes         |
-| ---------- | ------- | --------------- |
-| 2023-12-01 | 1.0     | Initial version |
+| Date       | Version | Changes                                |
+| ---------- | ------- | -------------------------------------- |
+| 2023-12-01 | 1.0     | Initial version                        |
+| 2024-05-30 | 1.1     | Updated to reflect Task implementation |

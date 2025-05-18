@@ -31,56 +31,86 @@ Toodo is a simple and efficient Todo application. It is built using the Bun runt
 
 ### 3. Database (SQLite)
 
-- **Tables**: Stores Todo items, users, categories, etc.
+- **Tables**: Stores Task items and their relationships
 - **Indexes**: Efficient query execution
 - **Relationships**: Connections between data models
 
-## Directory Structure
+## Project Structure (Domain-Driven Design)
 
 ```
 src/
-├── index.ts                # Application entry point
-├── config/                 # Configuration files
-├── controllers/            # Route handlers
-├── db/                     # Database-related files
-│   ├── schema/             # Table definitions
-│   ├── migrations/         # Migration files
-│   └── index.ts            # DB client
-├── middleware/             # Middleware functions
-├── models/                 # Data models
-├── routes/                 # Route definitions
-├── services/               # Business logic
-├── types/                  # Type definitions
-└── utils/                  # Utility functions
+├── index.ts                  # Application entry point
+├── domain/                   # Domain layer
+│   ├── models/               # Domain models (Tasks, etc.)
+│   │   ├── errors/           # Domain-specific errors
+│   │   ├── schema/           # Schema definitions
+│   │   └── Task.ts           # Task domain model
+│   └── repositories/         # Repository interfaces
+├── application/              # Application layer
+│   ├── services/             # Application services
+│   │   └── DependencyContainer.ts # DI container
+│   └── usecases/             # Use cases
+│       └── task/             # Task-related use cases
+├── infrastructure/           # Infrastructure layer
+│   ├── controllers/          # API controllers
+│   ├── repositories/         # Repository implementations
+│   └── utils/                # Infrastructure utilities
+└── db/                       # Database-related files
+    └── migrations/           # Migration files
 ```
 
 ## Key Data Flow
 
 1. Client sends a request to an API endpoint
 2. Hono router routes the request to the appropriate controller based on route and HTTP method
-3. Middleware layer processes the request (authentication, logging, etc.)
-4. Controller validates the request and delegates tasks to the service layer
-5. Service layer executes business logic and interacts with the data access layer as needed
-6. Drizzle ORM executes queries against the SQLite database
-7. Results are returned to the controller and sent to the client as an appropriate HTTP response
+3. Controller validates the request and delegates tasks to the appropriate use case
+4. Use case executes business logic and interacts with domain repositories as needed
+5. Repository implementation interacts with the database through Drizzle ORM
+6. Results flow back up the chain: repository -> use case -> controller -> client
+7. Controller formats the response and sends it to the client as an appropriate HTTP response
+
+## Domain Models
+
+### Task
+
+The Task domain model represents a task in the system. Key features:
+
+- **Immutability**: All Task objects are immutable
+- **Factory Functions**: Tasks are created and manipulated through pure functions
+- **Hierarchical Structure**: Tasks can have subtasks, forming a tree structure
+- **Task Status**: Tasks can be marked as "completed" or "incomplete"
+- **Order Management**: Tasks maintain their display order
+
+### Key Domain Operations
+
+- Creating tasks and subtasks
+- Updating task properties (title, description, status)
+- Moving tasks in the hierarchy
+- Reordering tasks and subtasks
+- Task completion state management (including cascading completion)
 
 ## Technical Considerations
 
 ### Performance
+
 - Index design for efficient queries
-- Caching strategies as needed
+- Optimized hierarchical data retrieval
 
 ### Security
+
 - Input validation
 - Proper error handling
 - Secure data storage
 
 ### Scalability
-- Modular design
-- Separation of concerns
-- Flexible data models for future expansion
+
+- Modular design aligned with DDD principles
+- Separation of concerns through layered architecture
+- Flexible domain models for future expansion
 
 ### Maintainability
+
 - Consistent coding conventions
 - Clear documentation
-- Comprehensive testing 
+- Comprehensive testing strategy
+- Domain-Driven Design for better alignment with business needs

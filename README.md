@@ -109,6 +109,36 @@ Tasks have the following attributes:
 - `updatedAt` - Task update date/time
 - `subtasks` - Array of child tasks
 
+### Task Domain Functions
+
+The Task namespace provides various pure functions to manipulate tasks:
+
+```typescript
+// Create a new task
+Task.create(title, parentId?, description?, id?, status?, order?, createdAt?, updatedAt?, subtasks?);
+
+// Add a subtask to a task
+Task.addSubtask(task, title, description?);
+
+// Update task properties
+Task.updateTitle(task, title);
+Task.updateDescription(task, description);
+Task.updateStatus(task);
+Task.updateOrder(task, order);
+
+// Mark tasks as completed or incomplete
+Task.markAsCompleted(task);
+Task.markAsIncomplete(task);
+
+// Reorder subtasks
+Task.reorderSubtasks(task, orderMap);
+
+// Task hierarchy operations
+Task.getTaskHierarchy(task);
+Task.findTaskById(task, id);
+Task.getDepth(task);
+```
+
 ## Code Conventions
 
 - Use Biome for code linting and formatting
