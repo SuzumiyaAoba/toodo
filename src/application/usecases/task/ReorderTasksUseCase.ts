@@ -14,7 +14,7 @@ type ReorderTasksParams = {
 export class ReorderTasksUseCase {
   constructor(
     @inject(TOKENS.TaskRepository)
-    private readonly taskRepository: TaskRepository,
+    private readonly taskRepository: TaskRepository
   ) {}
 
   async execute(params: ReorderTasksParams): Promise<readonly TaskType[]> {
@@ -35,9 +35,14 @@ export class ReorderTasksUseCase {
         const newOrder = orderMap[task.id];
         return { task, newOrder };
       })
-      .filter((item): item is { task: TaskType; newOrder: number } => item.newOrder !== undefined);
+      .filter(
+        (item): item is { task: TaskType; newOrder: number } =>
+          item.newOrder !== undefined
+      );
 
-    const tasksToUpdate = tasksWithOrderValues.map((item) => Task.updateOrder(item.task, item.newOrder));
+    const tasksToUpdate = tasksWithOrderValues.map((item) =>
+      Task.updateOrder(item.task, item.newOrder)
+    );
 
     if (tasksToUpdate.length === 0) {
       return tasks;
@@ -55,19 +60,30 @@ export class ReorderTasksUseCase {
   }
 
   // Split validation logic into a separate method using a pure functional approach
-  private validateOrderMap(tasks: readonly TaskType[], orderMap: Readonly<Partial<Record<string, number>>>): void {
+  private validateOrderMap(
+    tasks: readonly TaskType[],
+    orderMap: Readonly<Partial<Record<string, number>>>
+  ): void {
     const siblingIds = new Set(tasks.map((t) => t.id));
-    const unknownIds = Object.keys(orderMap).filter((id) => !siblingIds.has(id));
+    const unknownIds = Object.keys(orderMap).filter(
+      (id) => !siblingIds.has(id)
+    );
 
     if (unknownIds.length) {
       throw new Error(
-        `orderMap contains tasks that are not siblings of the specified parent: ${unknownIds.join(", ")}`,
+        `orderMap contains tasks that are not siblings of the specified parent: ${unknownIds.join(
+          ", "
+        )}`
       );
     }
 
     // Filter out undefined values
-    const orders = Object.values(orderMap).filter((order): order is number => order !== undefined);
-    const existingOrders = tasks.filter((t) => !(t.id in orderMap)).map((t) => t.order);
+    const orders = Object.values(orderMap).filter(
+      (order): order is number => order !== undefined
+    );
+    const existingOrders = tasks
+      .filter((t) => !(t.id in orderMap))
+      .map((t) => t.order);
     const allOrders = [...orders, ...existingOrders];
 
     const seenOrders = new Set<number>();
@@ -80,7 +96,11 @@ export class ReorderTasksUseCase {
     });
 
     if (duplicateOrders.length) {
-      throw new Error(`orderMap contains duplicate order values: ${duplicateOrders.join(", ")}`);
+      throw new Error(
+        `orderMap contains duplicate order values: ${duplicateOrders.join(
+          ", "
+        )}`
+      );
     }
 
     // Check for continuous sequence (ensures order values are sequential integers starting from 0 or 1)
@@ -89,7 +109,9 @@ export class ReorderTasksUseCase {
 
     // Only allow start values of 0 or 1
     if (startValue !== 0 && startValue !== 1) {
-      throw new Error(`Order values must start with 0 or 1, found: ${startValue}`);
+      throw new Error(
+        `Order values must start with 0 or 1, found: ${startValue}`
+      );
     }
 
     // Check for continuous sequence
@@ -97,7 +119,7 @@ export class ReorderTasksUseCase {
       const expectedValue = startValue + i;
       if (sortedAllOrders[i] !== expectedValue) {
         throw new Error(
-          `Order values must form a continuous sequence starting at ${startValue}; missing ${expectedValue}`,
+          `Order values must form a continuous sequence starting at ${startValue}; missing ${expectedValue}`
         );
       }
     }

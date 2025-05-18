@@ -5,7 +5,9 @@ import { TOKENS } from "../../services/DependencyTokens";
 @injectable()
 @singleton()
 export class DeleteTaskUseCase {
-  constructor(@inject(TOKENS.TaskRepository) private taskRepository: TaskRepository) {}
+  constructor(
+    @inject(TOKENS.TaskRepository) private taskRepository: TaskRepository
+  ) {}
 
   async execute(id: string): Promise<boolean> {
     const task = await this.taskRepository.findById(id, false);

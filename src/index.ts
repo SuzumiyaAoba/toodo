@@ -1,7 +1,10 @@
 import "reflect-metadata";
-import { swaggerUI } from "@hono/swagger-ui";
 import { Hono } from "hono";
-import { getTaskController, initializeContainer } from "./application/services/DependencyContainer";
+import { swaggerUI } from "@hono/swagger-ui";
+import {
+  getTaskController,
+  initializeContainer,
+} from "./application/services/DependencyContainer";
 import { openApiDocument } from "./infrastructure/openapi/openapi";
 
 // Initialize dependency injection container
@@ -39,7 +42,9 @@ if (import.meta.main) {
   // @ts-ignore
   const port = process.env.PORT ? Number.parseInt(process.env.PORT, 10) : 3001;
   console.log(`Server listening on http://localhost:${port}`);
-  console.log(`OpenAPI documentation available at http://localhost:${port}/api/docs`);
+  console.log(
+    `OpenAPI documentation available at http://localhost:${port}/api/docs`
+  );
   console.log(`Swagger UI available at http://localhost:${port}/swagger`);
 
   Bun.serve({

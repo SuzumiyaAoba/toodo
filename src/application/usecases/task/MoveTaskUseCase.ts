@@ -17,7 +17,9 @@ type MoveTaskParams = {
 @injectable()
 @singleton()
 export class MoveTaskUseCase {
-  constructor(@inject(TOKENS.TaskRepository) private taskRepository: TaskRepository) {}
+  constructor(
+    @inject(TOKENS.TaskRepository) private taskRepository: TaskRepository
+  ) {}
 
   async execute(params: MoveTaskParams): Promise<Task | null> {
     const { taskId, newParentId } = params;
@@ -41,10 +43,13 @@ export class MoveTaskUseCase {
       }
 
       // Check for circular reference
-      const isCircular = await this.checkForCircularReference(newParentId, taskId);
+      const isCircular = await this.checkForCircularReference(
+        newParentId,
+        taskId
+      );
       if (isCircular) {
         throw new CircularReferenceError(
-          `Cannot move task ${taskId} to parent ${newParentId} as it would create a circular reference`,
+          `Cannot move task ${taskId} to parent ${newParentId} as it would create a circular reference`
         );
       }
     }
@@ -53,7 +58,10 @@ export class MoveTaskUseCase {
     return await this.taskRepository.moveTask(taskId, newParentId);
   }
 
-  private async checkForCircularReference(parentId: string, taskId: string): Promise<boolean> {
+  private async checkForCircularReference(
+    parentId: string,
+    taskId: string
+  ): Promise<boolean> {
     // Check if parentId is a descendant of taskId
     const parent = await this.taskRepository.findById(parentId, false);
 

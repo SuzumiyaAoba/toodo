@@ -16,7 +16,7 @@ type UpdateTaskParams = {
 export class UpdateTaskUseCase {
   constructor(
     @inject(TOKENS.TaskRepository)
-    private readonly taskRepository: TaskRepository,
+    private readonly taskRepository: TaskRepository
   ) {}
 
   async execute(params: UpdateTaskParams): Promise<TaskType | null> {
@@ -30,7 +30,11 @@ export class UpdateTaskUseCase {
 
     // イミュータブルな方法でタスクを更新
     // 更新する値がない場合は元のタスクを返す
-    if (title === undefined && description === undefined && status === undefined) {
+    if (
+      title === undefined &&
+      description === undefined &&
+      status === undefined
+    ) {
       return task;
     }
 
@@ -46,7 +50,10 @@ export class UpdateTaskUseCase {
     }
 
     if (status !== undefined) {
-      updatedTask = status === "completed" ? Task.markAsCompleted(updatedTask) : Task.markAsIncomplete(updatedTask);
+      updatedTask =
+        status === "completed"
+          ? Task.markAsCompleted(updatedTask)
+          : Task.markAsIncomplete(updatedTask);
     }
 
     // Save the updated task

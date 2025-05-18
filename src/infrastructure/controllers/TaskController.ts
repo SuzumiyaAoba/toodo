@@ -50,13 +50,16 @@ export class TaskController {
     private deleteTaskUseCase: DeleteTaskUseCase,
     @inject(TOKENS.MoveTaskUseCase) private moveTaskUseCase: MoveTaskUseCase,
     @inject(TOKENS.ReorderTasksUseCase)
-    private reorderTasksUseCase: ReorderTasksUseCase,
+    private reorderTasksUseCase: ReorderTasksUseCase
   ) {}
 
   getRootTasks = async (c: Context) => {
     try {
       // Validate query parameters
-      const validationResult = validateQuery<PaginationInput>(c, paginationSchema);
+      const validationResult = validateQuery<PaginationInput>(
+        c,
+        paginationSchema
+      );
       if (!("success" in validationResult)) {
         return validationResult;
       }
@@ -97,7 +100,10 @@ export class TaskController {
   create = async (c: Context) => {
     try {
       // Validate request body
-      const validationResult = await validateRequest<CreateTaskInput>(c, createTaskSchema);
+      const validationResult = await validateRequest<CreateTaskInput>(
+        c,
+        createTaskSchema
+      );
       if (!("success" in validationResult)) {
         return validationResult;
       }
@@ -135,7 +141,7 @@ export class TaskController {
         c,
         updateTaskSchema.extend({
           id: idSchema.default(id), // Use ID from URL parameter as default
-        }),
+        })
       );
 
       if (!("success" in validationResult)) {
@@ -220,7 +226,7 @@ export class TaskController {
                 path: ["taskId"],
               });
             }
-          }),
+          })
       );
 
       if (!("success" in validationResult)) {
@@ -243,7 +249,10 @@ export class TaskController {
         if (error instanceof ParentTaskNotFoundError) {
           return c.json({ error: error.message }, 404);
         }
-        if (error instanceof CircularReferenceError || error instanceof SelfReferenceError) {
+        if (
+          error instanceof CircularReferenceError ||
+          error instanceof SelfReferenceError
+        ) {
           return c.json({ error: error.message }, 400);
         }
         throw error;
@@ -256,28 +265,57 @@ export class TaskController {
 
   reorder = async (c: Context) => {
     try {
-      const parentId = c.req.param("parentId") || null;
+      const parentId = c.req.param("parentId");
+
+      // Determine if we're reordering tasks under a specific parent
+      // or root tasks (when parentId is not in URL)
+      const hasParentIdInUrl = parentId !== undefined;
+      let reorderSchema = reorderTasksSchema;
+
+      if (hasParentIdInUrl) {
+        // If parentId is in URL, validate it and use it
+        try {
+          idSchema.parse(parentId);
+        } catch (error) {
+          return c.json({ error: "Invalid parent ID" }, 400);
+        }
+
+        // Create schema that accepts only orderMap since parentId comes from URL
+        reorderSchema = z.object({
+          orderMap: reorderTasksSchema.shape.orderMap,
+        });
+      }
 
       // Validate request body
-      const validationResult = await validateRequest<ReorderTasksInput>(
-        c,
-        reorderTasksSchema.extend({
-          parentId: parentId ? idSchema.default(parentId) : idSchema.nullable().default(null),
-        }),
-      );
+      const validationResult = await validateRequest<
+        ReorderTasksInput | { orderMap: Record<string, number> }
+      >(c, reorderSchema);
 
       if (!("success" in validationResult)) {
         return validationResult;
       }
 
       const { orderMap } = validationResult.data;
+      const finalParentId = hasParentIdInUrl
+        ? parentId
+        : "parentId" in validationResult.data
+        ? validationResult.data.parentId
+        : null;
 
-      const tasks = await this.reorderTasksUseCase.execute({
-        parentId,
-        orderMap,
-      });
+      try {
+        // Execute the reorder use case
+        const tasks = await this.reorderTasksUseCase.execute({
+          parentId: finalParentId,
+          orderMap,
+        });
 
-      return c.json(tasks);
+        return c.json({ success: true, tasks });
+      } catch (error) {
+        if (error instanceof Error) {
+          return c.json({ error: error.message }, 400);
+        }
+        throw error;
+      }
     } catch (error) {
       logger.error("Failed to reorder tasks:", error);
       return c.json({ error: "Failed to reorder tasks" }, 500);

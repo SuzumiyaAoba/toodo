@@ -3,16 +3,24 @@ import type { BunSQLiteDatabase } from "drizzle-orm/bun-sqlite";
 import { inject, injectable, singleton } from "tsyringe";
 import { TOKENS } from "../../application/services/DependencyTokens";
 import * as schema from "../../db/schema";
-import { Task as TaskNamespace, type TaskStatus } from "../../domain/models/Task";
+import {
+  Task as TaskNamespace,
+  type TaskStatus,
+} from "../../domain/models/Task";
 import type { Task } from "../../domain/models/Task";
-import type { PaginationParams, TaskRepository } from "../../domain/repositories/TaskRepository";
+import type {
+  PaginationParams,
+  TaskRepository,
+} from "../../domain/repositories/TaskRepository";
 
 type DbSchema = typeof schema;
 
 @injectable()
 @singleton()
 export class DrizzleTaskRepository implements TaskRepository {
-  constructor(@inject(TOKENS.DB) private readonly db: BunSQLiteDatabase<DbSchema>) {}
+  constructor(
+    @inject(TOKENS.DB) private readonly db: BunSQLiteDatabase<DbSchema>
+  ) {}
 
   async findRootTasks(): Promise<readonly Task[]> {
     const records = await this.db
@@ -25,7 +33,9 @@ export class DrizzleTaskRepository implements TaskRepository {
     return this.mapRecordsToTasks(records as schema.Task[]);
   }
 
-  async findRootTasksWithPagination(params: PaginationParams): Promise<readonly Task[]> {
+  async findRootTasksWithPagination(
+    params: PaginationParams
+  ): Promise<readonly Task[]> {
     const { page, limit } = params;
     const offset = (page - 1) * limit;
 
@@ -53,7 +63,11 @@ export class DrizzleTaskRepository implements TaskRepository {
   }
 
   async findById(id: string, loadHierarchy = true): Promise<Task | null> {
-    const record = await this.db.select().from(schema.tasks).where(eq(schema.tasks.id, id)).get();
+    const record = await this.db
+      .select()
+      .from(schema.tasks)
+      .where(eq(schema.tasks.id, id))
+      .get();
 
     if (!record) {
       return null;
@@ -64,7 +78,11 @@ export class DrizzleTaskRepository implements TaskRepository {
   }
 
   async save(task: Task, saveHierarchy = true): Promise<Task> {
-    const existingTask = await this.db.select().from(schema.tasks).where(eq(schema.tasks.id, task.id)).get();
+    const existingTask = await this.db
+      .select()
+      .from(schema.tasks)
+      .where(eq(schema.tasks.id, task.id))
+      .get();
 
     const taskData = {
       id: task.id,
@@ -78,7 +96,10 @@ export class DrizzleTaskRepository implements TaskRepository {
     } as const;
 
     if (existingTask) {
-      await this.db.update(schema.tasks).set(taskData).where(eq(schema.tasks.id, task.id));
+      await this.db
+        .update(schema.tasks)
+        .set(taskData)
+        .where(eq(schema.tasks.id, task.id));
     } else {
       await this.db.insert(schema.tasks).values(taskData);
     }
@@ -125,7 +146,10 @@ export class DrizzleTaskRepository implements TaskRepository {
     return this.findById(rootId, true);
   }
 
-  async moveTask(taskId: string, newParentId: string | null): Promise<Task | null> {
+  async moveTask(
+    taskId: string,
+    newParentId: string | null
+  ): Promise<Task | null> {
     const task = await this.findById(taskId, false);
     if (!task) {
       return null;
@@ -149,10 +173,17 @@ export class DrizzleTaskRepository implements TaskRepository {
     const siblingTasks = await this.db
       .select()
       .from(schema.tasks)
-      .where(newParentId ? eq(schema.tasks.parentId, newParentId) : isNull(schema.tasks.parentId))
+      .where(
+        newParentId
+          ? eq(schema.tasks.parentId, newParentId)
+          : isNull(schema.tasks.parentId)
+      )
       .all();
 
-    const newOrder = siblingTasks.length > 0 ? Math.max(...siblingTasks.map((t) => (t as schema.Task).order)) + 1 : 1;
+    const newOrder =
+      siblingTasks.length > 0
+        ? Math.max(...siblingTasks.map((t) => (t as schema.Task).order)) + 1
+        : 1;
 
     const updatedTask = TaskNamespace.create(
       task.title,
@@ -163,7 +194,7 @@ export class DrizzleTaskRepository implements TaskRepository {
       newOrder,
       task.createdAt,
       new Date(),
-      task.subtasks,
+      task.subtasks
     );
 
     await this.db
@@ -178,8 +209,14 @@ export class DrizzleTaskRepository implements TaskRepository {
     return this.findById(taskId, true);
   }
 
-  private async isDescendant(potentialDescendantId: string, ancestorId: string): Promise<boolean> {
-    const potentialDescendant = await this.findById(potentialDescendantId, false);
+  private async isDescendant(
+    potentialDescendantId: string,
+    ancestorId: string
+  ): Promise<boolean> {
+    const potentialDescendant = await this.findById(
+      potentialDescendantId,
+      false
+    );
     if (!potentialDescendant) {
       return false;
     }
@@ -195,7 +232,10 @@ export class DrizzleTaskRepository implements TaskRepository {
     return false;
   }
 
-  private mapToModel(record: schema.Task, subtasks: readonly Task[] = []): Task {
+  private mapToModel(
+    record: schema.Task,
+    subtasks: readonly Task[] = []
+  ): Task {
     return TaskNamespace.create(
       record.title,
       record.parentId,
@@ -205,11 +245,13 @@ export class DrizzleTaskRepository implements TaskRepository {
       record.order,
       record.createdAt,
       record.updatedAt ?? new Date(),
-      subtasks,
+      subtasks
     );
   }
 
-  private async mapRecordsToTasks(records: schema.Task[]): Promise<readonly Task[]> {
+  private async mapRecordsToTasks(
+    records: schema.Task[]
+  ): Promise<readonly Task[]> {
     if (records.length === 0) {
       return [];
     }
@@ -246,34 +288,39 @@ export class DrizzleTaskRepository implements TaskRepository {
     const subtaskEntries = Array.from(subtasksByParentId.entries());
     if (subtaskEntries.length > 0) {
       // Recursive call to process nested subtasks
-      const processedSubtasks = await this.mapRecordsToTasks(allSubtasksRecords);
+      const processedSubtasks = await this.mapRecordsToTasks(
+        allSubtasksRecords
+      );
 
-      // Create a map of subtask ID -> processed subtask with its own children
-      const processedSubtasksById = new Map<string, Task>();
-      for (const subtask of processedSubtasks) {
-        processedSubtasksById.set(subtask.id, subtask);
+      // Create a lookup map of task ID to processed task
+      const processedSubtasksMap = new Map<string, Task>();
+      for (const task of processedSubtasks) {
+        processedSubtasksMap.set(task.id, task);
       }
 
-      // Map record to task model with all subtasks
-      const tasks: Task[] = records.map((record) => {
-        const recordSubtasks = subtasksByParentId.get(record.id) || [];
-        const mappedSubtasks: Task[] = recordSubtasks.map((subtaskRecord) => {
-          // Use the already processed subtask if available (with its own children)
-          return (
-            processedSubtasksById.get(subtaskRecord.id) ||
-            // Fallback to creating a new task without children if not found
-            this.mapToModel(subtaskRecord, [])
-          );
-        });
-
-        return this.mapToModel(record, mappedSubtasks);
-      });
-
-      return Object.freeze(tasks);
+      // Assign subtasks to each parent task using the processed subtasks
+      for (const [parentId, subRecords] of subtaskEntries) {
+        const subTasks: Task[] = [];
+        for (const record of subRecords) {
+          const processedTask = processedSubtasksMap.get(record.id);
+          if (processedTask) {
+            subTasks.push(processedTask);
+          } else {
+            // Fallback to creating a new task if not found in processed map
+            // (should not happen normally, but included for safety)
+            subTasks.push(this.mapToModel(record));
+          }
+        }
+        subtasksByParentId.set(parentId, [] as unknown as schema.Task[]);
+        subtasksByParentId.set(parentId, subTasks as unknown as schema.Task[]);
+      }
     }
 
-    // If there are no subtasks, just map the records to tasks without children
-    const tasks: Task[] = records.map((record) => this.mapToModel(record, []));
-    return Object.freeze(tasks);
+    // Map the original records to Task models, now with all subtasks properly assigned
+    return records.map((record) => {
+      const subtasks = (subtasksByParentId.get(record.id) ||
+        []) as unknown as Task[];
+      return this.mapToModel(record, subtasks);
+    });
   }
 }

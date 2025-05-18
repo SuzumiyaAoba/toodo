@@ -14,7 +14,9 @@ type CreateTaskParams = {
 @injectable()
 @singleton()
 export class CreateTaskUseCase {
-  constructor(@inject(TOKENS.TaskRepository) private taskRepository: TaskRepository) {}
+  constructor(
+    @inject(TOKENS.TaskRepository) private taskRepository: TaskRepository
+  ) {}
 
   async execute(params: CreateTaskParams): Promise<TaskType> {
     const { title, description = null, parentId = null } = params;
