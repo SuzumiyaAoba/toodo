@@ -1,47 +1,47 @@
 {
-  "name": "toodo",
-  "version": "0.1.0",
-  "description": "Todo application",
-  "main": "index.js",
-  "scripts": {
-    "dev": "bun src/index.ts",
-    "type-check": "tsc --noEmit",
-    "build": "bun run type-check && bun run build-only",
-    "build-only": "bun build src/index.ts --outdir dist --target bun",
-    "start": "bun dist/index.js",
-    "test": "bun test",
-    "lint": "biome check",
-    "prepare": "husky",
-    "format": "biome check --write",
-    "generate": "drizzle-kit generate",
-    "migrate": "bun run src/db/migrate.ts",
-    "studio": "drizzle-kit studio"
-  },
-  "dependencies": {
-    "@databases/sqlite": "^4.0.2",
-    "@hono/swagger-ui": "^0.5.1",
-    "@hono/zod-openapi": "^0.19.6",
-    "@libsql/client": "^0.15.5",
-    "@types/uuid": "^10.0.0",
-    "drizzle-kit": "^0.31.1",
-    "drizzle-orm": "^0.43.1",
-    "hono": "^4.7.4",
-    "lint-staged": "^15.5.0",
-    "reflect-metadata": "^0.2.2",
-    "sqlite3": "^5.1.7",
-    "tslog": "^4.9.3",
-    "tsyringe": "^4.10.0",
-    "uuid": "^11.1.0",
-    "zod": "^3.24.4"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "1.9.4",
-    "@tsconfig/strictest": "^2.0.5",
-    "@types/bun": "latest",
-    "husky": "^9.1.7",
-    "typescript": "^5.8.2"
-  },
-  "lint-staged": {
-    "*.{ts,tsx}": "bun run format"
-  }
+	"name": "toodo",
+	"version": "0.1.0",
+	"description": "Todo application",
+	"main": "index.js",
+	"scripts": {
+		"dev": "bun src/index.ts",
+		"type-check": "tsc --noEmit",
+		"build": "bun run type-check && bun run build-only",
+		"build-only": "bun build src/index.ts --outdir dist --target bun",
+		"start": "bun dist/index.js",
+		"test": "bun test",
+		"lint": "biome check",
+		"prepare": "husky",
+		"format": "biome check --write",
+		"generate": "drizzle-kit generate",
+		"migrate": "bun run src/db/migrate.ts",
+		"studio": "drizzle-kit studio"
+	},
+	"dependencies": {
+		"@databases/sqlite": "^4.0.2",
+		"@hono/swagger-ui": "^0.5.1",
+		"@hono/zod-openapi": "^0.19.6",
+		"@libsql/client": "^0.15.5",
+		"@types/uuid": "^10.0.0",
+		"drizzle-kit": "^0.31.1",
+		"drizzle-orm": "^0.43.1",
+		"hono": "^4.7.4",
+		"lint-staged": "^15.5.0",
+		"reflect-metadata": "^0.2.2",
+		"sqlite3": "^5.1.7",
+		"tslog": "^4.9.3",
+		"tsyringe": "^4.10.0",
+		"uuid": "^11.1.0",
+		"zod": "^3.24.4"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "1.9.4",
+		"@tsconfig/strictest": "^2.0.5",
+		"@types/bun": "latest",
+		"husky": "^9.1.7",
+		"typescript": "^5.8.2"
+	},
+	"lint-staged": {
+		"*.{ts,tsx}": "bun run format"
+	}
 }

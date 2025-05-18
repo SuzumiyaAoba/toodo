@@ -10,12 +10,12 @@ const sqlite = new Database("data.db");
 
 // Create a Drizzle ORM instance using Bun SQLite
 export const db = drizzle(sqlite, {
-  schema,
-  logger: {
-    logQuery: (query, params) => {
-      logger.debug("Query:", query, "Params:", params);
-    },
-  },
+	schema,
+	logger: {
+		logQuery: (query, params) => {
+			logger.debug("Query:", query, "Params:", params);
+		},
+	},
 });
 
 export * from "./schema";

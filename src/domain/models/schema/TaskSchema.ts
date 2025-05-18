@@ -8,35 +8,52 @@ export const idSchema = z.string().uuid();
 
 // Schema for task creation
 export const createTaskSchema = z.object({
-  title: z.string().min(1, "Title is required").max(100, "Title must be 100 characters or less"),
-  description: z.string().nullable().optional(),
-  parentId: z.string().uuid().nullable().optional(),
+	title: z
+		.string()
+		.min(1, "Title is required")
+		.max(100, "Title must be 100 characters or less"),
+	description: z.string().nullable().optional(),
+	parentId: z.string().uuid().nullable().optional(),
 });
 
 // Schema for task update
 export const updateTaskSchema = z.object({
-  id: z.string().uuid(),
-  title: z.string().min(1, "Title is required").max(100, "Title must be 100 characters or less").optional(),
-  description: z.string().nullable().optional(),
-  status: taskStatusSchema.optional(),
+	id: z.string().uuid(),
+	title: z
+		.string()
+		.min(1, "Title is required")
+		.max(100, "Title must be 100 characters or less")
+		.optional(),
+	description: z.string().nullable().optional(),
+	status: taskStatusSchema.optional(),
 });
 
 // Schema for task movement
 export const moveTaskSchema = z.object({
-  taskId: z.string().uuid(),
-  newParentId: z.string().uuid().nullable(),
+	taskId: z.string().uuid(),
+	newParentId: z.string().uuid().nullable(),
 });
 
 // Schema for task reordering
 export const reorderTasksSchema = z.object({
-  parentId: z.string().uuid().nullable(),
-  orderMap: z.record(z.string().uuid(), z.number().int().positive()),
+	parentId: z.string().uuid().nullable(),
+	orderMap: z.record(z.string().uuid(), z.number().int().positive()),
 });
 
 // Schema for pagination
 export const paginationSchema = z.object({
-  page: z.preprocess((v) => (typeof v === "string" ? Number(v) : v), z.number().int().positive()).default(1),
-  limit: z.preprocess((v) => (typeof v === "string" ? Number(v) : v), z.number().int().positive().max(100)).default(20),
+	page: z
+		.preprocess(
+			(v) => (typeof v === "string" ? Number(v) : v),
+			z.number().int().positive(),
+		)
+		.default(1),
+	limit: z
+		.preprocess(
+			(v) => (typeof v === "string" ? Number(v) : v),
+			z.number().int().positive().max(100),
+		)
+		.default(20),
 });
 
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;

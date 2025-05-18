@@ -7,20 +7,20 @@ import * as schema from "./schema";
 const logger = new Logger({ name: "migrate" });
 
 async function main() {
-  logger.info("Starting database setup...");
+	logger.info("Starting database setup...");
 
-  // Create a Bun SQLite database connection
-  const sqlite = new Database("data.db");
+	// Create a Bun SQLite database connection
+	const sqlite = new Database("data.db");
 
-  // Enable foreign key constraints
-  sqlite.exec("PRAGMA foreign_keys = ON;");
+	// Enable foreign key constraints
+	sqlite.exec("PRAGMA foreign_keys = ON;");
 
-  const db = drizzle(sqlite, { schema });
+	const db = drizzle(sqlite, { schema });
 
-  logger.info("Applying SQL migration...");
+	logger.info("Applying SQL migration...");
 
-  // Execute SQL directly to create the tasks table
-  db.run(sql`
+	// Execute SQL directly to create the tasks table
+	db.run(sql`
     CREATE TABLE IF NOT EXISTS tasks (
       id TEXT PRIMARY KEY NOT NULL,
       parent_id TEXT,
@@ -37,11 +37,11 @@ async function main() {
     CREATE INDEX IF NOT EXISTS idx_tasks_parent_id ON tasks(parent_id);
   `);
 
-  logger.info("Database setup completed successfully!");
-  process.exit(0);
+	logger.info("Database setup completed successfully!");
+	process.exit(0);
 }
 
 main().catch((error) => {
-  logger.error("Failed to setup database:", error);
-  process.exit(1);
+	logger.error("Failed to setup database:", error);
+	process.exit(1);
 });
