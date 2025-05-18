@@ -2,6 +2,7 @@ import type { Context } from "hono";
 import { Logger } from "tslog";
 import { inject, injectable, singleton } from "tsyringe";
 import { z } from "zod";
+import { TOKENS } from "../../application/services/DependencyTokens";
 import type { CreateTaskUseCase } from "../../application/usecases/task/CreateTaskUseCase";
 import type { DeleteTaskUseCase } from "../../application/usecases/task/DeleteTaskUseCase";
 import type { GetRootTasksUseCase } from "../../application/usecases/task/GetRootTasksUseCase";
@@ -37,15 +38,18 @@ const logger = new Logger({ name: "TaskController" });
 @singleton()
 export class TaskController {
   constructor(
-    @inject("GetRootTasksUseCase")
+    @inject(TOKENS.GetRootTasksUseCase)
     private getRootTasksUseCase: GetRootTasksUseCase,
-    @inject("GetTaskByIdUseCase")
+    @inject(TOKENS.GetTaskByIdUseCase)
     private getTaskByIdUseCase: GetTaskByIdUseCase,
-    @inject("CreateTaskUseCase") private createTaskUseCase: CreateTaskUseCase,
-    @inject("UpdateTaskUseCase") private updateTaskUseCase: UpdateTaskUseCase,
-    @inject("DeleteTaskUseCase") private deleteTaskUseCase: DeleteTaskUseCase,
-    @inject("MoveTaskUseCase") private moveTaskUseCase: MoveTaskUseCase,
-    @inject("ReorderTasksUseCase")
+    @inject(TOKENS.CreateTaskUseCase)
+    private createTaskUseCase: CreateTaskUseCase,
+    @inject(TOKENS.UpdateTaskUseCase)
+    private updateTaskUseCase: UpdateTaskUseCase,
+    @inject(TOKENS.DeleteTaskUseCase)
+    private deleteTaskUseCase: DeleteTaskUseCase,
+    @inject(TOKENS.MoveTaskUseCase) private moveTaskUseCase: MoveTaskUseCase,
+    @inject(TOKENS.ReorderTasksUseCase)
     private reorderTasksUseCase: ReorderTasksUseCase,
   ) {}
 

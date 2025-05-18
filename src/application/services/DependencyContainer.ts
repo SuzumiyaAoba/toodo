@@ -9,34 +9,43 @@ import { GetTaskByIdUseCase } from "../usecases/task/GetTaskByIdUseCase";
 import { MoveTaskUseCase } from "../usecases/task/MoveTaskUseCase";
 import { ReorderTasksUseCase } from "../usecases/task/ReorderTasksUseCase";
 import { UpdateTaskUseCase } from "../usecases/task/UpdateTaskUseCase";
+import { TOKENS } from "./DependencyTokens";
 
 /**
  * Initialize the dependency injection container
  */
 export function initializeContainer(): void {
   // Register database instance
-  container.register("DB", { useValue: db });
+  container.register(TOKENS.DB, { useValue: db });
 
   // Register repositories
-  container.register("TaskRepository", { useClass: DrizzleTaskRepository });
+  container.register(TOKENS.TaskRepository, {
+    useClass: DrizzleTaskRepository,
+  });
 
   // Register use cases
-  container.register("GetRootTasksUseCase", { useClass: GetRootTasksUseCase });
-  container.register("GetTaskByIdUseCase", { useClass: GetTaskByIdUseCase });
-  container.register("CreateTaskUseCase", { useClass: CreateTaskUseCase });
-  container.register("UpdateTaskUseCase", { useClass: UpdateTaskUseCase });
-  container.register("DeleteTaskUseCase", { useClass: DeleteTaskUseCase });
-  container.register("MoveTaskUseCase", { useClass: MoveTaskUseCase });
-  container.register("ReorderTasksUseCase", { useClass: ReorderTasksUseCase });
+  container.register(TOKENS.GetRootTasksUseCase, {
+    useClass: GetRootTasksUseCase,
+  });
+  container.register(TOKENS.GetTaskByIdUseCase, {
+    useClass: GetTaskByIdUseCase,
+  });
+  container.register(TOKENS.CreateTaskUseCase, { useClass: CreateTaskUseCase });
+  container.register(TOKENS.UpdateTaskUseCase, { useClass: UpdateTaskUseCase });
+  container.register(TOKENS.DeleteTaskUseCase, { useClass: DeleteTaskUseCase });
+  container.register(TOKENS.MoveTaskUseCase, { useClass: MoveTaskUseCase });
+  container.register(TOKENS.ReorderTasksUseCase, {
+    useClass: ReorderTasksUseCase,
+  });
 
   // Register controllers
-  container.register("TaskController", { useClass: TaskController });
+  container.register(TOKENS.TaskController, { useClass: TaskController });
 }
 
 /**
  * Get a single instance from the container
  */
-export function resolve<T>(token: string | symbol): T {
+export function resolve<T>(token: symbol): T {
   return container.resolve<T>(token);
 }
 
@@ -44,5 +53,5 @@ export function resolve<T>(token: string | symbol): T {
  * Get the task controller
  */
 export function getTaskController(): TaskController {
-  return resolve<TaskController>("TaskController");
+  return resolve<TaskController>(TOKENS.TaskController);
 }

@@ -1,6 +1,7 @@
 import { asc, eq, inArray, isNull } from "drizzle-orm";
 import type { BunSQLiteDatabase } from "drizzle-orm/bun-sqlite";
 import { inject, injectable, singleton } from "tsyringe";
+import { TOKENS } from "../../application/services/DependencyTokens";
 import * as schema from "../../db/schema";
 import { Task as TaskNamespace, type TaskStatus } from "../../domain/models/Task";
 import type { Task } from "../../domain/models/Task";
@@ -11,7 +12,7 @@ type DbSchema = typeof schema;
 @injectable()
 @singleton()
 export class DrizzleTaskRepository implements TaskRepository {
-  constructor(@inject("DB") private readonly db: BunSQLiteDatabase<DbSchema>) {}
+  constructor(@inject(TOKENS.DB) private readonly db: BunSQLiteDatabase<DbSchema>) {}
 
   async findRootTasks(): Promise<readonly Task[]> {
     const records = await this.db

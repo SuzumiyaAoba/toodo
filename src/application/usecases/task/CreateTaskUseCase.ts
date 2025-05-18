@@ -3,6 +3,7 @@ import { Task } from "../../../domain/models/Task";
 import type { Task as TaskType } from "../../../domain/models/Task";
 import { ParentTaskNotFoundError } from "../../../domain/models/errors";
 import type { TaskRepository } from "../../../domain/repositories/TaskRepository";
+import { TOKENS } from "../../services/DependencyTokens";
 
 type CreateTaskParams = {
   title: string;
@@ -13,7 +14,7 @@ type CreateTaskParams = {
 @injectable()
 @singleton()
 export class CreateTaskUseCase {
-  constructor(@inject("TaskRepository") private taskRepository: TaskRepository) {}
+  constructor(@inject(TOKENS.TaskRepository) private taskRepository: TaskRepository) {}
 
   async execute(params: CreateTaskParams): Promise<TaskType> {
     const { title, description = null, parentId = null } = params;
