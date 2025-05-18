@@ -2,14 +2,14 @@ import { z } from "zod";
 
 // Error response schema
 export const errorResponseSchema = z.object({
-	error: z.string(),
-	details: z.record(z.string(), z.string()).optional(),
+  error: z.string(),
+  details: z.record(z.string(), z.string()).optional(),
 });
 
 // Generic success response schema
 export const successResponseSchema = z.object({
-	success: z.boolean(),
-	message: z.string().optional(),
+  success: z.boolean(),
+  message: z.string().optional(),
 });
 
 // Task deletion success response schema

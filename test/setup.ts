@@ -6,14 +6,14 @@ import * as schema from "../src/db/schema";
  * Create an in-memory database and Drizzle instance for testing
  */
 export function createTestDb() {
-	// Create in-memory SQLite database
-	const db = new Database(":memory:");
+  // Create in-memory SQLite database
+  const db = new Database(":memory:");
 
-	// Enable foreign key constraints
-	db.exec("PRAGMA foreign_keys = ON;");
+  // Enable foreign key constraints
+  db.exec("PRAGMA foreign_keys = ON;");
 
-	// Create tasks table
-	db.exec(`
+  // Create tasks table
+  db.exec(`
     CREATE TABLE IF NOT EXISTS tasks (
       id TEXT PRIMARY KEY NOT NULL,
       parent_id TEXT REFERENCES tasks(id) ON DELETE CASCADE,
@@ -26,14 +26,14 @@ export function createTestDb() {
     );
   `);
 
-	// Create Drizzle ORM instance
-	return drizzle(db, { schema });
+  // Create Drizzle ORM instance
+  return drizzle(db, { schema });
 }
 
 /**
  * Create a Hono app for testing
  */
 export async function createTestApp() {
-	const { default: app } = await import("../src/index");
-	return app;
+  const { default: app } = await import("../src/index");
+  return app;
 }

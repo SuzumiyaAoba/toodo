@@ -1,10 +1,7 @@
 import "reflect-metadata";
 import { swaggerUI } from "@hono/swagger-ui";
 import { Hono } from "hono";
-import {
-	getTaskController,
-	initializeContainer,
-} from "./application/services/DependencyContainer";
+import { getTaskController, initializeContainer } from "./application/services/DependencyContainer";
 import { openApiDocument } from "./infrastructure/openapi/openapi";
 
 // Initialize dependency injection container
@@ -18,11 +15,11 @@ app.get("/swagger", swaggerUI({ url: "/api/docs" }));
 
 // OpenAPI documentation endpoint
 app.get("/api/docs", (c) => {
-	return c.json(openApiDocument);
+  return c.json(openApiDocument);
 });
 
 app.get("/", (c) => {
-	return c.text("Hello Hono!");
+  return c.text("Hello Hono!");
 });
 
 // Task API
@@ -39,16 +36,14 @@ export default app;
 
 // For direct execution with bun run
 if (import.meta.main) {
-	// @ts-ignore
-	const port = process.env.PORT ? Number.parseInt(process.env.PORT, 10) : 3001;
-	console.log(`Server listening on http://localhost:${port}`);
-	console.log(
-		`OpenAPI documentation available at http://localhost:${port}/api/docs`,
-	);
-	console.log(`Swagger UI available at http://localhost:${port}/swagger`);
+  // @ts-ignore
+  const port = process.env.PORT ? Number.parseInt(process.env.PORT, 10) : 3001;
+  console.log(`Server listening on http://localhost:${port}`);
+  console.log(`OpenAPI documentation available at http://localhost:${port}/api/docs`);
+  console.log(`Swagger UI available at http://localhost:${port}/swagger`);
 
-	Bun.serve({
-		port,
-		fetch: app.fetch,
-	});
+  Bun.serve({
+    port,
+    fetch: app.fetch,
+  });
 }

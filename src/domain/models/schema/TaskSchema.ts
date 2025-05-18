@@ -20,16 +20,9 @@ export const idSchema = z.string().uuid("Task ID must be a valid UUID");
  * Validates input when creating a new task
  */
 export const createTaskSchema = z.object({
-	title: z
-		.string()
-		.min(1, "Title is required")
-		.max(100, "Title must be 100 characters or less"),
-	description: z.string().nullable().optional(),
-	parentId: z
-		.string()
-		.uuid("Parent ID must be a valid UUID")
-		.nullable()
-		.optional(),
+  title: z.string().min(1, "Title is required").max(100, "Title must be 100 characters or less"),
+  description: z.string().nullable().optional(),
+  parentId: z.string().uuid("Parent ID must be a valid UUID").nullable().optional(),
 });
 
 /**
@@ -37,14 +30,10 @@ export const createTaskSchema = z.object({
  * Validates input when updating an existing task
  */
 export const updateTaskSchema = z.object({
-	id: z.string().uuid("Task ID must be a valid UUID"),
-	title: z
-		.string()
-		.min(1, "Title is required")
-		.max(100, "Title must be 100 characters or less")
-		.optional(),
-	description: z.string().nullable().optional(),
-	status: taskStatusSchema.optional(),
+  id: z.string().uuid("Task ID must be a valid UUID"),
+  title: z.string().min(1, "Title is required").max(100, "Title must be 100 characters or less").optional(),
+  description: z.string().nullable().optional(),
+  status: taskStatusSchema.optional(),
 });
 
 /**
@@ -52,8 +41,8 @@ export const updateTaskSchema = z.object({
  * Validates input when moving a task to a new parent
  */
 export const moveTaskSchema = z.object({
-	taskId: z.string().uuid("Task ID must be a valid UUID"),
-	newParentId: z.string().uuid("Parent ID must be a valid UUID").nullable(),
+  taskId: z.string().uuid("Task ID must be a valid UUID"),
+  newParentId: z.string().uuid("Parent ID must be a valid UUID").nullable(),
 });
 
 /**
@@ -61,14 +50,11 @@ export const moveTaskSchema = z.object({
  * Validates input when reordering tasks within a parent
  */
 export const reorderTasksSchema = z.object({
-	parentId: z.string().uuid("Parent ID must be a valid UUID").nullable(),
-	orderMap: z.record(
-		z.string().uuid("Task ID must be a valid UUID"),
-		z
-			.number()
-			.int("Order must be an integer")
-			.positive("Order must be positive"),
-	),
+  parentId: z.string().uuid("Parent ID must be a valid UUID").nullable(),
+  orderMap: z.record(
+    z.string().uuid("Task ID must be a valid UUID"),
+    z.number().int("Order must be an integer").positive("Order must be positive"),
+  ),
 });
 
 /**
@@ -76,25 +62,18 @@ export const reorderTasksSchema = z.object({
  * Handles conversion from string to number for query parameters
  */
 export const paginationSchema = z.object({
-	page: z
-		.preprocess(
-			(v) => (typeof v === "string" ? Number(v) : v),
-			z
-				.number()
-				.int("Page must be an integer")
-				.positive("Page must be positive"),
-		)
-		.default(1),
-	limit: z
-		.preprocess(
-			(v) => (typeof v === "string" ? Number(v) : v),
-			z
-				.number()
-				.int("Limit must be an integer")
-				.positive("Limit must be positive")
-				.max(100, "Maximum limit is 100"),
-		)
-		.default(20),
+  page: z
+    .preprocess(
+      (v) => (typeof v === "string" ? Number(v) : v),
+      z.number().int("Page must be an integer").positive("Page must be positive"),
+    )
+    .default(1),
+  limit: z
+    .preprocess(
+      (v) => (typeof v === "string" ? Number(v) : v),
+      z.number().int("Limit must be an integer").positive("Limit must be positive").max(100, "Maximum limit is 100"),
+    )
+    .default(20),
 });
 
 /**
