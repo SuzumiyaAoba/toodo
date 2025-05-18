@@ -1,15 +1,15 @@
 /**
- * DIコンテナのトークン定義
- * シンボルを使用した識別子を提供します
+ * Dependency Injection Container Tokens
+ * Provides symbol-based identifiers for DI container
  */
 export const TOKENS = {
-	// インフラストラクチャ
+	// Infrastructure
 	DB: Symbol.for("DB"),
 
-	// リポジトリ
+	// Repositories
 	TaskRepository: Symbol.for("TaskRepository"),
 
-	// ユースケース
+	// Use Cases
 	GetRootTasksUseCase: Symbol.for("GetRootTasksUseCase"),
 	GetTaskByIdUseCase: Symbol.for("GetTaskByIdUseCase"),
 	CreateTaskUseCase: Symbol.for("CreateTaskUseCase"),
@@ -18,6 +18,6 @@ export const TOKENS = {
 	MoveTaskUseCase: Symbol.for("MoveTaskUseCase"),
 	ReorderTasksUseCase: Symbol.for("ReorderTasksUseCase"),
 
-	// コントローラー
+	// Controllers
 	TaskController: Symbol.for("TaskController"),
 };

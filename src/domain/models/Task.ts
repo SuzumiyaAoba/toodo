@@ -2,6 +2,10 @@ import { v4 as uuidv4 } from "uuid";
 
 export type TaskStatus = "completed" | "incomplete";
 
+/**
+ * Task domain model
+ * Represents a task in the system with immutable properties
+ */
 export type Task = Readonly<{
 	id: string;
 	parentId: string | null;
@@ -14,7 +18,14 @@ export type Task = Readonly<{
 	subtasks: readonly Task[];
 }>;
 
+/**
+ * Task namespace containing all operations for the Task domain model
+ * Following record-oriented design pattern with pure functions
+ */
 export namespace Task {
+	/**
+	 * Create a new Task with validation
+	 */
 	export function create(
 		title: string,
 		parentId: string | null = null,
@@ -26,19 +37,9 @@ export namespace Task {
 		updatedAt?: Date,
 		subtasks: readonly Task[] = [],
 	): Task {
-		if (!title.trim()) {
-			throw new Error("Task title cannot be empty");
-		}
-
-		if (order < 1) {
-			throw new Error("Task order must be a positive number");
-		}
-
-		if (!["completed", "incomplete"].includes(status)) {
-			throw new Error(
-				`Task status must be "completed" or "incomplete", got "${status}"`,
-			);
-		}
+		validateTitle(title);
+		validateOrder(order);
+		validateStatus(status);
 
 		return {
 			id: id || uuidv4(),
@@ -53,16 +54,15 @@ export namespace Task {
 		};
 	}
 
+	/**
+	 * Add a subtask to a task
+	 */
 	export function addSubtask(
 		task: Task,
 		title: string,
 		description?: string | null,
 	): Task {
-		const order =
-			task.subtasks.length > 0
-				? Math.max(...task.subtasks.map((subtask) => subtask.order)) + 1
-				: 1;
-
+		const order = getNextOrder(task.subtasks);
 		const subtask = create(
 			title,
 			task.id,
@@ -73,7 +73,6 @@ export namespace Task {
 		);
 		const newSubtasks = [...task.subtasks, subtask];
 
-		// Create a new Task with updated subtasks
 		return {
 			...task,
 			status: calculateStatus(newSubtasks, task.status),
@@ -82,7 +81,11 @@ export namespace Task {
 		};
 	}
 
+	/**
+	 * Update task title
+	 */
 	export function updateTitle(task: Task, title: string): Task {
+		validateTitle(title);
 		return {
 			...task,
 			title,
@@ -90,6 +93,9 @@ export namespace Task {
 		};
 	}
 
+	/**
+	 * Update task description
+	 */
 	export function updateDescription(
 		task: Task,
 		description: string | null,
@@ -101,9 +107,11 @@ export namespace Task {
 		};
 	}
 
+	/**
+	 * Update task status based on subtasks
+	 */
 	export function updateStatus(task: Task): Task {
 		const newStatus = calculateStatus(task.subtasks, task.status);
-
 		return {
 			...task,
 			status: newStatus,
@@ -111,7 +119,11 @@ export namespace Task {
 		};
 	}
 
+	/**
+	 * Update task order
+	 */
 	export function updateOrder(task: Task, order: number): Task {
+		validateOrder(order);
 		return {
 			...task,
 			order,
@@ -119,6 +131,9 @@ export namespace Task {
 		};
 	}
 
+	/**
+	 * Mark task and all subtasks as completed
+	 */
 	export function markAsCompleted(task: Task): Task {
 		// Mark all subtasks as completed as well
 		const completedSubtasks = task.subtasks.map((subtask) =>
@@ -133,6 +148,9 @@ export namespace Task {
 		};
 	}
 
+	/**
+	 * Mark task as incomplete
+	 */
 	export function markAsIncomplete(task: Task): Task {
 		return {
 			...task,
@@ -141,6 +159,9 @@ export namespace Task {
 		};
 	}
 
+	/**
+	 * Reorder subtasks
+	 */
 	export function reorderSubtasks(
 		task: Task,
 		orderMap: Record<string, number>,
@@ -164,31 +185,20 @@ export namespace Task {
 		};
 	}
 
-	// Helper function for calculating status based on subtasks
-	function calculateStatus(
-		subtasks: readonly Task[],
-		currentStatus: TaskStatus,
-	): TaskStatus {
-		if (subtasks.length > 0) {
-			return subtasks.every((subtask) => subtask.status === "completed")
-				? "completed"
-				: "incomplete";
-		}
-		return currentStatus;
-	}
-
-	// Functions to support hierarchical task structure
+	/**
+	 * Get all tasks in a hierarchy as a flattened array
+	 */
 	export function getTaskHierarchy(task: Task): Task[] {
-		// Returns this task and all subtasks in a flattened array
 		const result: Task[] = [task];
-
 		for (const subtask of task.subtasks) {
 			result.push(...getTaskHierarchy(subtask));
 		}
-
 		return result;
 	}
 
+	/**
+	 * Find a task by ID in a task hierarchy
+	 */
 	export function findTaskById(task: Task, id: string): Task | null {
 		if (task.id === id) {
 			return task;
@@ -204,9 +214,67 @@ export namespace Task {
 		return null;
 	}
 
+	/**
+	 * Get the depth of a task in the hierarchy
+	 */
 	export function getDepth(task: Task): number {
 		return task.parentId === null
 			? 0
 			: 1 + Math.max(...task.subtasks.map(getDepth), 0);
+	}
+
+	// Private helper functions
+
+	/**
+	 * Calculate next order for a new subtask
+	 */
+	function getNextOrder(subtasks: readonly Task[]): number {
+		return subtasks.length > 0
+			? Math.max(...subtasks.map((subtask) => subtask.order)) + 1
+			: 1;
+	}
+
+	/**
+	 * Calculate status based on subtasks
+	 */
+	function calculateStatus(
+		subtasks: readonly Task[],
+		currentStatus: TaskStatus,
+	): TaskStatus {
+		if (subtasks.length > 0) {
+			return subtasks.every((subtask) => subtask.status === "completed")
+				? "completed"
+				: "incomplete";
+		}
+		return currentStatus;
+	}
+
+	/**
+	 * Validate task title
+	 */
+	function validateTitle(title: string): void {
+		if (!title.trim()) {
+			throw new Error("Task title cannot be empty");
+		}
+	}
+
+	/**
+	 * Validate task order
+	 */
+	function validateOrder(order: number): void {
+		if (order < 1) {
+			throw new Error("Task order must be a positive number");
+		}
+	}
+
+	/**
+	 * Validate task status
+	 */
+	function validateStatus(status: TaskStatus): void {
+		if (!["completed", "incomplete"].includes(status)) {
+			throw new Error(
+				`Task status must be "completed" or "incomplete", got "${status}"`,
+			);
+		}
 	}
 }
