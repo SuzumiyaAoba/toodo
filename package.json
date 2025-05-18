@@ -19,6 +19,8 @@
   },
   "dependencies": {
     "@databases/sqlite": "^4.0.2",
+    "@hono/swagger-ui": "^0.5.1",
+    "@hono/zod-openapi": "^0.19.6",
     "@libsql/client": "^0.15.5",
     "@types/uuid": "^10.0.0",
     "drizzle-kit": "^0.31.1",
