@@ -32,12 +32,12 @@ type TaskResponseSchema = z.ZodObject<{
   order: z.ZodNumber;
   createdAt: z.ZodString;
   updatedAt: z.ZodString;
-  childTasks: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodTypeAny>>>;
+  subtasks: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodTypeAny>>>;
 }>;
 
 // Create the circular reference schema with proper typing
 const taskResponseSchema: TaskResponseSchema = baseTaskSchema.extend({
-  childTasks: z.array(z.lazy(() => taskResponseSchema)).optional(),
+  subtasks: z.array(z.lazy(() => taskResponseSchema)).optional(),
 });
 
 // Error response schema

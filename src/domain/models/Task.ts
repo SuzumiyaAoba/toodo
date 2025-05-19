@@ -25,6 +25,18 @@ export type Task = Readonly<{
 export namespace Task {
   /**
    * Create a new Task with validation
+   *
+   * @param title Task title (required)
+   * @param parentId Parent task ID (null for root tasks)
+   * @param description Task description (null for tasks without description)
+   * @param id UUID for the task (auto-generated if not provided)
+   * @param status Task status (defaults to "incomplete")
+   * @param order Task order (defaults to 1)
+   * @param createdAt Creation timestamp (defaults to current time)
+   * @param updatedAt Last update timestamp (defaults to current time)
+   * @param subtasks Array of child tasks (defaults to empty array)
+   * @returns A new immutable Task object
+   * @throws {Error} If validation fails
    */
   export function create(
     title: string,

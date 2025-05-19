@@ -7,9 +7,9 @@ import type { z } from "zod";
  */
 export const zodValidator = <
   T extends {
-    params?: z.ZodType<any>;
-    query?: z.ZodType<any>;
-    json?: z.ZodType<any>;
+    params?: z.ZodType<unknown>;
+    query?: z.ZodType<unknown>;
+    json?: z.ZodType<unknown>;
   },
 >(
   schemas: T,

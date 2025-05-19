@@ -2,10 +2,7 @@ import "reflect-metadata";
 import { describe, expect, it, mock } from "bun:test";
 import { ReorderTasksUseCase } from "../src/application/usecases/task/ReorderTasksUseCase";
 import type { Task } from "../src/domain/models/Task";
-import type {
-  PaginationParams,
-  TaskRepository,
-} from "../src/domain/repositories/TaskRepository";
+import type { PaginationParams, TaskRepository } from "../src/domain/repositories/TaskRepository";
 
 describe("Use Cases", () => {
   describe("ReorderTasksUseCase", () => {
@@ -21,9 +18,7 @@ describe("Use Cases", () => {
       // Mock task repository
       const mockTaskRepository: TaskRepository = {
         findRootTasks: mock(async () => sampleTasks),
-        findRootTasksWithPagination: mock(
-          async (_: PaginationParams) => sampleTasks
-        ),
+        findRootTasksWithPagination: mock(async (_: PaginationParams) => sampleTasks),
         findByParentId: mock(async (_: string) => sampleTasks),
         findById: mock(async (_: string) => null),
         save: mock(async (task: Task) => task),
@@ -41,7 +36,7 @@ describe("Use Cases", () => {
         useCase.execute({
           parentId: null,
           orderMap: { task1: 1, task2: 2, task3: 3 },
-        })
+        }),
       ).resolves.toBeDefined();
 
       // Valid order map with different values but still continuous with existing orders
@@ -49,7 +44,7 @@ describe("Use Cases", () => {
         useCase.execute({
           parentId: null,
           orderMap: { task1: 2, task2: 1, task3: 3 },
-        })
+        }),
       ).resolves.toBeDefined();
 
       // Create sample tasks starting at 0 for the 0-start test
@@ -62,30 +57,26 @@ describe("Use Cases", () => {
 
       // Override the mock for this specific test
       mockTaskRepository.findRootTasks = mock(async () => sampleTasksZero);
-      mockTaskRepository.findByParentId = mock(
-        async (_: string) => sampleTasksZero
-      );
+      mockTaskRepository.findByParentId = mock(async (_: string) => sampleTasksZero);
 
       // Valid order map starting from 0
       await expect(
         useCase.execute({
           parentId: null,
           orderMap: { task1: 0, task2: 1, task3: 2 },
-        })
+        }),
       ).resolves.toBeDefined();
 
       // Reset mocks to original sample tasks
       mockTaskRepository.findRootTasks = mock(async () => sampleTasks);
-      mockTaskRepository.findByParentId = mock(
-        async (_: string) => sampleTasks
-      );
+      mockTaskRepository.findByParentId = mock(async (_: string) => sampleTasks);
 
       // Invalid order map - discontinuous sequence
       await expect(
         useCase.execute({
           parentId: null,
           orderMap: { task1: 1, task2: 3, task3: 5 },
-        })
+        }),
       ).rejects.toThrow("continuous sequence");
 
       // Invalid order map - duplicate values
@@ -93,7 +84,7 @@ describe("Use Cases", () => {
         useCase.execute({
           parentId: null,
           orderMap: { task1: 1, task2: 1, task3: 2 },
-        })
+        }),
       ).rejects.toThrow("duplicate order values");
 
       // Invalid order map - starting from neither 0 nor 1
@@ -101,7 +92,7 @@ describe("Use Cases", () => {
         useCase.execute({
           parentId: null,
           orderMap: { task1: 2, task2: 3, task3: 4, task4: 5 },
-        })
+        }),
       ).rejects.toThrow("Order values must start with 0 or 1");
 
       // Missing task ID in the orderMap
@@ -110,7 +101,7 @@ describe("Use Cases", () => {
         useCase.execute({
           parentId: null,
           orderMap: { [unknownTaskId]: 1, task1: 2, task2: 3 },
-        })
+        }),
       ).rejects.toThrow("not siblings");
     });
   });

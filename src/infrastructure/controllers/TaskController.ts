@@ -18,22 +18,31 @@ import {
   TaskNotFoundError,
 } from "../../domain/models/errors";
 import {
-  type CreateTaskInput,
   type MoveTaskInput,
-  type PaginationInput,
   type ReorderTasksInput,
   type UpdateTaskInput,
-  createTaskSchema,
   idSchema,
   moveTaskSchema,
-  paginationSchema,
   reorderTasksSchema,
   updateTaskSchema,
 } from "../../domain/models/schema/TaskSchema";
-import { validateQuery, validateRequest } from "../utils/ValidationUtils";
+import { validateRequest } from "../utils/ValidationUtils";
 
 const logger = new Logger({ name: "TaskController" });
 
+/**
+ * Controller for handling Task-related HTTP requests
+ *
+ * This class acts as the interface between the HTTP layer and the application layer.
+ * It processes incoming requests, validates data, delegates to appropriate use cases,
+ * and transforms the use case results into proper HTTP responses.
+ *
+ * All methods follow a consistent pattern:
+ * 1. Extract and validate input data from request context
+ * 2. Call the appropriate use case with validated data
+ * 3. Return a properly formatted HTTP response
+ * 4. Handle errors and return appropriate error responses
+ */
 @injectable()
 @singleton()
 export class TaskController {
@@ -55,15 +64,17 @@ export class TaskController {
 
   getRootTasks = async (c: Context) => {
     try {
-      // Validate query parameters
-      const validationResult = validateQuery<PaginationInput>(c, paginationSchema);
-      if (!("success" in validationResult)) {
-        return validationResult;
-      }
-
-      const { page, limit } = validationResult.data;
-      const tasks = await this.getRootTasksUseCase.execute({ page, limit });
-      return c.json(tasks);
+      // zValidator によって検証されたデータを取得
+      // @ts-ignore - zValidator の型の問題を回避
+      const query = c.req.valid("query") as {
+        page: number;
+        limit: number;
+      };
+      const tasks = await this.getRootTasksUseCase.execute({
+        page: query.page,
+        limit: query.limit,
+      });
+      return c.json(tasks, 200);
     } catch (error) {
       logger.error("Failed to get root tasks:", error);
       return c.json({ error: "Failed to get task list" }, 500);
@@ -72,22 +83,18 @@ export class TaskController {
 
   getTaskById = async (c: Context) => {
     try {
-      const id = c.req.param("id");
-
-      // Validate ID
-      try {
-        idSchema.parse(id);
-      } catch (error) {
-        return c.json({ error: "Invalid task ID" }, 400);
-      }
-
-      const task = await this.getTaskByIdUseCase.execute(id);
+      // zValidator によって検証されたデータを取得
+      // @ts-ignore - zValidator の型の問題を回避
+      const params = c.req.valid("param") as {
+        id: string;
+      };
+      const task = await this.getTaskByIdUseCase.execute(params.id);
 
       if (!task) {
         return c.json({ error: "Task not found" }, 404);
       }
 
-      return c.json(task);
+      return c.json(task, 200);
     } catch (error) {
       logger.error("Failed to get task:", error);
       return c.json({ error: "Failed to get task" }, 500);
@@ -96,19 +103,19 @@ export class TaskController {
 
   create = async (c: Context) => {
     try {
-      // Validate request body
-      const validationResult = await validateRequest<CreateTaskInput>(c, createTaskSchema);
-      if (!("success" in validationResult)) {
-        return validationResult;
-      }
-
-      const { title, description, parentId } = validationResult.data;
+      // zValidator によって検証されたデータを取得
+      // @ts-ignore - zValidator の型の問題を回避
+      const data = c.req.valid("json") as {
+        title: string;
+        description?: string;
+        parentId?: string;
+      };
 
       try {
         const task = await this.createTaskUseCase.execute({
-          title,
-          description: description === undefined ? null : description,
-          parentId: parentId === undefined ? null : parentId,
+          title: data.title,
+          description: data.description === undefined ? null : data.description,
+          parentId: data.parentId === undefined ? null : data.parentId,
         });
 
         return c.json(task, 201);
