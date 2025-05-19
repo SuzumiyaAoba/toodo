@@ -1,6 +1,7 @@
 import { asc, eq, inArray, isNull } from "drizzle-orm";
 import type { BunSQLiteDatabase } from "drizzle-orm/bun-sqlite";
 import { inject, injectable, singleton } from "tsyringe";
+import { TOKENS } from "../../application/services/DependencyTokens";
 import * as schema from "../../db/schema";
 import { Task as TaskNamespace, type TaskStatus } from "../../domain/models/Task";
 import type { Task } from "../../domain/models/Task";
@@ -11,7 +12,7 @@ type DbSchema = typeof schema;
 @injectable()
 @singleton()
 export class DrizzleTaskRepository implements TaskRepository {
-  constructor(@inject("DB") private readonly db: BunSQLiteDatabase<DbSchema>) {}
+  constructor(@inject(TOKENS.DB) private readonly db: BunSQLiteDatabase<DbSchema>) {}
 
   async findRootTasks(): Promise<readonly Task[]> {
     const records = await this.db
@@ -247,32 +248,34 @@ export class DrizzleTaskRepository implements TaskRepository {
       // Recursive call to process nested subtasks
       const processedSubtasks = await this.mapRecordsToTasks(allSubtasksRecords);
 
-      // Create a map of subtask ID -> processed subtask with its own children
-      const processedSubtasksById = new Map<string, Task>();
-      for (const subtask of processedSubtasks) {
-        processedSubtasksById.set(subtask.id, subtask);
+      // Create a lookup map of task ID to processed task
+      const processedSubtasksMap = new Map<string, Task>();
+      for (const task of processedSubtasks) {
+        processedSubtasksMap.set(task.id, task);
       }
 
-      // Map record to task model with all subtasks
-      const tasks: Task[] = records.map((record) => {
-        const recordSubtasks = subtasksByParentId.get(record.id) || [];
-        const mappedSubtasks: Task[] = recordSubtasks.map((subtaskRecord) => {
-          // Use the already processed subtask if available (with its own children)
-          return (
-            processedSubtasksById.get(subtaskRecord.id) ||
-            // Fallback to creating a new task without children if not found
-            this.mapToModel(subtaskRecord, [])
-          );
-        });
-
-        return this.mapToModel(record, mappedSubtasks);
-      });
-
-      return Object.freeze(tasks);
+      // Assign subtasks to each parent task using the processed subtasks
+      for (const [parentId, subRecords] of subtaskEntries) {
+        const subTasks: Task[] = [];
+        for (const record of subRecords) {
+          const processedTask = processedSubtasksMap.get(record.id);
+          if (processedTask) {
+            subTasks.push(processedTask);
+          } else {
+            // Fallback to creating a new task if not found in processed map
+            // (should not happen normally, but included for safety)
+            subTasks.push(this.mapToModel(record));
+          }
+        }
+        subtasksByParentId.set(parentId, [] as unknown as schema.Task[]);
+        subtasksByParentId.set(parentId, subTasks as unknown as schema.Task[]);
+      }
     }
 
-    // If there are no subtasks, just map the records to tasks without children
-    const tasks: Task[] = records.map((record) => this.mapToModel(record, []));
-    return Object.freeze(tasks);
+    // Map the original records to Task models, now with all subtasks properly assigned
+    return records.map((record) => {
+      const subtasks = (subtasksByParentId.get(record.id) || []) as unknown as Task[];
+      return this.mapToModel(record, subtasks);
+    });
   }
 }

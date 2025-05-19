@@ -2,6 +2,7 @@ import type { Context } from "hono";
 import { Logger } from "tslog";
 import { inject, injectable, singleton } from "tsyringe";
 import { z } from "zod";
+import { TOKENS } from "../../application/services/DependencyTokens";
 import type { CreateTaskUseCase } from "../../application/usecases/task/CreateTaskUseCase";
 import type { DeleteTaskUseCase } from "../../application/usecases/task/DeleteTaskUseCase";
 import type { GetRootTasksUseCase } from "../../application/usecases/task/GetRootTasksUseCase";
@@ -17,49 +18,63 @@ import {
   TaskNotFoundError,
 } from "../../domain/models/errors";
 import {
-  type CreateTaskInput,
   type MoveTaskInput,
-  type PaginationInput,
   type ReorderTasksInput,
   type UpdateTaskInput,
-  createTaskSchema,
   idSchema,
   moveTaskSchema,
-  paginationSchema,
   reorderTasksSchema,
   updateTaskSchema,
 } from "../../domain/models/schema/TaskSchema";
-import { validateQuery, validateRequest } from "../utils/ValidationUtils";
+import { validateRequest } from "../utils/ValidationUtils";
 
 const logger = new Logger({ name: "TaskController" });
 
+/**
+ * Controller for handling Task-related HTTP requests
+ *
+ * This class acts as the interface between the HTTP layer and the application layer.
+ * It processes incoming requests, validates data, delegates to appropriate use cases,
+ * and transforms the use case results into proper HTTP responses.
+ *
+ * All methods follow a consistent pattern:
+ * 1. Extract and validate input data from request context
+ * 2. Call the appropriate use case with validated data
+ * 3. Return a properly formatted HTTP response
+ * 4. Handle errors and return appropriate error responses
+ */
 @injectable()
 @singleton()
 export class TaskController {
   constructor(
-    @inject("GetRootTasksUseCase")
+    @inject(TOKENS.GetRootTasksUseCase)
     private getRootTasksUseCase: GetRootTasksUseCase,
-    @inject("GetTaskByIdUseCase")
+    @inject(TOKENS.GetTaskByIdUseCase)
     private getTaskByIdUseCase: GetTaskByIdUseCase,
-    @inject("CreateTaskUseCase") private createTaskUseCase: CreateTaskUseCase,
-    @inject("UpdateTaskUseCase") private updateTaskUseCase: UpdateTaskUseCase,
-    @inject("DeleteTaskUseCase") private deleteTaskUseCase: DeleteTaskUseCase,
-    @inject("MoveTaskUseCase") private moveTaskUseCase: MoveTaskUseCase,
-    @inject("ReorderTasksUseCase")
+    @inject(TOKENS.CreateTaskUseCase)
+    private createTaskUseCase: CreateTaskUseCase,
+    @inject(TOKENS.UpdateTaskUseCase)
+    private updateTaskUseCase: UpdateTaskUseCase,
+    @inject(TOKENS.DeleteTaskUseCase)
+    private deleteTaskUseCase: DeleteTaskUseCase,
+    @inject(TOKENS.MoveTaskUseCase) private moveTaskUseCase: MoveTaskUseCase,
+    @inject(TOKENS.ReorderTasksUseCase)
     private reorderTasksUseCase: ReorderTasksUseCase,
   ) {}
 
   getRootTasks = async (c: Context) => {
     try {
-      // Validate query parameters
-      const validationResult = validateQuery<PaginationInput>(c, paginationSchema);
-      if (!("success" in validationResult)) {
-        return validationResult;
-      }
-
-      const { page, limit } = validationResult.data;
-      const tasks = await this.getRootTasksUseCase.execute({ page, limit });
-      return c.json(tasks);
+      // zValidator によって検証されたデータを取得
+      // @ts-ignore - zValidator の型の問題を回避
+      const query = c.req.valid("query") as {
+        page: number;
+        limit: number;
+      };
+      const tasks = await this.getRootTasksUseCase.execute({
+        page: query.page,
+        limit: query.limit,
+      });
+      return c.json(tasks, 200);
     } catch (error) {
       logger.error("Failed to get root tasks:", error);
       return c.json({ error: "Failed to get task list" }, 500);
@@ -68,22 +83,18 @@ export class TaskController {
 
   getTaskById = async (c: Context) => {
     try {
-      const id = c.req.param("id");
-
-      // Validate ID
-      try {
-        idSchema.parse(id);
-      } catch (error) {
-        return c.json({ error: "Invalid task ID" }, 400);
-      }
-
-      const task = await this.getTaskByIdUseCase.execute(id);
+      // zValidator によって検証されたデータを取得
+      // @ts-ignore - zValidator の型の問題を回避
+      const params = c.req.valid("param") as {
+        id: string;
+      };
+      const task = await this.getTaskByIdUseCase.execute(params.id);
 
       if (!task) {
         return c.json({ error: "Task not found" }, 404);
       }
 
-      return c.json(task);
+      return c.json(task, 200);
     } catch (error) {
       logger.error("Failed to get task:", error);
       return c.json({ error: "Failed to get task" }, 500);
@@ -92,19 +103,19 @@ export class TaskController {
 
   create = async (c: Context) => {
     try {
-      // Validate request body
-      const validationResult = await validateRequest<CreateTaskInput>(c, createTaskSchema);
-      if (!("success" in validationResult)) {
-        return validationResult;
-      }
-
-      const { title, description, parentId } = validationResult.data;
+      // zValidator によって検証されたデータを取得
+      // @ts-ignore - zValidator の型の問題を回避
+      const data = c.req.valid("json") as {
+        title: string;
+        description?: string;
+        parentId?: string;
+      };
 
       try {
         const task = await this.createTaskUseCase.execute({
-          title,
-          description: description === undefined ? null : description,
-          parentId: parentId === undefined ? null : parentId,
+          title: data.title,
+          description: data.description === undefined ? null : data.description,
+          parentId: data.parentId === undefined ? null : data.parentId,
         });
 
         return c.json(task, 201);
@@ -252,31 +263,72 @@ export class TaskController {
 
   reorder = async (c: Context) => {
     try {
-      const parentId = c.req.param("parentId") || null;
+      const parentId = c.req.param("parentId");
 
-      // Validate request body
-      const validationResult = await validateRequest<ReorderTasksInput>(
-        c,
-        reorderTasksSchema.extend({
-          parentId: parentId ? idSchema.default(parentId) : idSchema.nullable().default(null),
-        }),
-      );
+      // Determine if we're reordering tasks under a specific parent
+      // or root tasks (when parentId is not in URL)
+      const hasParentIdInUrl = parentId !== undefined;
+
+      // Prepare schema based on URL path
+      if (hasParentIdInUrl) {
+        // If parentId is in URL, validate it and use it
+        try {
+          idSchema.parse(parentId);
+        } catch (error) {
+          return c.json({ error: "Invalid parent ID" }, 400);
+        }
+
+        // Create a custom schema for parent-specific reordering
+        const schemaWithFixedParent = z.object({
+          orderMap: reorderTasksSchema.shape.orderMap,
+        });
+
+        // Validate request body
+        const validationResult = await validateRequest<{
+          orderMap: Record<string, number>;
+        }>(c, schemaWithFixedParent);
+
+        if (!("success" in validationResult)) {
+          return validationResult;
+        }
+
+        const { orderMap } = validationResult.data;
+
+        // Execute with fixed parentId from URL
+        return this.executeReordering(c, orderMap, parentId);
+      }
+
+      // For root tasks or when parentId is in the body
+      const validationResult = await validateRequest<ReorderTasksInput>(c, reorderTasksSchema);
 
       if (!("success" in validationResult)) {
         return validationResult;
       }
 
-      const { orderMap } = validationResult.data;
+      const { orderMap, parentId: bodyParentId } = validationResult.data;
 
-      const tasks = await this.reorderTasksUseCase.execute({
-        parentId,
-        orderMap,
-      });
-
-      return c.json(tasks);
+      // Execute with parentId from body
+      return this.executeReordering(c, orderMap, bodyParentId);
     } catch (error) {
       logger.error("Failed to reorder tasks:", error);
       return c.json({ error: "Failed to reorder tasks" }, 500);
     }
   };
+
+  private async executeReordering(c: Context, orderMap: Record<string, number>, parentId: string | null) {
+    try {
+      // Execute the reorder use case
+      const tasks = await this.reorderTasksUseCase.execute({
+        parentId,
+        orderMap,
+      });
+
+      return c.json({ success: true, tasks });
+    } catch (error) {
+      if (error instanceof Error) {
+        return c.json({ error: error.message }, 400);
+      }
+      throw error;
+    }
+  }
 }

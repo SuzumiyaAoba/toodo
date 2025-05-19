@@ -2,6 +2,7 @@ import { inject, injectable, singleton } from "tsyringe";
 import { Task } from "../../../domain/models/Task";
 import type { Task as TaskType } from "../../../domain/models/Task";
 import type { TaskRepository } from "../../../domain/repositories/TaskRepository";
+import { TOKENS } from "../../services/DependencyTokens";
 
 type ReorderTasksParams = {
   readonly parentId: string | null;
@@ -11,7 +12,10 @@ type ReorderTasksParams = {
 @injectable()
 @singleton()
 export class ReorderTasksUseCase {
-  constructor(@inject("TaskRepository") private readonly taskRepository: TaskRepository) {}
+  constructor(
+    @inject(TOKENS.TaskRepository)
+    private readonly taskRepository: TaskRepository,
+  ) {}
 
   async execute(params: ReorderTasksParams): Promise<readonly TaskType[]> {
     const { parentId, orderMap } = params;

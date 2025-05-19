@@ -7,6 +7,7 @@ import {
   TaskNotFoundError,
 } from "../../../domain/models/errors";
 import type { TaskRepository } from "../../../domain/repositories/TaskRepository";
+import { TOKENS } from "../../services/DependencyTokens";
 
 type MoveTaskParams = {
   taskId: string;
@@ -16,7 +17,7 @@ type MoveTaskParams = {
 @injectable()
 @singleton()
 export class MoveTaskUseCase {
-  constructor(@inject("TaskRepository") private taskRepository: TaskRepository) {}
+  constructor(@inject(TOKENS.TaskRepository) private taskRepository: TaskRepository) {}
 
   async execute(params: MoveTaskParams): Promise<Task | null> {
     const { taskId, newParentId } = params;
